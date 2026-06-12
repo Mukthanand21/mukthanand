@@ -39,7 +39,8 @@ npm run preview
 ## Deploy
 
 Pushing to the default branch triggers `.gitlab-ci.yml`:
-- `build` job runs `npm ci && npm run build` and saves `dist/`.
+- `build` job runs `npm install && npm run build` and saves `dist/`.
 - `pages` job copies `dist/` into `public/` and publishes to GitLab Pages.
 
-Live Pages URL: _add after first successful deploy_ (see issue #5).
+Live Pages URL: https://mukthanandreddy21.gitlab.io/mukthanand/
+
