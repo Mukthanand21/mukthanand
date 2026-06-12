@@ -12,7 +12,7 @@ build:
     paths:
       - node_modules/
   script:
-    - npm ci
+    - npm install
     - npm run build
   artifacts:
     paths:
