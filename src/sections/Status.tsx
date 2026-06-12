@@ -106,8 +106,7 @@ export function Status() {
             <span className="flex items-center gap-2 font-mono text-sm text-fg">
               <LiveDot />
               <span>
-                <strong className="text-fg-strong">Available</strong>
-                &nbsp;— open to roles
+                Open to Software, AI &amp; Full-Stack Opportunities
               </span>
             </span>
 
