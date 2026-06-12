@@ -112,7 +112,7 @@ export function Status() {
 
             {/* version badge — violet mono */}
             <span className="rounded-full border border-version/20 px-3.5 py-1 font-mono text-xs text-version">
-              v2.0.0&nbsp;— Graduating July&nbsp;2026
+              v2.0.0&nbsp;— Graduation Release
             </span>
           </div>
         </Reveal>
