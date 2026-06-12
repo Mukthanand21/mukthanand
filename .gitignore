@@ -4,4 +4,7 @@ public
 .DS_Store
 *.local
 .vite
+*.tsbuildinfo
+/vite.config.d.ts
+/vite.config.js
 package-lock.json
