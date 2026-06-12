@@ -12,7 +12,7 @@ Target roles: SDE, Backend, Full-Stack (primary); AI / RAG / Applied AI (seconda
 
 ## 2. Sections (visible nav, system-style labels)
 
-- `/status`  Hero. Who I am, availability, current "build version" (Graduating July 2025), active focus. Signature animated moment lives here.
+- `/status`  Hero. Who I am, availability, current "build version" (Graduating July 2026), active focus. Signature animated moment lives here.
 - `/services`  Projects presented as running API services (method badges, description, live demo link). Honest scoping (e.g. contributions to shared apps must be described accurately).
 - `/changelog`  Journey/experience as a semver-style changelog, dated, scrollable.
 - `/stack`  Skills grouped (Languages / Backend / Frontend / DevOps / AI). Beautifully typeset. No skill bars, no bubble charts.
