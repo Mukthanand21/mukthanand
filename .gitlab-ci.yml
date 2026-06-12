@@ -1,0 +1,35 @@
+# Build the Vite app and deploy to GitLab Pages.
+# Vite must be configured with base: './' or the project path for Pages.
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  image: node:20
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+pages:
+  stage: deploy
+  image: node:20
+  dependencies:
+    - build
+  script:
+    - mkdir -p public
+    - cp -r dist/* public/
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
