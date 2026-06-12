@@ -88,7 +88,7 @@ export function Status() {
         {/* positioning line */}
         <Reveal>
           <p className="mb-4 font-mono text-sm uppercase tracking-widest text-fg-muted">
-            Backend &amp; Full-Stack Engineer
+            Software Engineer
           </p>
         </Reveal>
 
@@ -121,9 +121,9 @@ export function Status() {
         {/* human-readable subline */}
         <Reveal delay={0.3}>
           <p className="mt-10 max-w-2xl text-lg leading-relaxed text-fg-muted">
-            I design and build production-grade backend systems, APIs, and
-            full-stack applications — with a focus on clean architecture,
-            performance, and developer experience.
+            Building AI-powered applications, scalable backend services,
+            and full-stack products focused on reliability, performance,
+            and real-world impact.
           </p>
         </Reveal>
 
