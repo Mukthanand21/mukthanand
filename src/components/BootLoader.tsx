@@ -172,10 +172,16 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
 
   /* ─── stage 3: cube rotation → implosion → explosion burst ─── */
   const runStage3Sequence = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    let canvas: HTMLCanvasElement | null = null;
+    let ctx: CanvasRenderingContext2D | null = null;
+    try {
+      canvas = canvasRef.current;
+      if (!canvas) return;
+      ctx = canvas.getContext('2d');
+      if (!ctx) return;
+    } catch {
+      return; // canvas unavailable — skip stage 3 silently
+    }
 
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
@@ -361,18 +367,21 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                     if (skipRef.current) return;
                     setPhase('stage4');
 
-                    // Content becomes visible now — onComplete reveals it
+                    // Content becomes visible NOW under the scanline mask — progressive reveal
                     sessionStorage.setItem('boot_complete', 'true');
                     onCompleteRef.current?.();
 
                     // Scanline sweep
                     runScanlineReveal();
 
+                    // Keep overlay visible for 1000ms total so content's Framer Motion
+                    // entrance animations (nav, hero, cards) have time to render
+                    // before the overlay fully disappears.
                     timers.push(setTimeout(() => {
                       if (skipRef.current) return;
                       setPhase('complete');
                       setScanPos(100);
-                    }, 500));
+                    }, 1000));
                   }, 600));
                 }, 400));
               }, 250));
@@ -463,6 +472,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
             : 'pointer-events-auto'
         } ${phase === 'complete' ? 'opacity-0' : ''}`}
         style={{
+          transition: 'background-color 300ms ease-out, opacity 300ms ease',
           backgroundColor:
             phase === 'boot' || phase === 'stage1'
               ? '#000'
