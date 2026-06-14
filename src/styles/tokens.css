@@ -1,0 +1,38 @@
+/* ─── V2 Design System Tokens ───
+   specs-v2/000-overview.md §2 (Color), §3 (Typography), §4 (Motion), §5 (Layout)
+   All components must reference these variables — never hardcode hex values.
+   ============================================================ */
+
+:root {
+  /* ─── Color System ─── */
+  --color-bg: #0A0A0A;
+  --color-bg-elevated: #111111;
+  --color-bg-subtle: #1A1A1A;
+
+  --color-accent: #E8B65A;       /* Gold — primary accent */
+  --color-accent-dim: #A87E35;   /* Dimmed gold — hover states */
+
+  --color-text-primary: #F3EAEF; /* Warm off-white headings */
+  --color-text-secondary: #B79CAE; /* Descriptions, subtitles */
+  --color-text-muted: #6B4D6B;   /* Labels, timestamps, metadata */
+
+  --color-success: #A8C3A0;      /* Availability dot, operational status */
+  --color-border: #1A1A1A;       /* All borders and dividers */
+
+  /* ─── Typography Scale ─── */
+  --text-hero: clamp(52px, 8vw, 88px);
+  --text-xl: clamp(28px, 4vw, 40px);
+  --text-lg: 18px;
+  --text-md: 15px;
+  --text-sm: 13px;
+  --text-xs: 11px;
+
+  /* ─── Easing Tokens ─── */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-linear: linear;
+
+  /* ─── Layout ─── */
+  --max-content-width: 1100px;
+  --nav-height: 52px;
+}
