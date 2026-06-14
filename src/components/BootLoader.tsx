@@ -364,7 +364,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                   key={i}
                   ref={(el) => { letterRefs.current[i] = el; }}
                   style={{
-                    fontSize: 'clamp(36px, 6vw, 68px)',
+                    fontSize: 'clamp(28px, 7.5vw, 68px)',
                     fontWeight: 800,
                     display: 'inline-block',
                     minWidth: '0.6em',
@@ -385,7 +385,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
               style={{
                 height: '2px',
                 background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)',
-                width: showGoldLine ? '320px' : '0px',
+                width: showGoldLine ? 'min(320px, 80vw)' : '0px',
                 transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
                 margin: '18px auto 14px',
               }}
