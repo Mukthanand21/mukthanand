@@ -15,8 +15,6 @@ const LETTER_SCRIPTS: Record<string, string[]> = {
   'D': ['డ', 'ड', 'ட', 'ಡ', 'ড'],
 };
 
-const SCRIPT_NAMES = ['Telugu', 'Hindi', 'Tamil', 'Kannada', 'Bengali'];
-
 const SCRIPT_FONTS = [
   "'Noto Sans Telugu', sans-serif",
   "'Noto Sans Devanagari', sans-serif",
@@ -49,8 +47,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   const [statusText, setStatusText] = useState('');
   const [typedChars, setTypedChars] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
-  const [scriptLabel, setScriptLabel] = useState('');
-  const [showLabel, setShowLabel] = useState(false);
   const [showGoldLine, setShowGoldLine] = useState(false);
 
   /* ─── Refs ─── */
@@ -101,10 +97,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         span.style.fontFamily = SCRIPT_FONTS[si];
         span.style.color = iteration < scripts.length ? '#4D3A4D' : '#8A6A8A';
         span.style.transform = 'scale(1)';
-
-        // Update script label
-        setScriptLabel(SCRIPT_NAMES[si]);
-        setShowLabel(true);
 
         const delay = iteration < scripts.length ? 80 : 55;
         iteration++;
@@ -158,6 +150,10 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     try { ctx = canvas.getContext('2d'); } catch { return; }
     if (!ctx) return;
 
+    // Resolve the accent color — CSS vars don't work in Canvas 2D context
+    const accentColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--color-accent').trim() || '#E8B65A';
+
     const resize = () => {
       if (!canvas || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -183,7 +179,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         p.x = (p.x + p.vx + canvas.width) % canvas.width;
         p.y = (p.y + p.vy + canvas.height) % canvas.height;
         ctx.globalAlpha = p.op;
-        ctx.fillStyle = 'var(--color-accent)';
+        ctx.fillStyle = accentColor;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
@@ -203,7 +199,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       if (skipRef.current) return;
       if (currentIdx >= LETTERS.length) {
         // All letters locked
-        setShowLabel(false);
         setProgress(85);
 
         // After 300ms: gold line sweeps in
@@ -359,20 +354,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
             className="relative z-10 flex flex-col items-center"
             style={{ padding: '0 16px' }}
           >
-            {/* Script label (above letter row) */}
-            <div
-              className="font-mono text-[10px] tracking-[0.2em] uppercase text-center"
-              style={{
-                color: 'var(--color-text-muted)',
-                height: '14px',
-                marginBottom: '20px',
-                opacity: showLabel ? 1 : 0,
-                transition: 'opacity 0.2s',
-              }}
-            >
-              {scriptLabel}
-            </div>
-
             {/* Letter row */}
             <div
               className="flex items-center justify-center"
