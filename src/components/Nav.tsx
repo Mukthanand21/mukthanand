@@ -69,7 +69,30 @@ function ShortcutHint() {
 
   return (
     <span className="hidden rounded border border-border px-1.5 py-0.5 font-mono text-[10px] leading-none text-fg-muted md:inline-block">
-      {isMac ? '⌘K' : 'Ctrl+K'}
+      {isMac ? '\u2318K' : 'Ctrl+K'}
+    </span>
+  );
+}
+
+/* ─── session uptime counter ─── */
+function UptimeCounter() {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  const formatted = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+  return (
+    <span className="hidden items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-fg-muted md:inline-flex">
+      <span className="opacity-50">SESSION:</span>
+      <span className="tabular-nums">{formatted}</span>
     </span>
   );
 }
@@ -81,16 +104,18 @@ function ShortcutHint() {
    - Green dot logo + ● OPERATIONAL indicator
    - Hide on scroll down, show on scroll up
    - Active gold dot indicator above current link
+   - Uptime counter (SESSION: MM:SS)
+   - Scroll progress bar (1px gold line at nav bottom)
    - ⌘K keyboard shortcut to focus nav
    - Mobile hamburger with animated slide-down + blur backdrop
    ============================================================ */
 export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const scrollDir = useScrollDirection(10);
-  // Close mobile menu on route change (escape hatch)
+
+  // Body scroll lock when mobile menu is open
   useEffect(() => {
     if (mobileOpen) {
-      // Prevent body scroll when mobile menu is open
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -121,6 +146,24 @@ export function Nav() {
     return () => window.removeEventListener('keydown', onEscape);
   }, [mobileOpen]);
 
+  // Scroll progress state (0-100%)
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight;
+      const winHeight = window.innerHeight;
+      const totalScroll = docHeight - winHeight;
+      const progress = totalScroll > 0 ? (scrollTop / totalScroll) * 100 : 0;
+      setScrollProgress(Math.min(100, Math.max(0, progress)));
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   // Hide nav when scrolling down past threshold, show on scroll up
   const isHidden = scrollDir === 'down' && window.scrollY > 80;
 
@@ -138,7 +181,7 @@ export function Nav() {
       />
 
       <header
-        className={`sticky top-0 z-[100] border-b border-border bg-bg/90 backdrop-blur-md transition-transform duration-300 ${
+        className={`relative sticky top-0 z-[100] border-b border-border bg-bg/90 backdrop-blur-md transition-transform duration-300 ${
           isHidden ? '-translate-y-full' : 'translate-y-0'
         }`}
       >
@@ -166,6 +209,8 @@ export function Nav() {
 
             {/* OPERATIONAL indicator — desktop only */}
             <StatusIndicator />
+
+            <UptimeCounter />
 
             <ShortcutHint />
 
@@ -196,6 +241,12 @@ export function Nav() {
             </button>
           </nav>
         </div>
+
+        {/* scroll progress bar — 1px gold line at nav bottom */}
+        <div
+          className="absolute bottom-0 left-0 h-px bg-accent transition-[width] duration-150 ease-out will-change-[width]"
+          style={{ width: `${scrollProgress}%` }}
+        />
 
         {/* mobile dropdown — slide animation */}
         <div
