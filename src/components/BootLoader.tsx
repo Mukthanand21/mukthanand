@@ -1,145 +1,220 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
-/* ─── status lines for boot stage 2 ─── */
-const BOOT_STATUSES = [
-  'LOADING ASSETS...',
-  'MOUNTING ROUTES...',
-  'RESOLVING STACK...',
-  'SYSTEM READY',
-] as const;
+/* ═══════════════════════════════════════════════════════
+   Letter → Language mapping (LOCKED — see spec)
+   ═══════════════════════════════════════════════════════ */
+interface LetterMap {
+  en: string;
+  script: string;
+  lang: string;
+  font: string;
+}
 
-/* ─── progress steps (non-linear) ─── */
-const PROGRESS_STEPS = [12, 38, 71, 100] as const;
+const LETTERS: LetterMap[] = [
+  { en: 'M', script: 'మ', lang: 'Telugu',    font: "'Noto Sans Telugu',sans-serif" },
+  { en: 'U', script: 'उ', lang: 'Hindi',     font: "'Noto Sans Devanagari',sans-serif" },
+  { en: 'K', script: 'க', lang: 'Tamil',     font: "'Noto Sans Tamil',sans-serif" },
+  { en: 'T', script: 'ತ', lang: 'Kannada',   font: "'Noto Sans Kannada',sans-serif" },
+  { en: 'H', script: 'হ', lang: 'Bengali',   font: "'Noto Sans Bengali',sans-serif" },
+  { en: 'A', script: 'അ', lang: 'Malayalam', font: "'Noto Sans Malayalam',sans-serif" },
+  { en: 'N', script: 'न', lang: 'Marathi',   font: "'Noto Sans Devanagari',sans-serif" },
+  { en: 'A', script: 'અ', lang: 'Gujarati',  font: "'Noto Sans Gujarati',sans-serif" },
+  { en: 'N', script: 'ਨ', lang: 'Punjabi',   font: "'Noto Sans Gurmukhi',sans-serif" },
+  { en: 'D', script: 'ଡ', lang: 'Odia',      font: "'Noto Sans Oriya',sans-serif" },
+];
 
-/* ─── typewriter speed (ms per character) ─── */
-const TYPING_SPEED = 15;
+/* ═══════════════════════════════════════════════════════
+   Scramble character pool — all Indian script chars
+   ═══════════════════════════════════════════════════════ */
+const SCRAMBLE_POOL = [
+  'మ','న','క','ర','ఉ','అ','ల','వ','త','హ',
+  'त','न','क','र','ह','उ','म',
+  'ம','ந','க','ர','ல','வ','த',
+  'ಮ','ನ','ಕ','ರ','ಲ','ವ','ತ','ಹ',
+  'ম','ন','ক','র','ল','ভ',
+  'അ','ന','ക','ര','ല','വ',
+  'न','म','क','र','ह',
+  'અ','ન','ક','ર','લ',
+  'ਨ','ਮ','ਕ','ਰ','ਲ',
+  'ଡ','ନ','କ','ର','ଲ',
+];
 
-type BootPhase = 'boot' | 'stage1' | 'stage2' | 'stage3' | 'stage4' | 'complete';
+type BootPhase = 'boot' | 'active' | 'complete';
 
 type BootLoaderProps = {
   onComplete?: () => void;
 };
 
-/* ============================================================
-   3D wireframe cube helpers
-   ============================================================ */
-type Vec3 = [number, number, number];
-
-const CUBE_VERTS: Vec3[] = [
-  [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
-  [-1, -1,  1], [1, -1,  1], [1, 1,  1], [-1, 1,  1],
-];
-
-const CUBE_EDGES: [number, number][] = [
-  [0, 1], [1, 2], [2, 3], [3, 0],
-  [4, 5], [5, 6], [6, 7], [7, 4],
-  [0, 4], [1, 5], [2, 6], [3, 7],
-];
-
-function rotateY(p: Vec3, angle: number): Vec3 {
-  const c = Math.cos(angle), s = Math.sin(angle);
-  return [p[0] * c + p[2] * s, p[1], -p[0] * s + p[2] * c];
-}
-
-function rotateX(p: Vec3, angle: number): Vec3 {
-  const c = Math.cos(angle), s = Math.sin(angle);
-  return [p[0], p[1] * c - p[2] * s, p[1] * s + p[2] * c];
-}
-
-function project(p: Vec3, cx: number, cy: number, scale: number): [number, number] {
-  const d = 3;
-  const factor = d / (d + p[2]);
-  return [cx + p[0] * scale * factor, cy - p[1] * scale * factor];
-}
-
-function drawWireframeCube(
-  ctx: CanvasRenderingContext2D,
-  angleY: number,
-  angleX: number,
-  cx: number,
-  cy: number,
-  scale: number,
-  color: string,
-  glow = true,
-) {
-  const projected = CUBE_VERTS.map(v => {
-    const ry = rotateY(v, angleY);
-    const rx = rotateX(ry, angleX);
-    return project(rx, cx, cy, scale);
-  });
-
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.2;
-  if (glow) {
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 12;
-  }
-
-  for (const [i, j] of CUBE_EDGES) {
-    ctx.beginPath();
-    ctx.moveTo(projected[i][0], projected[i][1]);
-    ctx.lineTo(projected[j][0], projected[j][1]);
-    ctx.stroke();
-  }
-
-  ctx.shadowBlur = 0;
-
-  // Vertex dots
-  for (const [x, y] of projected) {
-    ctx.beginPath();
-    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-  }
-}
-
-/* ============================================================
-   BootLoader — 4-stage cinematic entrance sequence
-   ============================================================ */
+/* ═══════════════════════════════════════════════════════
+   BootLoader v3 — 7-stage script scramble sequence
+   ═══════════════════════════════════════════════════════ */
 export function BootLoader({ onComplete }: BootLoaderProps) {
   const reduced = usePrefersReducedMotion();
 
+  /* ─── UI state ─── */
   const [phase, setPhase] = useState<BootPhase>('boot');
-  const [progressIndex, setProgressIndex] = useState(-1);
+  const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
   const [typedChars, setTypedChars] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
-  const [showCursor, setShowCursor] = useState(false);
-  const [glitching, setGlitching] = useState(false);
-  const [scanPos, setScanPos] = useState(0);
+  const [langLabel, setLangLabel] = useState('');
+  const [showSystem, setShowSystem] = useState(false);
+  const [underlineWidth, setUnderlineWidth] = useState('0px');
+  const [showGoldFlash, setShowGoldFlash] = useState(false);
 
+  /* ─── Refs ─── */
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef(0);
-  const typeTimerRef = useRef(0);
-  const cursorTimerRef = useRef(0);
-  const scanRafRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const timersRef = useRef<number[]>([]);
+  const rafsRef = useRef<number[]>([]);
+  const typedCharsRef = useRef(0);
   const skipRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
-  /* ─── typewriter: animate a line char by char ─── */
-  const typeText = useCallback((text: string, onDone: () => void) => {
-    setTypedChars(0);
-    setIsTyping(true);
-    setShowCursor(true);
-    let i = 0;
-    typeTimerRef.current = window.setInterval(() => {
-      i++;
-      setTypedChars(i);
-      if (i >= text.length) {
-        clearInterval(typeTimerRef.current);
-        setIsTyping(false);
-        // blink cursor for a moment after line completes
-        cursorTimerRef.current = window.setTimeout(() => {
-          setShowCursor(false);
-        }, 250);
-        onDone();
-      }
-    }, TYPING_SPEED);
+  /* ─── Timer / rAF helpers ─── */
+  const T = useCallback((fn: () => void, ms: number) => {
+    const id = window.setTimeout(fn, ms);
+    timersRef.current.push(id);
+    return id;
   }, []);
 
-  /* ─── keyboard interrupt: any key skips boot ─── */
+  const RAF = useCallback((fn: FrameRequestCallback) => {
+    const id = requestAnimationFrame(fn);
+    rafsRef.current.push(id);
+    return id;
+  }, []);
+
+  /* ─── Language label helper ─── */
+  const showLang = useCallback((txt: string) => {
+    setLangLabel('');
+    T(() => { setLangLabel(txt); }, 10);
+    T(() => { setLangLabel(''); }, 610);
+  }, [T]);
+
+  /* ─── Typewriter for SYSTEM READY ─── */
+  const typeSystemReady = useCallback((text: string, onDone: () => void) => {
+    setTypedChars(0);
+    typedCharsRef.current = 0;
+    setIsTyping(true);
+    const interval = window.setInterval(() => {
+      typedCharsRef.current++;
+      setTypedChars(typedCharsRef.current);
+      if (typedCharsRef.current >= text.length) {
+        clearInterval(interval);
+        setIsTyping(false);
+        T(onDone, 250);
+      }
+    }, 55);
+    timersRef.current.push(interval);
+  }, [T]);
+
+  /* ─── Letter scramble (per letter) ─── */
+  const scrambleLetter = useCallback((index: number, onLock: () => void) => {
+    const letter = LETTERS[index];
+    const span = letterRefs.current[index];
+    if (!span) { onLock(); return; }
+
+    let count = 0;
+    const totalCycles = 10;
+
+    const cycle = () => {
+      if (skipRef.current) return;
+      if (count < totalCycles) {
+        const randomChar = SCRAMBLE_POOL[Math.floor(Math.random() * SCRAMBLE_POOL.length)];
+        span!.textContent = randomChar;
+        span!.style.color = count < 5 ? '#3D2A3D' : '#5A3A6A';
+        span!.style.fontFamily = "'Noto Sans Telugu',sans-serif";
+        count++;
+        T(cycle, 55 + Math.random() * 30);
+      } else {
+        // LOCK to assigned script
+        span!.textContent = letter.script;
+        span!.style.fontFamily = letter.font;
+        span!.style.color = '#7A5A8A';
+        span!.style.textShadow = '0 0 12px rgba(232,182,90,0.25)';
+        T(() => {
+          if (span) span!.style.textShadow = 'none';
+          onLock();
+        }, 150);
+      }
+    };
+
+    cycle();
+  }, [T]);
+
+  /* ─── Reveal: flip all letters to English ─── */
+  const bigReveal = useCallback(() => {
+    // Gold flash
+    setShowGoldFlash(true);
+    T(() => setShowGoldFlash(false), 80);
+
+    // Flip all letters
+    for (let i = 0; i < LETTERS.length; i++) {
+      const span = letterRefs.current[i];
+      if (!span) continue;
+      span.style.transition = 'color 0.5s ease-out, font-family 0.2s, text-shadow 0.5s';
+      span.style.fontFamily = "'Syne',sans-serif";
+      span.style.color = 'var(--color-text-primary)';
+      span.style.textShadow = '0 0 40px rgba(232,182,90,0.5)';
+      span.textContent = LETTERS[i].en;
+      T(() => {
+        if (span) span.style.textShadow = 'none';
+      }, 600);
+    }
+  }, [T]);
+
+  /* ─── Ambient particles (canvas) ─── */
+  const startParticles = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let ctx: CanvasRenderingContext2D | null = null;
+    try { ctx = canvas.getContext('2d'); } catch { return; }
+    if (!ctx) return;
+
+    const accentColor = 'var(--color-accent)';
+
+    // Size canvas to container
+    const resize = () => {
+      if (!canvas || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    };
+    resize();
+
+    const pts = Array.from({ length: 14 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: 0.4 + Math.random() * 0.8,
+      op: 0.04 + Math.random() * 0.1,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: (Math.random() - 0.5) * 0.15,
+    }));
+
+    const draw = () => {
+      if (skipRef.current) return;
+      if (!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const p of pts) {
+        p.x = (p.x + p.vx + canvas.width) % canvas.width;
+        p.y = (p.y + p.vy + canvas.height) % canvas.height;
+        ctx.globalAlpha = p.op;
+        ctx.fillStyle = accentColor;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      RAF(draw);
+    };
+
+    RAF(draw);
+  }, [RAF]);
+
+  /* ─── Keyboard interrupt ─── */
   useEffect(() => {
     if (phase === 'complete') return;
 
@@ -147,10 +222,11 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       if (skipRef.current) return;
       skipRef.current = true;
 
-      clearInterval(typeTimerRef.current);
-      clearTimeout(cursorTimerRef.current);
-      cancelAnimationFrame(rafRef.current);
-      cancelAnimationFrame(scanRafRef.current);
+      // Clear all timers and rAFs
+      timersRef.current.forEach(clearTimeout);
+      rafsRef.current.forEach(cancelAnimationFrame);
+      timersRef.current = [];
+      rafsRef.current = [];
 
       onCompleteRef.current?.();
       setPhase('complete');
@@ -160,413 +236,304 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [phase]);
 
-  /* ─── stage 3: cube rotation → implosion → explosion burst ─── */
-  const runStage3Sequence = useCallback(() => {
-    let canvas: HTMLCanvasElement | null = null;
-    let ctx: CanvasRenderingContext2D | null = null;
-    try {
-      canvas = canvasRef.current;
-      if (!canvas) return;
-      ctx = canvas.getContext('2d');
-      if (!ctx) return;
-    } catch {
-      return; // canvas unavailable — skip stage 3 silently
-    }
-
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-    const baseColor = getComputedStyle(document.documentElement)
-      .getPropertyValue('--color-accent').trim() || '#E8B65A';
-    const cyanColor = '#22D3EE';
-    const violetColor = '#A855F7';
-
-    let angleY = 0;
-    let angleX = 0;
-    let seqPhase: 'rotate' | 'implode' | 'explode' = 'rotate';
-    let seqStart = performance.now();
-    const ROTATE_MS = 160;
-    const IMPLODE_MS = 60;
-    const EXPLODE_MS = 300;
-
-    // Explosion particles
-    type ExplodeP = { angle: number; dist: number; speed: number; size: number; hueShift: number; color: string };
-    let particles: ExplodeP[] = [];
-
-    const initExplosion = () => {
-      const count = 45 + Math.floor(Math.random() * 20);
-      particles = [];
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 80 + Math.random() * 200;
-        const size = 1 + Math.random() * 3.5;
-        const hueShift = Math.random();
-        const colorBucket = Math.random();
-        const color =
-          colorBucket < 0.5 ? baseColor
-            : colorBucket < 0.8 ? cyanColor
-              : violetColor;
-        particles.push({ angle, dist, speed: 0.6 + Math.random() * 1.0, size, hueShift, color });
-      }
-    };
-
-    let cleared = false;
-
-    const animate = (now: number) => {
-      if (skipRef.current) return;
-      const elapsed = now - seqStart;
-
-      // semi-transparent clear for motion trails
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.15)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      if (seqPhase === 'rotate') {
-        angleY += 0.035;
-        angleX += 0.012;
-        drawWireframeCube(ctx, angleY, angleX, cx, cy, 55, baseColor, true);
-
-        if (elapsed >= ROTATE_MS) {
-          seqPhase = 'implode';
-          seqStart = now;
-        }
-        rafRef.current = requestAnimationFrame(animate);
-
-      } else if (seqPhase === 'implode') {
-        const scale = Math.max(0, 1 - Math.min(elapsed / IMPLODE_MS, 1));
-        angleY += 0.04;
-        angleX += 0.015;
-        drawWireframeCube(ctx, angleY, angleX, cx, cy, 55 * scale, baseColor, true);
-
-        if (elapsed >= IMPLODE_MS) {
-          seqPhase = 'explode';
-          seqStart = now;
-          initExplosion();
-          cleared = false;
-        }
-        rafRef.current = requestAnimationFrame(animate);
-
-      } else if (seqPhase === 'explode') {
-        const easeT = 1 - Math.pow(1 - Math.min(elapsed / EXPLODE_MS, 1), 2);
-
-        if (!cleared) {
-          // full clear on first explosion frame
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          cleared = true;
-        }
-
-        for (const p of particles) {
-          const x = cx + Math.cos(p.angle) * p.dist * easeT;
-          const y = cy + Math.sin(p.angle) * p.dist * easeT;
-          const opacity = Math.max(0, 1 - easeT * 1.1);
-          const radius = p.size * (1 - easeT * 0.6);
-
-          ctx.globalAlpha = opacity;
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = radius * 3;
-          ctx.fillStyle = p.color;
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1;
-
-        if (elapsed >= EXPLODE_MS) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          return;
-        }
-        rafRef.current = requestAnimationFrame(animate);
-      }
-    };
-
-    rafRef.current = requestAnimationFrame(animate);
-  }, []);
-
-  /* ─── stage 4: scanline reveal mask ─── */
-  const runScanlineReveal = useCallback(() => {
-    const startTime = performance.now();
-    const duration = 450;
-
-    const animate = (now: number) => {
-      if (skipRef.current) return;
-      const elapsed = now - startTime;
-      const t = Math.min(elapsed / duration, 1);
-      const easeT = 1 - Math.pow(1 - t, 2);
-      setScanPos(easeT * 100);
-
-      if (t < 1) {
-        scanRafRef.current = requestAnimationFrame(animate);
-      } else {
-        setScanPos(100);
-      }
-    };
-
-    scanRafRef.current = requestAnimationFrame(animate);
-  }, []);
-
-  /* ─── main boot sequence (runs once on mount) ─── */
+  /* ─── Main boot sequence ─── */
   useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = [];
-
     if (reduced) {
-      setPhase('stage4');
-      timers.push(setTimeout(() => {
-        if (skipRef.current) return;
-        setPhase('complete');
-        onCompleteRef.current?.();
-      }, 300));
-    } else {
-      // Stage 1: Black flash + CRT warm-up scan (80ms)
-      setPhase('stage1');
-
-      timers.push(setTimeout(() => {
-        if (skipRef.current) return;
-
-        // Stage 2 begins
-        setPhase('stage2');
-
-        // Advance through progress steps with typewriter
-        let step = 0;
-
-        const advanceStep = () => {
+      // Reduced motion: show final state immediately
+      setPhase('active');
+      // Set letters to English immediately
+      T(() => {
+        for (let i = 0; i < LETTERS.length; i++) {
+          const span = letterRefs.current[i];
+          if (!span) continue;
+          span.textContent = LETTERS[i].en;
+          span.style.fontFamily = "'Syne',sans-serif";
+          span.style.color = 'var(--color-text-primary)';
+        }
+        setShowSystem(true);
+        setUnderlineWidth('300px');
+        setProgress(100);
+        T(() => {
           if (skipRef.current) return;
-          setProgressIndex(step);
-
-          const text = BOOT_STATUSES[step];
-          setStatusText(text);
-
-          // After SYSTEM READY types out, trigger glitch
-          const onTyped = () => {
-            if (skipRef.current) return;
-            if (step >= PROGRESS_STEPS.length - 1) {
-              // SYSTEM READY: glitch, then hold, then stage 3
-              setGlitching(true);
-              timers.push(setTimeout(() => {
-                if (skipRef.current) return;
-                setGlitching(false);
-
-                timers.push(setTimeout(() => {
-                  if (skipRef.current) return;
-                  setPhase('stage3');
-                  runStage3Sequence();
-
-                  // After stage 3 → stage 4 scanline reveal
-                  timers.push(setTimeout(() => {
-                    if (skipRef.current) return;
-                    setPhase('stage4');
-
-                    // Content becomes visible NOW under the scanline mask — progressive reveal
-                    onCompleteRef.current?.();
-
-                    // Scanline sweep
-                    runScanlineReveal();
-
-                    // Keep overlay visible for 1000ms total so content's Framer Motion
-                    // entrance animations (nav, hero, cards) have time to render
-                    // before the overlay fully disappears.
-                    timers.push(setTimeout(() => {
-                      if (skipRef.current) return;
-                      setPhase('complete');
-                      setScanPos(100);
-                    }, 1000));
-                  }, 600));
-                }, 400));
-              }, 250));
-            } else {
-              // Advance to next step after a brief pause
-              timers.push(setTimeout(() => {
-                if (skipRef.current) return;
-                step++;
-                advanceStep();
-              }, 200));
-            }
-          };
-
-          typeText(text, onTyped);
-        };
-
-        // Start first step immediately
-        advanceStep();
-      }, 80));
+          onCompleteRef.current?.();
+          setPhase('complete');
+        }, 200);
+      }, 10);
+      return;
     }
+
+    /* ── Stage 1: Black flash (80ms) ── */
+    // Phase is already 'boot' — black background
+
+    T(() => {
+      if (skipRef.current) return;
+
+      /* ── Stage 2: Boot begins (80ms+) ── */
+      setPhase('active');
+      startParticles();
+      setStatusText('INITIALIZING SYSTEM...');
+      setProgress(5);
+
+      T(() => {
+        if (skipRef.current) return;
+
+        /* ── Stage 3: Identity scan (880ms+) ── */
+        setStatusText('SCANNING IDENTITY...');
+        setProgress(15);
+
+        // Start letter scramble — stagger 200ms apart
+        let lockedCount = 0;
+
+        for (let i = 0; i < LETTERS.length; i++) {
+          T(() => {
+            if (skipRef.current) return;
+
+            // Show language label
+            showLang(LETTERS[i].lang);
+
+            // Scramble this letter
+            scrambleLetter(i, () => {
+              if (skipRef.current) return;
+              lockedCount++;
+              setProgress(Math.round(15 + (lockedCount / LETTERS.length) * 55));
+
+              /* ── Stage 5: All locked — anticipation hold ── */
+              if (lockedCount === LETTERS.length) {
+                setStatusText('RESOLVING...');
+                setProgress(80);
+                // Force status color via inline style
+
+                // After 300ms: brighten all locked chars
+                T(() => {
+                  if (skipRef.current) return;
+                  for (let j = 0; j < LETTERS.length; j++) {
+                    const span = letterRefs.current[j];
+                    if (span) {
+                      span.style.transition = 'color 0.7s';
+                      span.style.color = '#AA7ACC';
+                    }
+                  }
+
+                  // After 900ms total from RESOLVING: status clears, bar 95%
+                  T(() => {
+                    if (skipRef.current) return;
+                    setStatusText('');
+                    setProgress(95);
+
+                    /* ── Stage 6: THE REVEAL (after 1200ms from stage 5 start) ── */
+                    T(() => {
+                      if (skipRef.current) return;
+
+                      setProgress(100);
+                      bigReveal();
+
+                      /* ── Stage 7: System ready (500ms after reveal) ── */
+                      T(() => {
+                        if (skipRef.current) return;
+
+                        setShowSystem(true);
+                        setUnderlineWidth('300px');
+
+                        // After 400ms: type SYSTEM READY
+                        T(() => {
+                          if (skipRef.current) return;
+                          typeSystemReady('SYSTEM READY', () => {
+                            if (skipRef.current) return;
+
+                            // Boot complete — call onComplete, then fade out
+                            onCompleteRef.current?.();
+                            T(() => {
+                              if (skipRef.current) return;
+                              setPhase('complete');
+                            }, 400);
+                          });
+                        }, 400);
+                      }, 500);
+                    }, 300);
+                  }, 600);
+                }, 300);
+              }
+            });
+          }, 200 + i * 200);
+        }
+      }, 800);
+    }, 80);
 
     return () => {
-      timers.forEach(clearTimeout);
-      cancelAnimationFrame(rafRef.current);
-      cancelAnimationFrame(scanRafRef.current);
-      clearInterval(typeTimerRef.current);
-      clearTimeout(cursorTimerRef.current);
+      timersRef.current.forEach(clearTimeout);
+      rafsRef.current.forEach(cancelAnimationFrame);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Don't render anything when complete
+  /* ─── Render ─── */
   if (phase === 'complete') return null;
 
-  /* ─── overlay class names (extracted to avoid TS narrowing across template literal) ─── */
-  const isRevealed = phase === 'stage4';
-  const overlayClassName = `fixed inset-0 z-[200] flex flex-col items-center justify-center transition-all duration-300 ${
-    isRevealed ? 'pointer-events-none' : 'pointer-events-auto'
-  }`;
-
-  /* ─── compute scanline mask for stage 4 ─── */
-  const scanlineMask =
-    phase === 'stage4'
-      ? {
-          WebkitMaskImage: `linear-gradient(to bottom,
-            transparent 0%,
-            transparent ${scanPos}%,
-            rgba(232, 182, 90, 0.2) ${scanPos}%,
-            rgba(232, 182, 90, 0.1) calc(${scanPos}% + 4px),
-            white calc(${scanPos}% + 4px),
-            white 100%
-          )`,
-          maskImage: `linear-gradient(to bottom,
-            transparent 0%,
-            transparent ${scanPos}%,
-            rgba(232, 182, 90, 0.2) ${scanPos}%,
-            rgba(232, 182, 90, 0.1) calc(${scanPos}% + 4px),
-            white calc(${scanPos}% + 4px),
-            white 100%
-          )`,
-          WebkitMaskSize: '100% 100%',
-          maskSize: '100% 100%',
-          WebkitMaskRepeat: 'no-repeat',
-          maskRepeat: 'no-repeat',
-        }
-      : {};
+  const statusColor = statusText === 'RESOLVING...'
+    ? '#8A6A8A'
+    : statusText === 'SYSTEM READY'
+      ? 'var(--color-accent)'
+      : 'var(--color-text-muted)';
 
   return (
     <>
-      {/* CRT scan-line overlay (visible during stages 1-3) */}
-      {(phase === 'stage1' || phase === 'stage2' || phase === 'stage3') && (
+      {/* Full-screen boot overlay */}
+      <div
+        ref={containerRef}
+        className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
+        style={{
+          backgroundColor: phase === 'boot' ? '#000' : 'var(--color-bg)',
+        }}
+      >
+        {/* Canvas for ambient particles */}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 h-full w-full pointer-events-none"
+        />
+
+        {/* Main boot content — only visible after stage 1 */}
+        {phase === 'active' && (
+          <div
+            className="relative z-10 flex flex-col items-center"
+            style={{ padding: '0 16px' }}
+          >
+            {/* Language label (above letter row) */}
+            <div
+              className="font-mono text-[11px] tracking-[0.25em] uppercase text-center"
+              style={{
+                color: 'var(--color-text-muted)',
+                height: '16px',
+                marginBottom: '20px',
+                opacity: langLabel ? 1 : 0,
+                transition: 'opacity 0.1s',
+              }}
+            >
+              {langLabel}
+            </div>
+
+            {/* Letter row */}
+            <div
+              className="flex items-center justify-center"
+              style={{
+                gap: '2px',
+                minHeight: '100px',
+              }}
+            >
+              {LETTERS.map((_, i) => (
+                <span
+                  key={i}
+                  ref={(el) => { letterRefs.current[i] = el; }}
+                  style={{
+                    fontSize: 'clamp(36px, 6.5vw, 70px)',
+                    fontWeight: 700,
+                    display: 'inline-block',
+                    minWidth: '0.58em',
+                    textAlign: 'center',
+                    lineHeight: 1.1,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* SYSTEM label (appears after reveal) */}
+            {showSystem && (
+              <div
+                className="font-mono font-medium tracking-[0.4em] text-center"
+                style={{
+                  fontSize: 'clamp(12px, 2vw, 17px)',
+                  color: 'var(--color-accent)',
+                  marginTop: '10px',
+                  opacity: showSystem ? 1 : 0,
+                  transition: 'opacity 0.6s',
+                }}
+              >
+                SYSTEM
+              </div>
+            )}
+
+            {/* Gold gradient underline */}
+            <div
+              className={showSystem ? '' : 'invisible'}
+              style={{
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)',
+                width: underlineWidth,
+                transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)',
+                margin: showSystem ? '18px auto 14px' : '18px auto 14px',
+              }}
+            />
+
+            {/* Status line */}
+            <div
+              className="font-mono text-[11px] tracking-[0.18em] uppercase text-center"
+              style={{
+                color: statusColor,
+                height: '18px',
+                transition: 'color 0.25s',
+              }}
+            >
+              {isTyping || typedChars > 0 ? (
+                <>
+                  <span>{statusText.slice(0, typedChars)}</span>
+                  {isTyping && (
+                    <span style={{ marginLeft: '2px' }}>{'\u258C'}</span>
+                  )}
+                </>
+              ) : (
+                statusText
+              )}
+            </div>
+
+            {/* Progress bar */}
+            {progress > 0 && (
+              <>
+                <div
+                  style={{
+                    width: '160px',
+                    height: '1px',
+                    background: '#1E141E',
+                    marginTop: '14px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      height: '100%',
+                      width: `${progress}%`,
+                      background: 'var(--color-accent)',
+                      transition: 'width 0.4s ease-out',
+                    }}
+                  />
+                </div>
+                <div
+                  className="font-mono text-[10px]"
+                  style={{
+                    color: progress >= 100 ? 'var(--color-accent)' : '#3D2A3D',
+                    marginTop: '6px',
+                  }}
+                >
+                  {progress}%
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Gold flash overlay (stage 6) */}
+      {showGoldFlash && (
         <div
-          className="pointer-events-none fixed inset-0 z-[201] animate-[crt-flicker_6s_infinite]"
+          className="fixed inset-0 z-[201] pointer-events-none"
           style={{
-            backgroundImage:
-              'repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 3px)',
+            background: 'var(--color-accent)',
+            opacity: 0.15,
           }}
         />
       )}
-
-      {/* Full-screen boot overlay */}
-      <div
-        className={overlayClassName}
-        style={{
-          transition: 'background-color 300ms ease-out, opacity 300ms ease',
-          backgroundColor:
-            phase === 'boot' || phase === 'stage1'
-              ? '#000'
-              : 'var(--color-bg)',
-          ...scanlineMask,
-          opacity: phase === 'stage4' ? 1 : undefined,
-        }}
-      >
-        {/* Stage 1: CRT warm-up scan line */}
-        {phase === 'stage1' && (
-          <div
-            className="absolute left-0 right-0 h-px animate-[crt-warmup_80ms_linear_forwards]"
-            style={{
-              top: 0,
-              background:
-                'linear-gradient(90deg, transparent 0%, var(--color-accent-dim) 50%, transparent 100%)',
-              opacity: 0.6,
-            }}
-          />
-        )}
-
-        {/* Stage 2: Boot loader content */}
-        {phase === 'stage2' && (
-          <div className="flex flex-col items-center gap-6">
-            {/* MUKTHANAND.DEV with chromatic aberration */}
-            <h1
-              className="font-mono text-sm uppercase tracking-[0.3em]"
-              style={{
-                color: 'var(--color-text-muted)',
-                textShadow:
-                  '-0.5px 0 rgba(255,50,50,0.15), 0.5px 0 rgba(50,100,255,0.15)',
-              }}
-            >
-              MUKTHANAND.DEV
-            </h1>
-
-            {/* Progress bar track */}
-            <div
-              className="relative h-px overflow-hidden rounded-full"
-              style={{
-                width: '200px',
-                backgroundColor: 'var(--color-border)',
-              }}
-            >
-              {/* Progress bar fill */}
-              <div
-                className="absolute left-0 top-0 h-full rounded-full transition-all duration-[180ms] ease-out"
-                style={{
-                  width: `${progressIndex >= 0 ? PROGRESS_STEPS[progressIndex] : 0}%`,
-                  backgroundColor: 'var(--color-accent)',
-                  boxShadow:
-                    progressIndex >= 0
-                      ? '0 0 6px var(--color-accent-dim)'
-                      : 'none',
-                }}
-              />
-            </div>
-
-            {/* Typewriter status line */}
-            <p
-              className={`font-mono text-xs uppercase tracking-widest transition-all duration-300 ${
-                glitching ? 'animate-[glitch-text_300ms_ease-out]' : ''
-              }`}
-              style={{
-                color:
-                  statusText === 'SYSTEM READY'
-                    ? 'var(--color-accent)'
-                    : 'var(--color-text-muted)',
-                textShadow:
-                  statusText === 'SYSTEM READY' && !glitching
-                    ? '0 0 8px var(--color-accent-dim)'
-                    : 'none',
-              }}
-            >
-              <span>{statusText.slice(0, typedChars)}</span>
-              {(isTyping || showCursor) && (
-                <span
-                  className="inline-block w-[2px] animate-[cursor-blink_800ms_step-end_infinite]"
-                  style={{
-                    backgroundColor: 'currentColor',
-                    height: '1em',
-                    verticalAlign: 'middle',
-                    marginLeft: '2px',
-                  }}
-                />
-              )}
-            </p>
-          </div>
-        )}
-
-        {/* Stage 3: Canvas particles (cube + explosion) */}
-        {phase === 'stage3' && (
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 h-full w-full"
-            width={window.innerWidth}
-            height={window.innerHeight}
-          />
-        )}
-
-        {/* Stage 4: accent glow edge for the scanline */}
-        {phase === 'stage4' && (
-          <div
-            className="pointer-events-none absolute left-0 right-0 h-px transition-all duration-[50ms] ease-linear"
-            style={{
-              top: `${scanPos}%`,
-              background:
-                'linear-gradient(90deg, transparent 0%, var(--color-accent) 50%, transparent 100%)',
-              opacity: Math.max(0, 0.6 - scanPos / 200),
-            }}
-          />
-        )}
-      </div>
     </>
   );
 }

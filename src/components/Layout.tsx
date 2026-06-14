@@ -6,9 +6,7 @@ import { BootLoader } from './BootLoader';
 
 // Shared app shell: nav, routed section content, footer.
 export function Layout() {
-  const [bootComplete, setBootComplete] = useState(() => {
-    return typeof window !== 'undefined' && sessionStorage.getItem('boot_complete') === 'true';
-  });
+  const [bootComplete, setBootComplete] = useState(false);
 
   return (
     <div className="min-h-screen bg-bg text-fg">
