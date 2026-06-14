@@ -17,7 +17,7 @@ function NavItem({ to, label }: { to: string; label: string }) {
       {({ isActive }) => (
         <>
           <span
-            className={`font-mono text-xs uppercase tracking-wider transition-colors duration-150 ${
+            className={`font-mono text-sm uppercase tracking-wider transition-colors duration-150 ${
               isActive
                 ? 'text-accent'
                 : 'text-fg-secondary group-hover:text-accent'
@@ -40,7 +40,7 @@ function NavItem({ to, label }: { to: string; label: string }) {
 /* ─── OPERATIONAL indicator with 1.8s pulse ─── */
 function StatusIndicator() {
   return (
-    <span className="hidden items-center gap-2 font-mono text-xs uppercase tracking-wider text-success md:inline-flex">
+    <span className="hidden items-center gap-2 font-mono text-sm uppercase tracking-wider text-success md:inline-flex">
       <span className="relative flex h-2 w-2">
         <span
           className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/75"
@@ -72,7 +72,7 @@ export function Nav() {
         {/* logo / system name */}
         <NavLink
           to="/status"
-          className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-fg-muted transition-colors duration-150 hover:text-accent"
+          className="inline-flex items-center gap-2 font-mono text-sm uppercase tracking-wider text-fg-muted transition-colors duration-150 hover:text-accent"
         >
           <span className="inline-block h-2 w-2 rounded-full bg-success" />
           <span>mukthanand</span>
@@ -119,9 +119,13 @@ export function Nav() {
         </nav>
       </div>
 
-      {/* mobile dropdown */}
-      {mobileOpen && (
-        <div className="border-t border-border bg-bg md:hidden">
+      {/* mobile dropdown — slide animation */}
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-out md:hidden ${
+          mobileOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="border-t border-border bg-bg">
           <nav aria-label="Mobile navigation">
             <ul className="flex flex-col px-gutter py-4">
               {LINKS.map((l) => (
@@ -130,7 +134,7 @@ export function Nav() {
                     to={l.to}
                     onClick={() => setMobileOpen(false)}
                     className={({ isActive }) =>
-                      `block py-3 font-mono text-xs uppercase tracking-wider transition-colors duration-150 ${
+                      `block py-3 font-mono text-sm uppercase tracking-wider transition-colors duration-150 ${
                         isActive
                           ? 'text-accent'
                           : 'text-fg-secondary hover:text-accent'
@@ -144,7 +148,7 @@ export function Nav() {
             </ul>
             {/* OPERATIONAL indicator in mobile menu */}
             <div className="border-t border-border px-gutter py-3">
-              <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-success">
+              <span className="inline-flex items-center gap-2 font-mono text-sm uppercase tracking-wider text-success">
                 <span className="relative flex h-2 w-2">
                   <span
                     className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/75"
@@ -157,7 +161,7 @@ export function Nav() {
             </div>
           </nav>
         </div>
-      )}
+      </div>
     </header>
   );
 }
