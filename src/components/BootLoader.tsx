@@ -47,7 +47,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   const [showReplay, setShowReplay] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
-  const bootCompleteRef = useRef(false);
 
   /* ─── rAF particle burst ─── */
   const runParticleBurst = useCallback(() => {
@@ -123,11 +122,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
 
   /* ─── main boot sequence (runs once on mount) ─── */
   useEffect(() => {
-    // Guard against effect cleanup killing timeouts on re-renders
-    // and against StrictMode double-mount in dev
-    if (bootCompleteRef.current) return;
-    bootCompleteRef.current = true;
-
     const timers: ReturnType<typeof setTimeout>[] = [];
     const isSkipped = reduced || hasBooted;
 
@@ -136,7 +130,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       timers.push(setTimeout(() => {
         setPhase('complete');
         setShowLoader(false);
-        bootCompleteRef.current = true;
         sessionStorage.setItem('boot_complete', 'true');
         onComplete?.();
       }, 300));
@@ -173,7 +166,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                 // Complete
                 timers.push(setTimeout(() => {
                   setPhase('complete');
-                  bootCompleteRef.current = true;
                   sessionStorage.setItem('boot_complete', 'true');
                   onComplete?.();
                 }, 400));
@@ -193,6 +185,8 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     };
     // Intentionally empty deps — runs once on mount only.
     // Timeout chains manage stage transitions internally.
+    // In StrictMode: cleanup clears timers from 1st mount,
+    // then effect re-runs on remount creating fresh timers.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
