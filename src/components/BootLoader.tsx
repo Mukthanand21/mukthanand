@@ -15,8 +15,6 @@ const PROGRESS_STEPS = [12, 38, 71, 100] as const;
 /* ─── typewriter speed (ms per character) ─── */
 const TYPING_SPEED = 15;
 
-
-
 type BootPhase = 'boot' | 'stage1' | 'stage2' | 'stage3' | 'stage4' | 'complete';
 
 type BootLoaderProps = {
@@ -101,20 +99,14 @@ function drawWireframeCube(
    ============================================================ */
 export function BootLoader({ onComplete }: BootLoaderProps) {
   const reduced = usePrefersReducedMotion();
-  const hasBooted = typeof window !== 'undefined'
-    && sessionStorage.getItem('boot_complete') === 'true';
 
-  const [phase, setPhase] = useState<BootPhase>(() => {
-    if (hasBooted) return 'stage4';
-    return 'boot';
-  });
+  const [phase, setPhase] = useState<BootPhase>('boot');
   const [progressIndex, setProgressIndex] = useState(-1);
   const [statusText, setStatusText] = useState('');
   const [typedChars, setTypedChars] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [showCursor, setShowCursor] = useState(false);
   const [glitching, setGlitching] = useState(false);
-  const [showReplay, setShowReplay] = useState(false);
   const [scanPos, setScanPos] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -160,8 +152,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       cancelAnimationFrame(rafRef.current);
       cancelAnimationFrame(scanRafRef.current);
 
-      // mark complete + fire reveal
-      sessionStorage.setItem('boot_complete', 'true');
       onCompleteRef.current?.();
       setPhase('complete');
     };
@@ -317,14 +307,12 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   /* ─── main boot sequence (runs once on mount) ─── */
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
-    const isSkipped = reduced || hasBooted;
 
-    if (isSkipped) {
+    if (reduced) {
       setPhase('stage4');
       timers.push(setTimeout(() => {
         if (skipRef.current) return;
         setPhase('complete');
-        sessionStorage.setItem('boot_complete', 'true');
         onCompleteRef.current?.();
       }, 300));
     } else {
@@ -368,7 +356,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                     setPhase('stage4');
 
                     // Content becomes visible NOW under the scanline mask — progressive reveal
-                    sessionStorage.setItem('boot_complete', 'true');
                     onCompleteRef.current?.();
 
                     // Scanline sweep
@@ -413,16 +400,14 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Show replay button after 3s of completion
-  useEffect(() => {
-    if (phase === 'complete') {
-      const timer = setTimeout(() => setShowReplay(true), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [phase]);
+  // Don't render anything when complete
+  if (phase === 'complete') return null;
 
-  // Don't render anything when complete (except replay btn)
-  if (phase === 'complete' && !showReplay) return null;
+  /* ─── overlay class names (extracted to avoid TS narrowing across template literal) ─── */
+  const isRevealed = phase === 'stage4';
+  const overlayClassName = `fixed inset-0 z-[200] flex flex-col items-center justify-center transition-all duration-300 ${
+    isRevealed ? 'pointer-events-none' : 'pointer-events-auto'
+  }`;
 
   /* ─── compute scanline mask for stage 4 ─── */
   const scanlineMask =
@@ -466,11 +451,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
 
       {/* Full-screen boot overlay */}
       <div
-        className={`fixed inset-0 z-[200] flex flex-col items-center justify-center transition-all duration-300 ${
-          phase === 'stage4' || phase === 'complete'
-            ? 'pointer-events-none'
-            : 'pointer-events-auto'
-        } ${phase === 'complete' ? 'opacity-0' : ''}`}
+        className={overlayClassName}
         style={{
           transition: 'background-color 300ms ease-out, opacity 300ms ease',
           backgroundColor:
@@ -586,22 +567,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           />
         )}
       </div>
-
-      {/* Replay button */}
-      {showReplay && (
-        <button
-          type="button"
-          onClick={() => {
-            sessionStorage.removeItem('boot_complete');
-            window.location.reload();
-          }}
-          className="fixed bottom-6 right-6 z-[201] hidden rounded-full border border-border px-3 py-1.5 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-accent md:block"
-          aria-label="Replay boot sequence"
-          title="Replay boot sequence"
-        >
-          {'\u21BA'} REPLAY
-        </button>
-      )}
     </>
   );
 }

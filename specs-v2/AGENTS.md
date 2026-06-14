@@ -136,7 +136,7 @@ Issue #16 must not block section builds — build structure first, content secon
 5. **Do not modify `specs-v2/000-overview.md` or this file** without a dedicated MR that touches only those files and has a clear reason in the description.
 6. **Do not reference `specs/` (v1 specs).** They are deprecated.
 7. **Content files in `content/` are read-only until #16 is merged.** Do not create or modify them as part of section MRs.
-8. **The entrance boot sequence (`BootLoader.tsx`) runs once per session.** Use `sessionStorage` key `boot_complete` to skip on revisit within the same session (skip to Stage 4, 300ms fade-in).
+8. **The entrance boot sequence (`BootLoader.tsx`) runs on every page load.** No session memory. The full cinematic sequence plays each time. `prefers-reduced-motion` triggers a 300ms quick reveal.
 9. **Particle burst in Stage 3** must degrade gracefully — wrap in `try/catch` and skip silently if `canvas` is unavailable.
 10. **Never add a dependency without an issue.** `package.json` changes require explicit approval via issue comment before the MR is opened.
 
