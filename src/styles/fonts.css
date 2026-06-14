@@ -1,32 +1,13 @@
-/* Self-hosted fonts (AGENTS.md, LOCKED).
-   Place the font files under /public/fonts/ before building:
-     - general-sans/GeneralSans-Variable.woff2  (primary workhorse)
-     - jetbrains-mono/JetBrainsMono-Variable.woff2 (code/version texture)
-     - clash-display/ClashDisplay-Variable.woff2 (giant titles ONLY)
-   General Sans, Clash Display: https://www.fontshare.com (free)
-   JetBrains Mono: https://www.jetbrains.com/lp/mono/ (free)
-   font-display: swap avoids invisible text; sizes are reserved to limit CLS. */
+/* ─── Google Fonts: Inter + JetBrains Mono ───
+   specs-v2/000-overview.md §3 (Typography)
+   Inter: primary sans-serif (display + body)
+   JetBrains Mono: monospace (labels, tags, version badges)
+   Subset to Latin only. font-display: swap for performance.
+   Font files are loaded via <link> tags in index.html.
+   ============================================================ */
 
-@font-face {
-  font-family: 'General Sans';
-  src: url('/fonts/general-sans/GeneralSans-Variable.woff2') format('woff2');
-  font-weight: 200 700;
-  font-display: swap;
-  font-style: normal;
-}
+/* Inter — variable weight 400..700 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap');
 
-@font-face {
-  font-family: 'JetBrains Mono';
-  src: url('/fonts/jetbrains-mono/JetBrainsMono-Variable.woff2') format('woff2');
-  font-weight: 100 800;
-  font-display: swap;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Clash Display';
-  src: url('/fonts/clash-display/ClashDisplay-Variable.woff2') format('woff2');
-  font-weight: 200 700;
-  font-display: swap;
-  font-style: normal;
-}
+/* JetBrains Mono — weight 400..500, no italic per spec */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..500&display=swap');

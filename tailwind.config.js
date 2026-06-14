@@ -1,54 +1,60 @@
 /** @type {import('tailwindcss').Config} */
-// Design tokens are the single source of truth (AGENTS.md, LOCKED).
-// Never hardcode color/spacing/font values in components; reference these.
+// Design tokens mirror specs-v2/000-overview.md.
+// All colors reference CSS custom properties defined in tokens.css.
+// Never hardcode color/spacing/font values in components.
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        // Backgrounds & surfaces
-        bg: '#0A0A0A',
-        'bg-alt': '#111111',
-        surface: '#1A1A1A',
-        // Single hero accent (only decorative accent allowed)
-        accent: '#22D3EE',
-        // Semantic / status colors  FUNCTIONAL USE ONLY, never decoration
-        live: '#4ADE80',
-        version: '#A855F7',
-        warning: '#F59E0B',
-        // Text ramp on dark (WCAG AA)
-        'fg-strong': '#F5F5F5',
-        'fg': '#D4D4D4',
-        'fg-muted': '#8A8A8A',
-        'fg-faint': '#5A5A5A',
+        // v2 color system (specs-v2/000-overview.md §2)
+        bg: 'var(--color-bg)',
+        'bg-elevated': 'var(--color-bg-elevated)',
+        'bg-subtle': 'var(--color-bg-subtle)',
+        accent: 'var(--color-accent)',
+        'accent-dim': 'var(--color-accent-dim)',
+        fg: 'var(--color-text-primary)',
+        'fg-strong': 'var(--color-text-primary)',
+        'fg-secondary': 'var(--color-text-secondary)',
+        'fg-muted': 'var(--color-text-muted)',
+        'fg-faint': '#6B4D6B',
+        success: 'var(--color-success)',
+        border: 'var(--color-border)',
       },
       fontFamily: {
-        // General Sans = primary workhorse (body + UI)
-        sans: ['"General Sans"', 'system-ui', 'sans-serif'],
-        // JetBrains Mono = code / version tags / system texture only
+        // Inter = primary sans (display + body)
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        // JetBrains Mono = monospace (labels, tags, version badges)
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
-        // Clash Display = giant section titles ONLY (used sparingly)
-        display: ['"Clash Display"', '"General Sans"', 'sans-serif'],
+        // Display alias — same as sans (Inter weight 700 for headings)
+        display: ['Inter', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        // Calm body
-        base: ['1.0625rem', { lineHeight: '1.65' }],
-        // Type ramp: huge headings via clamp
-        'display-1': ['clamp(3rem, 9vw, 7.5rem)', { lineHeight: '0.95', letterSpacing: '-0.03em' }],
-        'display-2': ['clamp(2.25rem, 6vw, 4.5rem)', { lineHeight: '1.02', letterSpacing: '-0.02em' }],
-        'heading': ['clamp(1.5rem, 3vw, 2.25rem)', { lineHeight: '1.15', letterSpacing: '-0.01em' }],
+        // v2 type scale (specs-v2/000-overview.md §3)
+        'text-hero': ['var(--text-hero)', { lineHeight: '1.0', letterSpacing: '-0.03em' }],
+        'text-xl': ['var(--text-xl)', { lineHeight: '1.1', letterSpacing: '-0.03em' }],
+        'text-lg': ['var(--text-lg)', { lineHeight: '1.6' }],
+        'text-md': ['var(--text-md)', { lineHeight: '1.4' }],
+        'text-sm': ['var(--text-sm)', { lineHeight: '1.6' }],
+        'text-xs': ['var(--text-xs)', { lineHeight: '1.4', letterSpacing: '0.08em' }],
       },
       spacing: {
-        // 8px base scale (Tailwind defaults already follow 4/8px; these extend it)
-        section: 'clamp(5rem, 12vh, 10rem)',
-        gutter: 'clamp(1.25rem, 5vw, 6rem)',
-      },
-      transitionTimingFunction: {
-        // ONE shared easing curve, used everywhere
-        brand: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        // 8px base scale
+        section: '80px',
+        gutter: 'clamp(20px, 5vw, 48px)',
       },
       maxWidth: {
-        content: '72rem',
+        content: '1100px',
+      },
+      transitionTimingFunction: {
+        brand: 'var(--ease-spring)',
+        // Keep existing for backward compat during migration
+      },
+      borderWidth: {
+        thin: '0.5px',
+      },
+      borderRadius: {
+        card: '12px',
       },
     },
   },
