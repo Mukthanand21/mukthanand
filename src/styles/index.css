@@ -40,36 +40,4 @@
   }
 }
 
-/* ═══════════════════════════════════════════════
-   BootLoader — CRT cinematic animations
-   ═══════════════════════════════════════════════ */
 
-/* CRT warm-up scan — glowing line sweeps top→bottom */
-@keyframes crt-warmup {
-  from { top: -4px; }
-  to   { top: 100%; }
-}
-
-/* CRT scan-line overlay — subtle horizontal lines */
-@keyframes crt-flicker {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.97; }
-}
-
-/* Glitch keyframes — used for SYSTEM READY entrance */
-@keyframes glitch-text {
-  0%   { transform: translate(0); text-shadow: -1.5px 0 rgba(255,30,30,0.5), 1.5px 0 rgba(30,100,255,0.5); }
-  15%  { transform: translate(-1.5px, 0.5px); text-shadow: 1.5px 0 rgba(255,30,30,0.5), -1.5px 0 rgba(30,100,255,0.5); }
-  30%  { transform: translate(1.5px, -0.5px); }
-  45%  { transform: translate(-0.5px, 0.5px); text-shadow: -1.5px 0 rgba(255,180,30,0.4), 1.5px 0 rgba(180,30,255,0.4); }
-  60%  { transform: translate(0.5px, -0.5px); }
-  75%  { transform: translate(-0.5px, 0); }
-  90%  { transform: translate(0.5px, 0); text-shadow: none; }
-  100% { transform: translate(0); text-shadow: none; }
-}
-
-/* Scanline cursor blink */
-@keyframes cursor-blink {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0; }
-}
