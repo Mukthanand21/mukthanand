@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 /* ─── nav links ─── */
 const LINKS = [
@@ -42,7 +42,6 @@ function NavItem({ to, label }: { to: string; label: string }) {
    ============================================================ */
 export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-bg/80 backdrop-blur-xl">
@@ -104,11 +103,13 @@ export function Nav() {
                   <NavLink
                     to={l.to}
                     onClick={() => setMobileOpen(false)}
-                    className={`block py-3 font-mono text-sm transition-colors duration-200 ${
-                      location.pathname === l.to
-                        ? 'text-accent'
-                        : 'text-fg-muted hover:text-fg'
-                    }`}
+                    className={({ isActive }) =>
+                      `block py-3 font-mono text-sm transition-colors duration-200 ${
+                        isActive
+                          ? 'text-accent'
+                          : 'text-fg-muted hover:text-fg'
+                      }`
+                    }
                   >
                     {l.label}
                   </NavLink>
