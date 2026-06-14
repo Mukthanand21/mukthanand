@@ -104,7 +104,6 @@ Every stage must complete before the next begins.
 - Ticker — begins scrolling immediately after nav reveal.
 - Project cards — fade + `translateY(16px→0)`, staggered 80ms per card, begin after description.
 
-**Replay:** A small `↺` button (bottom-right, `--color-text-muted`, appears after 3s) replays the full sequence. Hidden on mobile.
 
 ### 4.2 Scroll Animations (per-section)
 - Framer Motion is **permitted and preferred** for scroll reveals and stagger animations. Vanilla `requestAnimationFrame` is reserved for the BootLoader only.
@@ -185,7 +184,7 @@ Every stage must complete before the next begins.
 1. **Never override a LOCKED token.** If a change is needed, open a MR that updates this file first.
 2. **All colors must reference CSS custom properties** (`var(--color-bg)` etc.), never hardcoded hex values in component files.
 3. **All motion must check `prefers-reduced-motion`** before applying transforms.
-4. **The entrance sequence runs once per session.** Store completion in `sessionStorage` key `boot_complete`. On revisit within session, skip to Stage 4 (page reveal only, 300ms total).
+4. **The entrance sequence runs on every page load.** No session memory. On revisit, the full cinematic sequence replays. respect `prefers-reduced-motion`, which triggers a 300ms quick reveal only.
 5. **Framer Motion** is permitted and preferred for scroll reveals, stagger animations, and entrance sequences. Vanilla `requestAnimationFrame` is reserved for the BootLoader particle burst only.
 6. **Particles must degrade gracefully.** If `canvas` is not supported, skip Stage 3 silently.
 7. **Typography:** Load Inter and JetBrains Mono via `<link rel="preconnect">` + Google Fonts in `index.html`. Subset to Latin only.

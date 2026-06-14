@@ -1,13 +1,14 @@
-/* ─── Google Fonts: Inter + JetBrains Mono ───
+/* ─── Google Fonts ───
    specs-v2/000-overview.md §3 (Typography)
-   Inter: primary sans-serif (display + body)
-   JetBrains Mono: monospace (labels, tags, version badges)
-   Subset to Latin only. font-display: swap for performance.
-   Font files are loaded via <link> tags in index.html.
+   specs-v2/animations/bootloader-v3.md (script fonts)
+
+   All fonts are loaded via <link> tags in index.html for performance:
+   - Inter (400–700): primary sans-serif (display + body)
+   - JetBrains Mono (400–500): monospace (labels, tags, version badges)
+   - Syne (700–800): display font for bootloader English reveal
+   - Noto Sans Telugu/Devanagari/Tamil/Kannada/Bengali/Malayalam/
+     Gujarati/Gurmukhi/Oriya (700 each): Indian script fonts for
+     bootloader multilingual scramble animation
+
+   font-display: swap for all.
    ============================================================ */
-
-/* Inter — variable weight 400..700 */
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap');
-
-/* JetBrains Mono — weight 400..500, no italic per spec */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..500&display=swap');
