@@ -2,44 +2,35 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 /* ═══════════════════════════════════════════════════════
-   Letter → Language mapping (LOCKED — see spec)
+   Script data — LOCKED per spec
    ═══════════════════════════════════════════════════════ */
-interface LetterMap {
-  en: string;
-  script: string;
-  lang: string;
-  font: string;
-}
+const LETTER_SCRIPTS: Record<string, string[]> = {
+  'M': ['మ', 'म', 'ம', 'ಮ', 'ম'],
+  'U': ['ఉ', 'उ', 'உ', 'ಉ', 'উ'],
+  'K': ['క', 'क', 'க', 'ಕ', 'ক'],
+  'T': ['త', 'त', 'த', 'ತ', 'ত'],
+  'H': ['హ', 'ह', 'ஹ', 'ಹ', 'হ'],
+  'A': ['అ', 'अ', 'அ', 'ಅ', 'অ'],
+  'N': ['న', 'न', 'ந', 'ನ', 'ন'],
+  'D': ['డ', 'ड', 'ட', 'ಡ', 'ড'],
+};
 
-const LETTERS: LetterMap[] = [
-  { en: 'M', script: 'మ', lang: 'Telugu',    font: "'Noto Sans Telugu',sans-serif" },
-  { en: 'U', script: 'उ', lang: 'Hindi',     font: "'Noto Sans Devanagari',sans-serif" },
-  { en: 'K', script: 'க', lang: 'Tamil',     font: "'Noto Sans Tamil',sans-serif" },
-  { en: 'T', script: 'ತ', lang: 'Kannada',   font: "'Noto Sans Kannada',sans-serif" },
-  { en: 'H', script: 'হ', lang: 'Bengali',   font: "'Noto Sans Bengali',sans-serif" },
-  { en: 'A', script: 'അ', lang: 'Malayalam', font: "'Noto Sans Malayalam',sans-serif" },
-  { en: 'N', script: 'न', lang: 'Marathi',   font: "'Noto Sans Devanagari',sans-serif" },
-  { en: 'A', script: 'અ', lang: 'Gujarati',  font: "'Noto Sans Gujarati',sans-serif" },
-  { en: 'N', script: 'ਨ', lang: 'Punjabi',   font: "'Noto Sans Gurmukhi',sans-serif" },
-  { en: 'D', script: 'ଡ', lang: 'Odia',      font: "'Noto Sans Oriya',sans-serif" },
+const SCRIPT_NAMES = ['Telugu', 'Hindi', 'Tamil', 'Kannada', 'Bengali'];
+
+const SCRIPT_FONTS = [
+  "'Noto Sans Telugu', sans-serif",
+  "'Noto Sans Devanagari', sans-serif",
+  "'Noto Sans Tamil', sans-serif",
+  "'Noto Sans Kannada', sans-serif",
+  "'Noto Sans Bengali', sans-serif",
 ];
+
+const NAME = 'MUKTHANAND';
+const LETTERS = NAME.split('');
 
 /* ═══════════════════════════════════════════════════════
-   Scramble character pool — all Indian script chars
+   Types
    ═══════════════════════════════════════════════════════ */
-const SCRAMBLE_POOL = [
-  'మ','న','క','ర','ఉ','అ','ల','వ','త','హ',
-  'त','न','क','र','ह','उ','म',
-  'ம','ந','க','ர','ல','வ','த',
-  'ಮ','ನ','ಕ','ರ','ಲ','ವ','ತ','ಹ',
-  'ম','ন','ক','র','ল','ভ',
-  'അ','ന','ക','ര','ല','വ',
-  'न','म','क','र','ह',
-  'અ','ન','ક','ર','લ',
-  'ਨ','ਮ','ਕ','ਰ','ਲ',
-  'ଡ','ନ','କ','ର','ଲ',
-];
-
 type BootPhase = 'boot' | 'active' | 'complete';
 
 type BootLoaderProps = {
@@ -47,7 +38,7 @@ type BootLoaderProps = {
 };
 
 /* ═══════════════════════════════════════════════════════
-   BootLoader v3 — 7-stage script scramble sequence
+   BootLoader v3 — sequential 5-script cycling
    ═══════════════════════════════════════════════════════ */
 export function BootLoader({ onComplete }: BootLoaderProps) {
   const reduced = usePrefersReducedMotion();
@@ -58,10 +49,9 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   const [statusText, setStatusText] = useState('');
   const [typedChars, setTypedChars] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
-  const [langLabel, setLangLabel] = useState('');
-  const [showSystem, setShowSystem] = useState(false);
-  const [underlineWidth, setUnderlineWidth] = useState('0px');
-  const [showGoldFlash, setShowGoldFlash] = useState(false);
+  const [scriptLabel, setScriptLabel] = useState('');
+  const [showLabel, setShowLabel] = useState(false);
+  const [showGoldLine, setShowGoldLine] = useState(false);
 
   /* ─── Refs ─── */
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -87,15 +77,64 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     return id;
   }, []);
 
-  /* ─── Language label helper ─── */
-  const showLang = useCallback((txt: string) => {
-    setLangLabel('');
-    T(() => { setLangLabel(txt); }, 10);
-    T(() => { setLangLabel(''); }, 610);
+  /* ─── cycleLetter: cycle through 5 scripts × 2 passes, then lock to English ─── */
+  const cycleLetter = useCallback((
+    idx: number,
+    letter: string,
+    onLock: () => void,
+  ) => {
+    const span = letterRefs.current[idx];
+    if (!span) { onLock(); return; }
+
+    const scripts = LETTER_SCRIPTS[letter];
+    if (!scripts) { onLock(); return; }
+
+    let iteration = 0;
+    const total = scripts.length * 2; // 10 iterations
+
+    const step = () => {
+      if (skipRef.current) return;
+
+      if (iteration < total) {
+        const si = iteration % scripts.length;
+        span.textContent = scripts[si];
+        span.style.fontFamily = SCRIPT_FONTS[si];
+        span.style.color = iteration < scripts.length ? '#4D3A4D' : '#8A6A8A';
+        span.style.transform = 'scale(1)';
+
+        // Update script label
+        setScriptLabel(SCRIPT_NAMES[si]);
+        setShowLabel(true);
+
+        const delay = iteration < scripts.length ? 80 : 55;
+        iteration++;
+        T(step, delay);
+      } else {
+        // LOCK to English — gold flash + scale pop
+        span.style.transition = 'color 0.3s, font-family 0.15s, transform 0.3s';
+        span.style.fontFamily = "'Syne', sans-serif";
+        span.style.color = '#E8B65A';
+        span.style.transform = 'scale(1.15)';
+        span.textContent = letter;
+
+        // After 200ms: settle to white
+        T(() => {
+          if (skipRef.current) return;
+          if (span) {
+            span.style.color = 'var(--color-text-primary)';
+            span.style.transform = 'scale(1)';
+          }
+          onLock();
+        }, 200);
+      }
+    };
+
+    step();
   }, [T]);
 
-  /* ─── Typewriter for SYSTEM READY ─── */
-  const typeSystemReady = useCallback((text: string, onDone: () => void) => {
+  /* ─── typeIn: type text char by char with cursor ─── */
+  const typeIn = useCallback((text: string, onDone: () => void) => {
+    setStatusText(text);
     setTypedChars(0);
     typedCharsRef.current = 0;
     setIsTyping(true);
@@ -111,61 +150,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     timersRef.current.push(interval);
   }, [T]);
 
-  /* ─── Letter scramble (per letter) ─── */
-  const scrambleLetter = useCallback((index: number, onLock: () => void) => {
-    const letter = LETTERS[index];
-    const span = letterRefs.current[index];
-    if (!span) { onLock(); return; }
-
-    let count = 0;
-    const totalCycles = 10;
-
-    const cycle = () => {
-      if (skipRef.current) return;
-      if (count < totalCycles) {
-        const randomChar = SCRAMBLE_POOL[Math.floor(Math.random() * SCRAMBLE_POOL.length)];
-        span!.textContent = randomChar;
-        span!.style.color = count < 5 ? '#3D2A3D' : '#5A3A6A';
-        span!.style.fontFamily = "'Noto Sans Telugu',sans-serif";
-        count++;
-        T(cycle, 55 + Math.random() * 30);
-      } else {
-        // LOCK to assigned script
-        span!.textContent = letter.script;
-        span!.style.fontFamily = letter.font;
-        span!.style.color = '#7A5A8A';
-        span!.style.textShadow = '0 0 12px rgba(232,182,90,0.25)';
-        T(() => {
-          if (span) span!.style.textShadow = 'none';
-          onLock();
-        }, 150);
-      }
-    };
-
-    cycle();
-  }, [T]);
-
-  /* ─── Reveal: flip all letters to English ─── */
-  const bigReveal = useCallback(() => {
-    // Gold flash
-    setShowGoldFlash(true);
-    T(() => setShowGoldFlash(false), 80);
-
-    // Flip all letters
-    for (let i = 0; i < LETTERS.length; i++) {
-      const span = letterRefs.current[i];
-      if (!span) continue;
-      span.style.transition = 'color 0.5s ease-out, font-family 0.2s, text-shadow 0.5s';
-      span.style.fontFamily = "'Syne',sans-serif";
-      span.style.color = 'var(--color-text-primary)';
-      span.style.textShadow = '0 0 40px rgba(232,182,90,0.5)';
-      span.textContent = LETTERS[i].en;
-      T(() => {
-        if (span) span.style.textShadow = 'none';
-      }, 600);
-    }
-  }, [T]);
-
   /* ─── Ambient particles (canvas) ─── */
   const startParticles = useCallback(() => {
     const canvas = canvasRef.current;
@@ -174,9 +158,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     try { ctx = canvas.getContext('2d'); } catch { return; }
     if (!ctx) return;
 
-    const accentColor = 'var(--color-accent)';
-
-    // Size canvas to container
     const resize = () => {
       if (!canvas || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -188,10 +169,10 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     const pts = Array.from({ length: 14 }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      r: 0.4 + Math.random() * 0.8,
-      op: 0.04 + Math.random() * 0.1,
-      vx: (Math.random() - 0.5) * 0.15,
-      vy: (Math.random() - 0.5) * 0.15,
+      r: 0.5 + Math.random() * 1.0,
+      op: 0.05 + Math.random() * 0.15,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
     }));
 
     const draw = () => {
@@ -202,7 +183,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         p.x = (p.x + p.vx + canvas.width) % canvas.width;
         p.y = (p.y + p.vy + canvas.height) % canvas.height;
         ctx.globalAlpha = p.op;
-        ctx.fillStyle = accentColor;
+        ctx.fillStyle = 'var(--color-accent)';
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
@@ -214,6 +195,58 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     RAF(draw);
   }, [RAF]);
 
+  /* ─── Sequential letter cycling ─── */
+  const startLetterCycling = useCallback(() => {
+    let currentIdx = 0;
+
+    const processNext = () => {
+      if (skipRef.current) return;
+      if (currentIdx >= LETTERS.length) {
+        // All letters locked
+        setShowLabel(false);
+        setProgress(85);
+
+        // After 300ms: gold line sweeps in
+        T(() => {
+          if (skipRef.current) return;
+          setShowGoldLine(true);
+          setProgress(100);
+
+          // After 300ms: type SYSTEM READY
+          T(() => {
+            if (skipRef.current) return;
+            setStatusText('');
+            T(() => {
+              if (skipRef.current) return;
+              typeIn('SYSTEM READY', () => {
+                if (skipRef.current) return;
+                onCompleteRef.current?.();
+                T(() => {
+                  if (skipRef.current) return;
+                  setPhase('complete');
+                }, 400);
+              });
+            }, 200);
+          }, 300);
+        }, 300);
+        return;
+      }
+
+      // Update progress for this letter
+      setProgress(35 + Math.floor((currentIdx / LETTERS.length) * 45));
+
+      // Cycle this letter
+      cycleLetter(currentIdx, LETTERS[currentIdx], () => {
+        if (skipRef.current) return;
+        currentIdx++;
+        // 60ms gap before next letter
+        T(processNext, 60);
+      });
+    };
+
+    processNext();
+  }, [T, cycleLetter, typeIn]);
+
   /* ─── Keyboard interrupt ─── */
   useEffect(() => {
     if (phase === 'complete') return;
@@ -221,13 +254,10 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     const handleKeyDown = () => {
       if (skipRef.current) return;
       skipRef.current = true;
-
-      // Clear all timers and rAFs
       timersRef.current.forEach(clearTimeout);
       rafsRef.current.forEach(cancelAnimationFrame);
       timersRef.current = [];
       rafsRef.current = [];
-
       onCompleteRef.current?.();
       setPhase('complete');
     };
@@ -239,20 +269,18 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   /* ─── Main boot sequence ─── */
   useEffect(() => {
     if (reduced) {
-      // Reduced motion: show final state immediately
       setPhase('active');
-      // Set letters to English immediately
       T(() => {
         for (let i = 0; i < LETTERS.length; i++) {
           const span = letterRefs.current[i];
           if (!span) continue;
-          span.textContent = LETTERS[i].en;
-          span.style.fontFamily = "'Syne',sans-serif";
+          span.textContent = LETTERS[i];
+          span.style.fontFamily = "'Syne', sans-serif";
           span.style.color = 'var(--color-text-primary)';
         }
-        setShowSystem(true);
-        setUnderlineWidth('300px');
+        setShowGoldLine(true);
         setProgress(100);
+        setStatusText('SYSTEM READY');
         T(() => {
           if (skipRef.current) return;
           onCompleteRef.current?.();
@@ -262,101 +290,34 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       return;
     }
 
-    /* ── Stage 1: Black flash (80ms) ── */
-    // Phase is already 'boot' — black background
-
+    /* Stage 1: Black flash (80ms) */
     T(() => {
       if (skipRef.current) return;
 
-      /* ── Stage 2: Boot begins (80ms+) ── */
+      /* Stage 2: System boot (80ms) */
       setPhase('active');
       startParticles();
-      setStatusText('INITIALIZING SYSTEM...');
-      setProgress(5);
+      setStatusText('INITIALIZING...');
+      setProgress(8);
 
       T(() => {
         if (skipRef.current) return;
 
-        /* ── Stage 3: Identity scan (880ms+) ── */
-        setStatusText('SCANNING IDENTITY...');
-        setProgress(15);
+        /* Stage 3: Asset loading (680ms) */
+        setStatusText('LOADING ASSETS...');
+        setProgress(20);
 
-        // Start letter scramble — stagger 200ms apart
-        let lockedCount = 0;
+        T(() => {
+          if (skipRef.current) return;
 
-        for (let i = 0; i < LETTERS.length; i++) {
-          T(() => {
-            if (skipRef.current) return;
+          /* Stage 4: Identity resolution (1080ms) */
+          setStatusText('RESOLVING IDENTITY...');
+          setProgress(35);
 
-            // Show language label
-            showLang(LETTERS[i].lang);
-
-            // Scramble this letter
-            scrambleLetter(i, () => {
-              if (skipRef.current) return;
-              lockedCount++;
-              setProgress(Math.round(15 + (lockedCount / LETTERS.length) * 55));
-
-              /* ── Stage 5: All locked — anticipation hold ── */
-              if (lockedCount === LETTERS.length) {
-                setStatusText('RESOLVING...');
-                setProgress(80);
-                // Force status color via inline style
-
-                // After 300ms: brighten all locked chars
-                T(() => {
-                  if (skipRef.current) return;
-                  for (let j = 0; j < LETTERS.length; j++) {
-                    const span = letterRefs.current[j];
-                    if (span) {
-                      span.style.transition = 'color 0.7s';
-                      span.style.color = '#AA7ACC';
-                    }
-                  }
-
-                  // After 900ms total from RESOLVING: status clears, bar 95%
-                  T(() => {
-                    if (skipRef.current) return;
-                    setStatusText('');
-                    setProgress(95);
-
-                    /* ── Stage 6: THE REVEAL (after 1200ms from stage 5 start) ── */
-                    T(() => {
-                      if (skipRef.current) return;
-
-                      setProgress(100);
-                      bigReveal();
-
-                      /* ── Stage 7: System ready (500ms after reveal) ── */
-                      T(() => {
-                        if (skipRef.current) return;
-
-                        setShowSystem(true);
-                        setUnderlineWidth('300px');
-
-                        // After 400ms: type SYSTEM READY
-                        T(() => {
-                          if (skipRef.current) return;
-                          typeSystemReady('SYSTEM READY', () => {
-                            if (skipRef.current) return;
-
-                            // Boot complete — call onComplete, then fade out
-                            onCompleteRef.current?.();
-                            T(() => {
-                              if (skipRef.current) return;
-                              setPhase('complete');
-                            }, 400);
-                          });
-                        }, 400);
-                      }, 500);
-                    }, 300);
-                  }, 600);
-                }, 300);
-              }
-            });
-          }, 200 + i * 200);
-        }
-      }, 800);
+          /* Stage 5: Sequential letter cycling */
+          startLetterCycling();
+        }, 400);
+      }, 600);
     }, 80);
 
     return () => {
@@ -369,11 +330,12 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   /* ─── Render ─── */
   if (phase === 'complete') return null;
 
-  const statusColor = statusText === 'RESOLVING...'
-    ? '#8A6A8A'
-    : statusText === 'SYSTEM READY'
+  const statusColor =
+    statusText === 'SYSTEM READY'
       ? 'var(--color-accent)'
-      : 'var(--color-text-muted)';
+      : statusText === 'RESOLVING IDENTITY...'
+        ? 'var(--color-text-secondary)'
+        : 'var(--color-text-muted)';
 
   return (
     <>
@@ -391,81 +353,66 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           className="absolute inset-0 h-full w-full pointer-events-none"
         />
 
-        {/* Main boot content — only visible after stage 1 */}
+        {/* Main boot content */}
         {phase === 'active' && (
           <div
             className="relative z-10 flex flex-col items-center"
             style={{ padding: '0 16px' }}
           >
-            {/* Language label (above letter row) */}
+            {/* Script label (above letter row) */}
             <div
-              className="font-mono text-[11px] tracking-[0.25em] uppercase text-center"
+              className="font-mono text-[10px] tracking-[0.2em] uppercase text-center"
               style={{
                 color: 'var(--color-text-muted)',
-                height: '16px',
+                height: '14px',
                 marginBottom: '20px',
-                opacity: langLabel ? 1 : 0,
-                transition: 'opacity 0.1s',
+                opacity: showLabel ? 1 : 0,
+                transition: 'opacity 0.2s',
               }}
             >
-              {langLabel}
+              {scriptLabel}
             </div>
 
             {/* Letter row */}
             <div
               className="flex items-center justify-center"
-              style={{
-                gap: '2px',
-                minHeight: '100px',
-              }}
+              style={{ gap: '2px', minHeight: '100px' }}
             >
-              {LETTERS.map((_, i) => (
+              {LETTERS.map((letter, i) => (
                 <span
                   key={i}
                   ref={(el) => { letterRefs.current[i] = el; }}
                   style={{
-                    fontSize: 'clamp(36px, 6.5vw, 70px)',
-                    fontWeight: 700,
+                    fontSize: 'clamp(36px, 6vw, 68px)',
+                    fontWeight: 800,
                     display: 'inline-block',
-                    minWidth: '0.58em',
+                    minWidth: '0.6em',
                     textAlign: 'center',
                     lineHeight: 1.1,
+                    transition: 'color 0.3s, font-family 0.15s, transform 0.3s',
+                    color: '#3D2A3D',
+                    fontFamily: "'Syne', sans-serif",
                   }}
-                />
+                >
+                  {letter}
+                </span>
               ))}
             </div>
 
-            {/* SYSTEM label (appears after reveal) */}
-            {showSystem && (
-              <div
-                className="font-mono font-medium tracking-[0.4em] text-center"
-                style={{
-                  fontSize: 'clamp(12px, 2vw, 17px)',
-                  color: 'var(--color-accent)',
-                  marginTop: '10px',
-                  opacity: showSystem ? 1 : 0,
-                  transition: 'opacity 0.6s',
-                }}
-              >
-                SYSTEM
-              </div>
-            )}
-
             {/* Gold gradient underline */}
             <div
-              className={showSystem ? '' : 'invisible'}
               style={{
-                height: '1px',
+                height: '2px',
                 background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)',
-                width: underlineWidth,
-                transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)',
-                margin: showSystem ? '18px auto 14px' : '18px auto 14px',
+                width: showGoldLine ? '320px' : '0px',
+                transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
+                margin: '18px auto 14px',
               }}
             />
 
             {/* Status line */}
             <div
-              className="font-mono text-[11px] tracking-[0.18em] uppercase text-center"
+              className="font-mono text-[11px] tracking-[0.15em] uppercase text-center"
               style={{
                 color: statusColor,
                 height: '18px',
@@ -476,7 +423,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                 <>
                   <span>{statusText.slice(0, typedChars)}</span>
                   {isTyping && (
-                    <span style={{ marginLeft: '2px' }}>{'\u258C'}</span>
+                    <span style={{ marginLeft: '2px' }}>{'\u2588'}</span>
                   )}
                 </>
               ) : (
@@ -489,9 +436,9 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
               <>
                 <div
                   style={{
-                    width: '160px',
+                    width: '180px',
                     height: '1px',
-                    background: '#1E141E',
+                    background: '#2A1F2A',
                     marginTop: '14px',
                     position: 'relative',
                     overflow: 'hidden',
@@ -523,17 +470,6 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           </div>
         )}
       </div>
-
-      {/* Gold flash overlay (stage 6) */}
-      {showGoldFlash && (
-        <div
-          className="fixed inset-0 z-[201] pointer-events-none"
-          style={{
-            background: 'var(--color-accent)',
-            opacity: 0.15,
-          }}
-        />
-      )}
     </>
   );
 }
