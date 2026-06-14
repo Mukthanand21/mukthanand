@@ -12,10 +12,6 @@ const LINKS = [
   { to: '/contact', label: '/CONTACT' },
 ];
 
-/* ─── SVG noise texture data URI (faint grain, 4% opacity) ─── */
-const NOISE_TEXTURE =
-  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E\")";
-
 /* ─── individual nav link with gold active indicator + dot ─── */
 function NavItem({ to, label }: { to: string; label: string }) {
   return (
@@ -78,7 +74,7 @@ function ShortcutHint() {
   );
 }
 
-/* ─── session uptime counter (HH:MM:SS) ─── */
+/* ─── session uptime counter ─── */
 function UptimeCounter() {
   const [seconds, setSeconds] = useState(0);
 
@@ -89,10 +85,9 @@ function UptimeCounter() {
     return () => clearInterval(interval);
   }, []);
 
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
+  const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  const formatted = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  const formatted = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
   return (
     <span className="hidden items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-fg-muted md:inline-flex">
@@ -103,17 +98,16 @@ function UptimeCounter() {
 }
 
 /* ============================================================
-   Global navigation bar — System-Grade Nav
-   - SYS // MUKTHANAND path-style logo
-   - Locked 52px height (zero layout shift)
-   - Uppercase mono links with gold active dot + underline
+   Global navigation bar — Option B + Next-Level Enhancements
+   specs-v2/000-overview.md inspired
+   - Flexible height, uppercase mono links, gold accent
+   - Green dot logo + ● OPERATIONAL indicator
    - Hide on scroll down, show on scroll up
-   - Green dot + ● OPERATIONAL indicator
-   - HH:MM:SS uptime counter
-   - Scroll progress bar (1px gold line)
-   - ⌘K keyboard shortcut
-   - Mobile animated slide-down + blur backdrop
-   - Noise texture background overlay
+   - Active gold dot indicator above current link
+   - Uptime counter (SESSION: MM:SS)
+   - Scroll progress bar (1px gold line at nav bottom)
+   - ⌘K keyboard shortcut to focus nav
+   - Mobile hamburger with animated slide-down + blur backdrop
    ============================================================ */
 export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -191,24 +185,14 @@ export function Nav() {
           isHidden ? '-translate-y-full' : 'translate-y-0'
         }`}
       >
-        {/* noise texture overlay */}
-        <div
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{ backgroundImage: NOISE_TEXTURE, backgroundSize: '200px 200px' }}
-          aria-hidden="true"
-        />
-
-        <div className="mx-auto flex h-[52px] max-w-content items-center justify-between px-gutter">
-          {/* logo — path format */}
+        <div className="mx-auto flex max-w-content items-center justify-between px-gutter py-4">
+          {/* logo / system name */}
           <NavLink
             to="/status"
             className="inline-flex items-center gap-2 font-mono text-sm uppercase tracking-wider text-fg-muted transition-colors duration-150 hover:text-accent"
           >
             <span className="inline-block h-2 w-2 rounded-full bg-success" />
-            <span>
-              <span className="opacity-50">SYS //</span>{' '}
-              <span>MUKTHANAND</span>
-            </span>
+            <span>mukthanand</span>
           </NavLink>
 
           {/* desktop nav */}
