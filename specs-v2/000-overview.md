@@ -23,16 +23,16 @@ The visitor should feel like they are **accessing a live service**, not browsing
 
 | Token | Value | Usage |
 |---|---|---|
-| `--color-bg` | `#2E1F2E` | Page background (deep plum) |
-| `--color-bg-elevated` | `#3D2A3D` | Cards, panels, elevated surfaces |
-| `--color-bg-subtle` | `#4D3A4D` | Borders, dividers, hover states |
+| `--color-bg` | `#0A0A0A` | Page background |
+| `--color-bg-elevated` | `#111111` | Cards, panels, elevated surfaces |
+| `--color-bg-subtle` | `#1A1A1A` | Borders, dividers, hover states |
 | `--color-accent` | `#E8B65A` | Primary accent — gold. CTAs, active nav, version tags, method badges |
 | `--color-accent-dim` | `#A87E35` | Dimmed gold — secondary accent, hover states on accent elements |
 | `--color-text-primary` | `#F3EAEF` | Headings, primary body text |
 | `--color-text-secondary` | `#B79CAE` | Descriptions, subtitles, body copy |
 | `--color-text-muted` | `#6B4D6B` | Labels, timestamps, metadata, ticker text |
 | `--color-success` | `#A8C3A0` | Availability dot, operational status |
-| `--color-border` | `#3D2A3D` | All borders and dividers |
+| `--color-border` | `#1A1A1A` | All borders and dividers |
 
 ### Rules
 - No cyan. No violet. No pure black (`#000`) or pure white (`#FFF`).
@@ -82,19 +82,19 @@ Every stage must complete before the next begins.
 **Stage 1 — Black flash (0ms–80ms)**
 - Screen starts at `#000000` for 80ms — a cold start.
 
-**Stage 2 — Boot loader (80ms–1800ms)**
+**Stage 2 — Boot loader (80ms–1200ms)**
 - Background transitions from `#000` to `--color-bg` over 300ms.
 - Monospace text appears center-screen: `MUKTHANAND.DEV` in `--color-text-muted`, letter-spacing `0.3em`.
 - Below it: a thin 200px progress bar (`--color-border` track, `--color-accent` fill).
-- Progress bar fills in **4 non-linear steps** (12% → 38% → 71% → 100%) with 200–350ms gaps between steps — feels like real system initialization, not a smooth animation.
+- Progress bar fills in **4 non-linear steps** (12% → 38% → 71% → 100%) with 100–180ms gaps between steps — feels like real system initialization, not a smooth animation.
 - Each step triggers a **status line** in mono below the bar (e.g. `LOADING ASSETS...`, `MOUNTING ROUTES...`, `RESOLVING STACK...`, `SYSTEM READY`).
 - On `SYSTEM READY`: the status line color shifts from `--color-text-muted` to `--color-accent` (gold).
 
-**Stage 3 — Particle burst (1800ms–2200ms)**
+**Stage 3 — Particle burst (1200ms–1600ms)**
 - On completion: 18–24 small particles (`4px` circles, color `--color-accent` at 60% opacity) burst outward from center in random directions, decelerating over 400ms, then fade to 0 opacity.
 - Simultaneously: the loader text and bar fade out over 200ms.
 
-**Stage 4 — Page reveal (2200ms onward)**
+**Stage 4 — Page reveal (1600ms onward)**
 - Nav fades in from top (`translateY(-12px)` → `0`, opacity `0→1`, 400ms).
 - Hero version tag (`v2.0.0 — FINAL YEAR BUILD`) fades up, 100ms delay.
 - Hero line 1 (`Mukthanand`) — height reveal from `0` to full, `600ms`, `cubic-bezier(0.16,1,0.3,1)`, 200ms delay.
@@ -107,6 +107,7 @@ Every stage must complete before the next begins.
 **Replay:** A small `↺` button (bottom-right, `--color-text-muted`, appears after 3s) replays the full sequence. Hidden on mobile.
 
 ### 4.2 Scroll Animations (per-section)
+- Framer Motion is **permitted and preferred** for scroll reveals and stagger animations. Vanilla `requestAnimationFrame` is reserved for the BootLoader only.
 - Every section's content animates in on scroll entry: `translateY(20px→0)` + `opacity(0→1)`, `500ms`, `cubic-bezier(0.16,1,0.3,1)`.
 - Stagger child elements 60ms apart within a section.
 - Use `IntersectionObserver` with `threshold: 0.15`.
@@ -185,7 +186,7 @@ Every stage must complete before the next begins.
 2. **All colors must reference CSS custom properties** (`var(--color-bg)` etc.), never hardcoded hex values in component files.
 3. **All motion must check `prefers-reduced-motion`** before applying transforms.
 4. **The entrance sequence runs once per session.** Store completion in `sessionStorage` key `boot_complete`. On revisit within session, skip to Stage 4 (page reveal only, 300ms total).
-5. **No external animation libraries required.** Implement all motion in vanilla CSS transitions + `requestAnimationFrame`. Framer Motion is permitted if already in the dependency tree but must not be added solely for this.
+5. **Framer Motion** is permitted and preferred for scroll reveals, stagger animations, and entrance sequences. Vanilla `requestAnimationFrame` is reserved for the BootLoader particle burst only.
 6. **Particles must degrade gracefully.** If `canvas` is not supported, skip Stage 3 silently.
 7. **Typography:** Load Inter and JetBrains Mono via `<link rel="preconnect">` + Google Fonts in `index.html`. Subset to Latin only.
 8. **No cyan, no violet, no pure black, no pure white.** PR reviewers should reject any component using these.
