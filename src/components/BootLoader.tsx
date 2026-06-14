@@ -121,76 +121,80 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     rafRef.current = requestAnimationFrame(animate);
   }, []);
 
-  /* ─── main boot sequence ─── */
+  /* ─── main boot sequence (runs once on mount) ─── */
   useEffect(() => {
-    if (reduced || hasBooted) {
+    // Guard against effect cleanup killing timeouts on re-renders
+    // and against StrictMode double-mount in dev
+    if (bootCompleteRef.current) return;
+    bootCompleteRef.current = true;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const isSkipped = reduced || hasBooted;
+
+    if (isSkipped) {
       setPhase('stage4');
-      const timer = setTimeout(() => {
+      timers.push(setTimeout(() => {
         setPhase('complete');
         setShowLoader(false);
         bootCompleteRef.current = true;
         sessionStorage.setItem('boot_complete', 'true');
         onComplete?.();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
+      }, 300));
+    } else {
+      // Stage 1: Black flash for 80ms
+      setPhase('stage1');
 
-    if (phase !== 'boot') return;
-    if (bootCompleteRef.current) return;
+      timers.push(setTimeout(() => {
+        // Stage 2 begins
+        setPhase('stage2');
+        setShowLoader(true);
 
-    const timers: ReturnType<typeof setTimeout>[] = [];
+        // Advance through progress steps
+        let step = 0;
 
-    // Stage 1: Black flash for 80ms
-    setPhase('stage1');
+        const advanceStep = () => {
+          setProgressIndex(step);
+          setStatusText(BOOT_STATUSES[step]);
+          step++;
 
-    timers.push(setTimeout(() => {
-      // Stage 2 begins
-      setPhase('stage2');
-      setShowLoader(true);
-
-      // Advance through progress steps
-      let step = 0;
-
-      const advanceStep = () => {
-        setProgressIndex(step);
-        setStatusText(BOOT_STATUSES[step]);
-        step++;
-
-        if (step < PROGRESS_STEPS.length) {
-          // Schedule next step with gap
-          timers.push(setTimeout(advanceStep, STEP_GAPS[step - 1]));
-        } else {
-          // All steps complete — hold SYSTEM READY in gold, then move to stage 3
-          timers.push(setTimeout(() => {
-            setPhase('stage3');
-            setShowLoader(false);
-            runParticleBurst();
-
-            // Stage 4: page reveal after particle burst
+          if (step < PROGRESS_STEPS.length) {
+            timers.push(setTimeout(advanceStep, STEP_GAPS[step - 1]));
+          } else {
+            // Hold SYSTEM READY in gold, then move to stage 3
             timers.push(setTimeout(() => {
-              setPhase('stage4');
+              setPhase('stage3');
+              setShowLoader(false);
+              runParticleBurst();
 
-              // Complete
+              // Stage 4: page reveal after particle burst
               timers.push(setTimeout(() => {
-                setPhase('complete');
-                bootCompleteRef.current = true;
-                sessionStorage.setItem('boot_complete', 'true');
-                onComplete?.();
-              }, 400));
-            }, 400));
-          }, STEP_GAPS[3] + 580)); // Last gap (100ms) + hold SYSTEM READY (~580ms) to match 1200ms stage 2
-        }
-      };
+                setPhase('stage4');
 
-      // Start first step immediately
-      advanceStep();
-    }, 80));
+                // Complete
+                timers.push(setTimeout(() => {
+                  setPhase('complete');
+                  bootCompleteRef.current = true;
+                  sessionStorage.setItem('boot_complete', 'true');
+                  onComplete?.();
+                }, 400));
+              }, 400));
+            }, STEP_GAPS[3] + 580)); // Last gap + SYSTEM READY hold
+          }
+        };
+
+        // Start first step immediately
+        advanceStep();
+      }, 80));
+    }
 
     return () => {
       timers.forEach(clearTimeout);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [reduced, hasBooted, phase, onComplete, runParticleBurst]);
+    // Intentionally empty deps — runs once on mount only.
+    // Timeout chains manage stage transitions internally.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Show replay button after 3s of completion
   useEffect(() => {
