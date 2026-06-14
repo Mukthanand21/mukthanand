@@ -10,24 +10,24 @@ const LINKS = [
   { to: '/contact', label: '/contact' },
 ];
 
-/* ─── individual nav link with cyan active indicator ─── */
+/* ─── individual nav link with gold active indicator ─── */
 function NavItem({ to, label }: { to: string; label: string }) {
   return (
     <NavLink to={to} className="group relative block py-1">
       {({ isActive }) => (
         <>
           <span
-            className={`font-mono text-sm transition-colors duration-300 ${
+            className={`font-mono text-xs uppercase tracking-wider transition-colors duration-150 ${
               isActive
                 ? 'text-accent'
-                : 'text-fg-muted group-hover:text-fg'
+                : 'text-fg-secondary group-hover:text-accent'
             }`}
           >
             {label}
           </span>
-          {/* cyan underline indicator */}
+          {/* gold underline — slides in from left on hover/active */}
           <span
-            className={`absolute -bottom-0.5 left-0 h-px bg-accent transition-all duration-300 ${
+            className={`absolute -bottom-0.5 left-0 h-px bg-accent transition-all duration-150 ${
               isActive ? 'w-full' : 'w-0 group-hover:w-full'
             }`}
           />
@@ -37,33 +37,59 @@ function NavItem({ to, label }: { to: string; label: string }) {
   );
 }
 
+/* ─── OPERATIONAL indicator with 1.8s pulse ─── */
+function StatusIndicator() {
+  return (
+    <span className="hidden items-center gap-2 font-mono text-xs uppercase tracking-wider text-success md:inline-flex">
+      <span className="relative flex h-2 w-2">
+        <span
+          className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/75"
+          style={{ animationDuration: '1.8s' }}
+        />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+      </span>
+      <span>OPERATIONAL</span>
+    </span>
+  );
+}
+
 /* ============================================================
-   Global navigation bar
+   Global navigation bar — v2 spec
+   specs-v2/000-overview.md §5 Layout, §6 Component Tokens > Nav
+   - 52px sticky, z-index 100
+   - bg at 90% opacity + backdrop-filter blur
+   - Logo: mono muted with green dot
+   - Links: mono uppercase, gold on active/hover
+   - Right: ● OPERATIONAL with 1.8s pulse
+   - Mobile: hamburger with slide-down menu
    ============================================================ */
 export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-bg/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-content items-center justify-between px-gutter py-4">
+    <header className="sticky top-0 z-[100] border-b border-border bg-bg/90 backdrop-blur-md">
+      <div className="mx-auto flex h-[52px] max-w-content items-center justify-between px-gutter">
         {/* logo / system name */}
         <NavLink
           to="/status"
-          className="font-mono text-sm text-fg-muted transition-colors duration-300 hover:text-accent"
+          className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-fg-muted transition-colors duration-150 hover:text-accent"
         >
-          <span className="inline-block align-middle text-live">&#9679;</span>
-          <span className="ml-2 align-middle">mukthanand</span>
+          <span className="inline-block h-2 w-2 rounded-full bg-success" />
+          <span>mukthanand</span>
         </NavLink>
 
         {/* desktop nav */}
-        <nav aria-label="Main navigation">
-          <ul className="hidden items-center gap-8 md:flex">
+        <nav aria-label="Main navigation" className="flex items-center gap-8">
+          <ul className="hidden items-center gap-6 md:flex">
             {LINKS.map((l) => (
               <li key={l.to}>
                 <NavItem to={l.to} label={l.label} />
               </li>
             ))}
           </ul>
+
+          {/* OPERATIONAL indicator — desktop only */}
+          <StatusIndicator />
 
           {/* mobile hamburger */}
           <button
@@ -95,7 +121,7 @@ export function Nav() {
 
       {/* mobile dropdown */}
       {mobileOpen && (
-        <div className="border-t border-white/5 bg-bg md:hidden">
+        <div className="border-t border-border bg-bg md:hidden">
           <nav aria-label="Mobile navigation">
             <ul className="flex flex-col px-gutter py-4">
               {LINKS.map((l) => (
@@ -104,10 +130,10 @@ export function Nav() {
                     to={l.to}
                     onClick={() => setMobileOpen(false)}
                     className={({ isActive }) =>
-                      `block py-3 font-mono text-sm transition-colors duration-200 ${
+                      `block py-3 font-mono text-xs uppercase tracking-wider transition-colors duration-150 ${
                         isActive
                           ? 'text-accent'
-                          : 'text-fg-muted hover:text-fg'
+                          : 'text-fg-secondary hover:text-accent'
                       }`
                     }
                   >
@@ -116,6 +142,19 @@ export function Nav() {
                 </li>
               ))}
             </ul>
+            {/* OPERATIONAL indicator in mobile menu */}
+            <div className="border-t border-border px-gutter py-3">
+              <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-success">
+                <span className="relative flex h-2 w-2">
+                  <span
+                    className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/75"
+                    style={{ animationDuration: '1.8s' }}
+                  />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+                </span>
+                <span>OPERATIONAL</span>
+              </span>
+            </div>
           </nav>
         </div>
       )}
