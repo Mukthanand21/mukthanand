@@ -3,7 +3,7 @@ import { useRef, type ReactNode, type RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import { Section } from '../components/Section';
 import { Reveal } from '../motion/Reveal';
-import { usePrefersReducedMotion } from '../motion/usePrefersReducedMotion';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 /* ─── animated green live dot ─── */
 function LiveDot() {
