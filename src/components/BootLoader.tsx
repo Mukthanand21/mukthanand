@@ -198,32 +198,26 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     const processNext = () => {
       if (skipRef.current) return;
       if (currentIdx >= LETTERS.length) {
-        // All letters locked
+        // All letters locked — 60ms gap then gold line sweeps in
         setProgress(85);
-
-        // After 300ms: gold line sweeps in
         T(() => {
           if (skipRef.current) return;
           setShowGoldLine(true);
           setProgress(100);
 
-          // After 300ms: type SYSTEM READY
+          // After 300ms: type SYSTEM READY directly (no blank gap)
           T(() => {
             if (skipRef.current) return;
-            setStatusText('');
-            T(() => {
+            typeIn('SYSTEM READY', () => {
               if (skipRef.current) return;
-              typeIn('SYSTEM READY', () => {
+              onCompleteRef.current?.();
+              T(() => {
                 if (skipRef.current) return;
-                onCompleteRef.current?.();
-                T(() => {
-                  if (skipRef.current) return;
-                  setPhase('complete');
-                }, 400);
-              });
-            }, 200);
+                setPhase('complete');
+              }, 400);
+            });
           }, 300);
-        }, 300);
+        }, 60);
         return;
       }
 
@@ -234,6 +228,12 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       cycleLetter(currentIdx, LETTERS[currentIdx], () => {
         if (skipRef.current) return;
         currentIdx++;
+
+        // Intermediate status nudges every 2 letters
+        if (currentIdx === 2) setStatusText('VERIFYING...');
+        else if (currentIdx === 4) setStatusText('CALIBRATING...');
+        else if (currentIdx === 6) setStatusText('FINALIZING...');
+
         // 60ms gap before next letter
         T(processNext, 60);
       });
