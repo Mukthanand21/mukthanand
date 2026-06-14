@@ -1,12 +1,9 @@
 import { Outlet } from 'react-router-dom';
 import { Nav } from './Nav';
 import { Footer } from './Footer';
-import { useSmoothScroll } from '../motion/useSmoothScroll';
 
-// Shared app shell: smooth scroll, nav, routed section content, footer.
+// Shared app shell: nav, routed section content, footer.
 export function Layout() {
-  useSmoothScroll();
-
   return (
     <div className="min-h-screen bg-bg text-fg">
       {/* skip-to-content link for keyboard users */}
