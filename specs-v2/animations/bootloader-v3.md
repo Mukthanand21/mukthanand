@@ -1,60 +1,69 @@
 # specs-v2/animations/bootloader-v3.md
-> **STATUS: DRAFT**
+> **STATUS: LOCKED**
 > Full animation spec for `src/components/BootLoader.tsx` v3.
-> A working reference demo was built and approved before this spec was written.
-> Implement exactly as described. Do not add, remove, or reorder stages.
+> The reference implementation is the approved HTML demo (bootloader_indian_language_name_reveal.html).
+> Implement exactly as described. Do not deviate.
 
-> **Color adaptation note:** The reference demo was built on `#2E1F2E` (deep plum).
-> This adaptation uses the project's existing `--color-bg: #0A0A0A` (near-black).
-> All intermediate animation colors (plum/mauve tones) have been verified to
-> work on `#0A0A0A` — they are all significantly lighter than the background
-> and the dim→brightening arc reads correctly.
+> **Color adaptation note:** The reference demo was built on `#2E1F2E` (deep plum). This adaptation uses the project's existing `--color-bg: #0A0A0A` (near-black). All intermediate animation colors have been verified to work on `#0A0A0A` — they are all significantly lighter than the background and the dim→brightening arc reads correctly.
 
 ---
 
 ## Overview
 
-A cinematic, multilingual name-reveal bootloader.
-Each letter of `MUKTHANAND` is assigned one Indian language.
-Each letter scrambles through random Indian script characters (fast flicker),
-then locks to its assigned script — staggered left to right.
-Once all 10 letters are locked in their scripts, they all flip to English simultaneously.
-No particle burst. No `REDDY`. The name `MUKTHANAND` is the full reveal.
+A cinematic multilingual bootloader.
+Each letter of `MUKTHANAND` cycles through its equivalents in 5 Indian scripts (Telugu, Hindi, Tamil, Kannada, Bengali), then locks to English — one letter at a time, left to right.
+Each letter waits for the previous to fully lock before starting.
+No REDDY. No particle burst. The sequence ends at SYSTEM READY.
 
 ---
 
-## The 10 Letter → Language Mapping (LOCKED)
+## Script Data (LOCKED)
 
-| Index | English | Script Char | Language | Google Font |
-|---|---|---|---|---|
-| 0 | M | మ | Telugu | Noto Sans Telugu |
-| 1 | U | उ | Hindi | Noto Sans Devanagari |
-| 2 | K | க | Tamil | Noto Sans Tamil |
-| 3 | T | ತ | Kannada | Noto Sans Kannada |
-| 4 | H | হ | Bengali | Noto Sans Bengali |
-| 5 | A | അ | Malayalam | Noto Sans Malayalam |
-| 6 | N | न | Marathi | Noto Sans Devanagari |
-| 7 | A | અ | Gujarati | Noto Sans Gujarati |
-| 8 | N | ਨ | Punjabi | Noto Sans Gurmukhi |
-| 9 | D | ଡ | Odia | Noto Sans Oriya |
+```typescript
+const LETTER_SCRIPTS: Record<string, string[]> = {
+  'M': ['మ', 'म', 'ம', 'ಮ', 'ম'],
+  'U': ['ఉ', 'उ', 'உ', 'ಉ', 'উ'],
+  'K': ['క', 'क', 'க', 'ಕ', 'ক'],
+  'T': ['త', 'त', 'த', 'ತ', 'ত'],
+  'H': ['హ', 'ह', 'ஹ', 'ಹ', 'হ'],
+  'A': ['అ', 'अ', 'அ', 'ಅ', 'অ'],
+  'N': ['న', 'न', 'ந', 'ನ', 'ন'],
+  'D': ['డ', 'ड', 'ட', 'ಡ', 'ড'],
+};
+
+const SCRIPT_NAMES = ['Telugu', 'Hindi', 'Tamil', 'Kannada', 'Bengali'];
+
+const SCRIPT_FONTS = [
+  "'Noto Sans Telugu', sans-serif",
+  "'Noto Sans Devanagari', sans-serif",
+  "'Noto Sans Tamil', sans-serif",
+  "'Noto Sans Kannada', sans-serif",
+  "'Noto Sans Bengali', sans-serif",
+];
+
+const NAME = 'MUKTHANAND';
+```
 
 ---
 
-## Scramble Character Pool
+## Font Setup (index.html)
 
-Use this pool of Indian script characters for the scramble phase (random picks):
+```html
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Telugu:wght@700&family=Noto+Sans+Devanagari:wght@700&family=Noto+Sans+Tamil:wght@700&family=Noto+Sans+Kannada:wght@700&family=Noto+Sans+Bengali:wght@700&display=swap" rel="stylesheet"/>
+```
+
+---
+
+## Layout Structure
 
 ```
-మ న క ర ఉ అ ల వ త హ
-त न क र ह उ म
-ம ந க ர ல வ த
-ಮ ನ ಕ ರ ಲ ವ ತ ಹ
-ম ন ক র ল ভ
-അ ന ക ര ല വ
-न म क र ह
-અ ન ક ર લ
-ਨ ਮ ਕ ਰ ਲ
-ଡ ନ କ ର ଲ
+[script-label]          ← current language name, mono 10px, --color-text-muted
+[M][U][K][T][H][A][N][A][N][D]   ← letter row, clamp(36px,6vw,68px), Syne 800
+                        ← NO REDDY element
+[gold-line]             ← gradient underline, height 2px
+[status]                ← mono 11px, letter-spacing 0.15em, uppercase
+[progress bar]          ← 180px wide, 1px tall, track #2A1F2A, fill --color-accent
+[pct]                   ← mono 10px
 ```
 
 ---
@@ -62,134 +71,150 @@ Use this pool of Indian script characters for the scramble phase (random picks):
 ## Stage Sequence
 
 ### Stage 1 — Black flash (0ms – 80ms)
-- Background: `#000000`
-- Nothing visible. Cold start.
+- Background: `#000000`. Nothing visible.
 
-### Stage 2 — Boot begins (80ms)
-- Background changes to `var(--color-bg)` (`#0A0A0A`) — no transition needed
-  (visually identical to `#000` at this luminance)
-- Ambient floating particles begin (see §Ambient Particles)
-- Status line appears: `INITIALIZING SYSTEM...` — color `var(--color-text-muted)`
-- Progress bar: `5%`
+### Stage 2 — System boot (80ms)
+- `background` transitions `#000 → var(--color-bg)` over `1000ms ease-out`
+  (Note: `#000` and `#0A0A0A` are visually near-identical, so this transition is imperceptible — included for spec completeness)
+- Ambient particles begin (see §Ambient Particles)
+- Status: `INITIALIZING...` — color `var(--color-text-muted)`
+- Progress: `8%`
 
-### Stage 3 — Identity scan (880ms)
-- Status changes to: `SCANNING IDENTITY...` — color `var(--color-text-muted)`
-- Progress bar: `15%`
-- Letter scramble begins (see §Letter Scramble)
+### Stage 3 — Asset loading (680ms)
+- Status: `LOADING ASSETS...`
+- Progress: `20%`
 
-### Stage 4 — Letters lock to scripts (staggered, 880ms – ~3000ms)
-- Each letter locks to its assigned Indian script, staggered `200ms` apart
-- Progress bar increments as each letter locks: `15% + (lockedCount / 10 * 55)%`
+### Stage 4 — Identity resolution (1080ms)
+- Status: `RESOLVING IDENTITY...` — color `var(--color-text-secondary)` (`#B79CAE`)
+- Progress: `35%`
+- Letter cycling begins (see §cycleLetter)
 
-### Stage 5 — Anticipation hold (~3000ms – ~4200ms)
-- All 10 script chars locked and visible, dim (`color: #7A5A8A`)
-- Status: `RESOLVING...` — color `#8A6A8A`
-- After 300ms: all locked chars brighten together — `color: #AA7ACC`, `transition: color 0.7s`
-- Progress bar: `80%`
-- After 900ms total hold: status clears
-- Progress bar: `95%`
+### Stage 5 — Letter cycling (sequential, 1080ms onward)
+- Letters cycle and lock one at a time, left to right
+- Each letter waits for previous to fully lock before starting
+- 60ms gap between one letter locking and next letter starting
+- Progress increments: `35% + floor((letterIdx / 10) * 45)%` per letter start
 
-### Stage 6 — THE REVEAL (simultaneous English flip)
-- Progress bar: `100%`
-- Subtle gold flash overlay: `background: var(--color-accent)`, `opacity: 0.15`, duration `70ms`, then fades out
-- All 10 spans simultaneously:
-  - `font-family` → `'Syne', sans-serif`
-  - `textContent` → English letter (`M`, `U`, `K`, `T`, `H`, `A`, `N`, `A`, `N`, `D`)
-  - `color` → `var(--color-text-primary)` (`#F3EAEF`)
-  - `text-shadow` → `0 0 40px rgba(232,182,90,0.5)` — fades out over `600ms`
-- Transition: `color 0.5s ease-out, font-family 0.2s`
-
-### Stage 7 — System ready (500ms after reveal)
-- Gold underline sweeps in: `width: 0 → 300px`, `transition: width 1.2s cubic-bezier(0.16,1,0.3,1)`
-- `SYSTEM` label appears below name: `opacity: 0 → 1`, `transition: opacity 0.6s`
-  - Font: `JetBrains Mono`, `font-size: clamp(12px, 2vw, 17px)`, `letter-spacing: 0.4em`, color `var(--color-accent)`
-- After 400ms: status line types in `SYSTEM READY`
-  - Typewriter: one character at a time, `55ms` per character, with `▌` cursor
+### Stage 6 — All locked (after last letter locks)
+- `script-label` fades out
+- Progress: `85%`
+- After 300ms: gold line sweeps in — `width: 0 → 320px`, `transition: width 1s cubic-bezier(0.16,1,0.3,1)`
+- Progress: `100%`
+- After 300ms: status fades out, then types in `SYSTEM READY` (see §typeIn)
   - Color: `var(--color-accent)`
-- **No particle burst. No REDDY. Sequence ends here.**
-- Boot complete. Page content reveals behind/after loader.
+  - Speed: `55ms` per character with `█` cursor
+- **Sequence ends. No particle burst. No REDDY.**
+- Call `onComplete()` after typeIn finishes.
 
 ---
 
-## Letter Scramble (per letter)
-
-Each letter runs this independently, triggered `200ms` after the previous letter starts.
+## cycleLetter Function
 
 ```
-totalCycles = 10  (random script chars shown before locking)
+Input: span element, letter (e.g. 'M'), onLock callback
 
-for count 0..9:
-  pick random char from scramble pool
-  display in span
-  color:
-    count < 5  → #3D2A3D  (very dim)
-    count >= 5 → #5A3A6A  (slightly brighter)
-  font-family: any Noto Sans script font (use Telugu as base for random phase)
-  interval: 55ms + random(0–30ms)  →  55–85ms per frame
+scripts = LETTER_SCRIPTS[letter]  // 5 script chars
+cycle runs scripts.length * 2 = 10 total iterations
 
-on count == 10 (LOCK):
-  span.textContent = assigned script char (e.g. 'మ')
-  span.fontFamily  = assigned language font
-  span.color       = #7A5A8A  (dim — locked in script, not English yet)
-  text-shadow: 0 0 12px rgba(232,182,90,0.25) — fades after 150ms
-  → trigger onLock callback
+Iteration 0–4 (first pass through scripts):
+  span.textContent = scripts[si % 5]
+  span.fontFamily  = SCRIPT_FONTS[si % 5]
+  span.color       = '#4D3A4D'  (dim)
+  label.textContent = SCRIPT_NAMES[si % 5]
+  label.opacity    = 1
+  interval: 80ms
+
+Iteration 5–9 (second pass, brighter):
+  span.color       = '#8A6A8A'  (brighter)
+  interval: 55ms  (speeds up — building energy)
+
+On iteration 10 (LOCK to English):
+  span.fontFamily  = "'Syne', sans-serif"
+  span.textContent = letter (English)
+  span.color       = '#E8B65A'  (gold flash)
+  span.transform   = 'scale(1.15)'
+  After 200ms:
+    span.color     = '#F3EAEF'  (settle to white)
+    span.transform = 'scale(1)'
+    → call onLock()
 ```
-
-Language label (above name row):
-- Shows assigned language name (`Telugu`, `Hindi`, etc.) when each letter begins scrambling
-- Fade in `100ms`, visible for `600ms`, fade out
-- Font: `JetBrains Mono`, `11px`, `letter-spacing: 0.25em`, uppercase, color `var(--color-text-muted)`
 
 ---
 
-## Layout
+## Letter Span Styles
 
-```
-[lang-label]           ← language name, fades in/out per letter
-[M][U][K][T][H][A][N][A][N][D]   ← letter row
-SYSTEM                 ← mono gold, appears after reveal
-──────────────────     ← gold gradient underline
-SCANNING IDENTITY...   ← status line
-████░░░░░░░░░░░░░░     ← progress bar (160px wide, 1px tall)
-15%                    ← percentage
-```
-
-### Letter span styles
 ```css
-font-size: clamp(36px, 6.5vw, 70px);
-font-weight: 700;
+font-size: clamp(36px, 6vw, 68px);
+font-weight: 800;
 display: inline-block;
-min-width: 0.58em;
+min-width: 0.6em;
 text-align: center;
-line-height: 1.1;
+transition: color 0.3s, font-family 0.15s, transform 0.3s;
+color: #3D2A3D;  /* initial dim — nearly invisible */
+font-family: 'Syne', sans-serif;
 gap between spans: 2px
 ```
 
-### Progress bar
+Initial state: all letters display their English character, color `#3D2A3D` (nearly invisible on near-black bg).
+They are not hidden — they exist in the row from the start, just extremely dim.
+
+---
+
+## Script Label Styles
+
 ```css
-width: 160px;
-height: 1px;
-background (track): #1E141E;
-fill: var(--color-accent);
-transition: width 0.4s ease-out;
+font-family: 'JetBrains Mono', monospace;
+font-size: 10px;
+color: var(--color-text-muted);
+letter-spacing: 0.2em;
+text-transform: uppercase;
+height: 14px;
+transition: opacity 0.2s;
+```
+
+Updates on every script change during cycling. Fades out after all letters lock.
+
+---
+
+## typeIn Function
+
+```
+Types text into element one character at a time.
+Appends '█' cursor while typing, removes on completion.
+Speed: 55ms per character.
+Calls done() callback when complete.
 ```
 
 ---
 
 ## Ambient Particles
 
-Subtle gold dust floating in background throughout the sequence.
-
 ```
+canvas: position absolute, inset 0, full width/height, pointer-events none
 count: 14
-radius: 0.4–1.2px
-opacity: 0.04–0.14
-speed: 0.15px/frame (very slow drift)
-color: var(--color-accent)
-technique: canvas, requestAnimationFrame loop
-wrap at canvas edges (modulo)
+per particle:
+  x, y: random within canvas
+  r: 0.5–1.5px
+  opacity: 0.05–0.2
+  vx, vy: random ±0.2 (slow drift)
+  color: var(--color-accent)
+wrap at canvas edges (modulo canvas.width/height)
+technique: requestAnimationFrame loop, ctx.clearRect each frame
+wrap in try/catch — skip silently if canvas unavailable
 ```
-Runs from Stage 2 onward. Never stops during bootloader lifetime.
+
+---
+
+## Progress Bar Styles
+
+```css
+width: 180px;
+height: 1px;
+background (track): #2A1F2A;
+fill: var(--color-accent);
+transition: width 0.4s ease-out;
+position: relative; overflow: hidden;
+```
 
 ---
 
@@ -201,85 +226,65 @@ All colors used in the bootloader, mapped to their purpose:
 |---|---|---|
 | `#000000` | — (momentary) | Stage 1 cold start flash (80ms) |
 | `var(--color-bg)` = `#0A0A0A` | Design token | Background from Stage 2 onward |
-| `#1E141E` | — | Progress bar track (subtle warm tint) |
-| `#3D2A3D` | — | Scramble chars, cycles 0–4 (very dim) |
-| `#5A3A6A` | — | Scramble chars, cycles 5–9 (brighter) |
-| `#7A5A8A` | — | Locked script chars (dim, pre-reveal) |
-| `#8A6A8A` | — | `RESOLVING...` status text |
-| `#AA7ACC` | — | Brightened locked chars (anticipation) |
-| `var(--color-accent)` = `#E8B65A` | Design token | Progress bar fill, SYSTEM text, gold flash, underline |
-| `var(--color-text-primary)` = `#F3EAEF` | Design token | English reveal letter color |
-| `var(--color-text-muted)` = `#6B4D6B` | Design token | Status lines, language labels, percentage |
+| `#2A1F2A` | — | Progress bar track |
+| `#3D2A3D` | — | Initial letter color (dim, pre-cycle) |
+| `#4D3A4D` | — | Cycle chars, first pass (dim) |
+| `#8A6A8A` | — | Cycle chars, second pass (brighter) |
+| `var(--color-accent)` = `#E8B65A` | Design token | Gold flash on lock, SYSTEM text, progress fill, gold line |
+| `var(--color-text-primary)` = `#F3EAEF` | Design token | Settled English letter color |
+| `var(--color-text-muted)` = `#6B4D6B` | Design token | Script label, status lines (INITIALIZING, LOADING) |
+| `var(--color-text-secondary)` = `#B79CAE` | Design token | RESOLVING IDENTITY status |
 
-> **Note:** The intermediate plum/mauve animation colors (`#3D2A3D`, `#5A3A6A`,
-> `#7A5A8A`, `#8A6A8A`, `#AA7ACC`, `#1E141E`) are **local to the BootLoader
-> component** — they are animation state colors used to build tension before the
-> gold reveal. They are not design system tokens and should not be referenced
-> outside of `BootLoader.tsx`.
-
----
-
-## Implementation Phases
-
-### Phase 1 — Spec + Fonts + CSS cleanup
-
-| File | Change |
-|---|---|
-| `specs-v2/animations/bootloader-v3.md` | ✓ Done — this file |
-| `index.html` | Add Syne + Noto Script font `<link>` tags. Remove preload for old fonts. |
-| `src/styles/fonts.css` | Remove `@import` for Inter + JetBrains Mono (now loaded via `<link>` in `index.html`). Add Syne + Noto Script `@import` or keep in `index.html`. |
-| `src/styles/index.css` | Remove old CRT keyframes: `crt-warmup`, `crt-flicker`, `glitch-text`, `cursor-blink`. No longer needed. |
-
-### Phase 2 — Layout cleanup + BootLoader rewrite
-
-| File | Change |
-|---|---|
-| `src/components/Layout.tsx` | Remove `sessionStorage` check from `useState` — replace with `useState(false)`. |
-| `src/components/BootLoader.tsx` | Full rewrite — 7-stage script scramble sequence. Remove all v2 code (wireframe cube, CRT effects, scanline mask, glitch). Implement new sequential logic. |
-
-### Phase 3 — Polish + review
-
-| Task | Detail |
-|---|---|
-| Mobile testing | Verify at 375px and 768px viewport widths. Letter row should shrink via `clamp(36px, 6.5vw, 70px)`. |
-| Reduced motion | Verify `prefers-reduced-motion: reduce` shows final state immediately with 200ms fade. |
-| Lighthouse | Check performance and accessibility. |
-| Code review | Verify no hardcoded hex violations, no sessionStorage, no Framer Motion. |
+> **Note:** The intermediate animation colors (`#3D2A3D`, `#4D3A4D`, `#8A6A8A`, `#2A1F2A`) are **local to the BootLoader component** — they are animation state colors used to build tension before the gold reveal. They are not design system tokens and should not be referenced outside of `BootLoader.tsx`.
 
 ---
 
 ## Reduced Motion
 
-If `prefers-reduced-motion: reduce`:
-- Skip all stages entirely
-- Show `MUKTHANAND` in English immediately (`color: var(--color-text-primary)`)
-- `SYSTEM` and gold line appear instantly
-- 200ms opacity fade, boot complete
-
 ```typescript
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (reduced) {
-  // show final state immediately, 200ms opacity fade
+  // Skip all stages
+  // Show MUKTHANAND in English immediately, color var(--color-text-primary)
+  // Show gold line at full width
+  // Status: 'SYSTEM READY' instantly (no typewriter)
+  // 200ms opacity fade, call onComplete()
 }
 ```
 
 ---
 
-## Replay Behavior
+## Replay / Session Behavior
 
-Boot sequence runs on **every page load and hard reload**.
-No `sessionStorage`. No skip logic. No replay button.
-Internal SPA navigation (React Router) does NOT retrigger the boot sequence.
+- Runs on every page load and hard reload
+- No sessionStorage
+- No skip logic
+- No replay button
+- SPA internal navigation does NOT retrigger
 
 ---
 
-## What NOT to do
+## Cleanup
 
-- Do NOT add a particle burst at the end
-- Do NOT show `REDDY` anywhere in the bootloader
-- Do NOT add `sessionStorage` skip logic
-- Do NOT add a replay button
-- Do NOT add sound
-- Do NOT use Framer Motion — vanilla rAF + CSS transitions only
-- Do NOT hardcode any hex color that has a CSS custom property equivalent
-- Do NOT change the 10-letter language mapping
+On component unmount:
+```typescript
+timers.forEach(clearTimeout);
+rafs.forEach(cancelAnimationFrame);
+```
+
+Store all setTimeout IDs in a `timers` array.
+Store all requestAnimationFrame IDs in a `rafs` array.
+Cancel all on unmount.
+
+---
+
+## What NOT to Do
+
+- NO REDDY element anywhere
+- NO particle burst at the end
+- NO sessionStorage or replay button
+- NO Framer Motion — vanilla rAF + CSS transitions only
+- NO hardcoded hex — use CSS custom properties except where noted
+- NO changes to LETTER_SCRIPTS data
+- NO changes to the cycling logic (10 iterations, 80ms first pass, 55ms second pass)
+- NO parallel letter cycling — strictly sequential, one locks then next starts
