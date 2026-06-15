@@ -46,6 +46,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   /* ─── UI state ─── */
   const [phase, setPhase] = useState<BootPhase>('boot');
   const [showGoldLine, setShowGoldLine] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
 
   /* ─── Refs ─── */
   const containerRef = useRef<HTMLDivElement>(null);
@@ -131,14 +132,16 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
               if (skipRef.current) return;
               setShowGoldLine(true);
 
-              // Hold the glow for 500ms, then complete
+              // Hold the glow for 500ms, then reveal via mask wipe
               T(() => {
                 if (skipRef.current) return;
                 onCompleteRef.current?.();
+                setIsRevealing(true);
+                // Mask reveal takes 1200ms, then unmount
                 T(() => {
                   if (skipRef.current) return;
                   setPhase('complete');
-                }, 200);
+                }, 1200);
               }, 500);
             }, 36);
           }
@@ -157,7 +160,8 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
       onCompleteRef.current?.();
-      setPhase('complete');
+      setIsRevealing(true);
+      T(() => setPhase('complete'), 1200);
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -179,9 +183,10 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         setShowGoldLine(true);
         T(() => {
           if (skipRef.current) return;
-          onCompleteRef.current?.();
-          setPhase('complete');
-        }, 300);
+        onCompleteRef.current?.();
+        setIsRevealing(true);
+        T(() => setPhase('complete'), 1200);
+      }, 300);
       }, 10);
       return;
     }
@@ -211,6 +216,10 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       style={{
         backgroundColor: phase === 'boot' ? '#000' : 'var(--color-bg)',
         transition: 'background-color 0.3s ease-out',
+        clipPath: isRevealing ? 'inset(0 0 100% 0)' : 'inset(0 0 0 0)',
+        transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        transitionDuration: isRevealing ? '1.2s' : '0s',
+        transitionProperty: 'clip-path, background-color',
       }}
     >
       {phase === 'active' && (
