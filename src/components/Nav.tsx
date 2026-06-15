@@ -1,31 +1,24 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useScrollDirection } from '../hooks/useScrollDirection';
-import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut';
 
-/* ─── nav links — uppercase mono per v2 spec ─── */
+/* ─── nav links — editorial labels, no uppercase-mono ─── */
 const LINKS = [
-  { to: '/status', label: '/STATUS' },
-  { to: '/services', label: '/SERVICES' },
-  { to: '/changelog', label: '/CHANGELOG' },
-  { to: '/stack', label: '/STACK' },
-  { to: '/contact', label: '/CONTACT' },
+  { to: '/status', label: 'Status' },
+  { to: '/services', label: 'Services' },
+  { to: '/changelog', label: 'Changelog' },
+  { to: '/stack', label: 'Stack' },
+  { to: '/contact', label: 'Contact' },
 ];
 
-/* ─── individual nav link with gold active indicator + dot ─── */
+/* ─── individual nav link with gold underline ─── */
 function NavItem({ to, label }: { to: string; label: string }) {
   return (
     <NavLink to={to} className="group relative block py-1">
       {({ isActive }) => (
         <>
-          {/* active dot indicator — gold dot above active link */}
           <span
-            className={`absolute -top-2 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-accent transition-all duration-150 ${
-              isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
-            }`}
-          />
-          <span
-            className={`font-mono text-sm uppercase tracking-wider transition-colors duration-150 ${
+            className={`font-sans text-sm tracking-wide transition-colors duration-150 ${
               isActive
                 ? 'text-accent'
                 : 'text-fg-secondary group-hover:text-accent'
@@ -45,68 +38,12 @@ function NavItem({ to, label }: { to: string; label: string }) {
   );
 }
 
-/* ─── OPERATIONAL indicator with 1.8s pulse ─── */
-function StatusIndicator() {
-  return (
-    <span className="hidden items-center gap-2 font-mono text-xs uppercase tracking-wider text-success md:inline-flex">
-      <span className="relative flex h-2 w-2">
-        <span
-          className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/75"
-          style={{ animationDuration: '1.8s' }}
-        />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-      </span>
-      <span>OPERATIONAL</span>
-    </span>
-  );
-}
-
-/* ─── keyboard shortcut hint badge ─── */
-function ShortcutHint() {
-  const isMac =
-    typeof navigator !== 'undefined' &&
-    /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-
-  return (
-    <span className="hidden rounded border border-border px-1.5 py-0.5 font-mono text-[10px] leading-none text-fg-muted md:inline-block">
-      {isMac ? '\u2318K' : 'Ctrl+K'}
-    </span>
-  );
-}
-
-/* ─── session uptime counter ─── */
-function UptimeCounter() {
-  const [seconds, setSeconds] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  const formatted = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-
-  return (
-    <span className="hidden items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-fg-muted md:inline-flex">
-      <span className="opacity-50">SESSION:</span>
-      <span className="tabular-nums">{formatted}</span>
-    </span>
-  );
-}
-
 /* ============================================================
-   Global navigation bar — Option B + Next-Level Enhancements
-   specs-v2/000-overview.md inspired
-   - Flexible height, uppercase mono links, gold accent
-   - Green dot logo + ● OPERATIONAL indicator
+   Global navigation bar — V3 editorial
+   - Clean sans-serif links, no terminal indicators
    - Hide on scroll down, show on scroll up
-   - Active gold dot indicator above current link
-   - Uptime counter (SESSION: MM:SS)
+   - Gold underline active indicator
    - Scroll progress bar (1px gold line at nav bottom)
-   - ⌘K keyboard shortcut to focus nav
    - Mobile hamburger with animated slide-down + blur backdrop
    ============================================================ */
 export function Nav() {
@@ -124,16 +61,6 @@ export function Nav() {
       document.body.style.overflow = '';
     };
   }, [mobileOpen]);
-
-  // Keyboard shortcut: focus the first nav link
-  const handleShortcut = useCallback(() => {
-    const firstLink = document.querySelector<HTMLAnchorElement>(
-      'nav[aria-label="Main navigation"] a, nav[aria-label="Mobile navigation"] a',
-    );
-    firstLink?.focus();
-  }, []);
-
-  useKeyboardShortcut('k', handleShortcut);
 
   // Close mobile menu on Escape
   useEffect(() => {
@@ -169,7 +96,7 @@ export function Nav() {
 
   return (
     <>
-      {/* mobile blur overlay — appears behind the mobile menu */}
+      {/* mobile blur overlay */}
       <div
         className={`fixed inset-0 z-[99] bg-black/20 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
           mobileOpen
@@ -186,13 +113,12 @@ export function Nav() {
         }`}
       >
         <div className="mx-auto flex max-w-content items-center justify-between px-gutter py-4">
-          {/* logo / system name */}
+          {/* logo / name */}
           <NavLink
             to="/status"
-            className="inline-flex items-center gap-2 font-mono text-sm uppercase tracking-wider text-fg-muted transition-colors duration-150 hover:text-accent"
+            className="font-sans text-sm font-medium tracking-wide text-fg transition-colors duration-150 hover:text-accent"
           >
-            <span className="inline-block h-2 w-2 rounded-full bg-success" />
-            <span>mukthanand</span>
+            Mukthanand
           </NavLink>
 
           {/* desktop nav */}
@@ -204,15 +130,6 @@ export function Nav() {
                 </li>
               ))}
             </ul>
-
-            <span className="hidden h-4 w-px bg-border md:block" />
-
-            {/* OPERATIONAL indicator — desktop only */}
-            <StatusIndicator />
-
-            <UptimeCounter />
-
-            <ShortcutHint />
 
             {/* mobile hamburger */}
             <button
@@ -248,7 +165,7 @@ export function Nav() {
           style={{ width: `${scrollProgress}%` }}
         />
 
-        {/* mobile dropdown — slide animation */}
+        {/* mobile dropdown */}
         <div
           className={`overflow-hidden transition-all duration-300 ease-out md:hidden ${
             mobileOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
@@ -263,7 +180,7 @@ export function Nav() {
                       to={l.to}
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
-                        `block py-3 font-mono text-sm uppercase tracking-wider transition-colors duration-150 ${
+                        `block py-3 font-sans text-sm tracking-wide transition-colors duration-150 ${
                           isActive
                             ? 'text-accent'
                             : 'text-fg-secondary hover:text-accent'
@@ -275,19 +192,6 @@ export function Nav() {
                   </li>
                 ))}
               </ul>
-              {/* OPERATIONAL indicator in mobile menu */}
-              <div className="border-t border-border px-gutter py-3">
-                <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-success">
-                  <span className="relative flex h-2 w-2">
-                    <span
-                      className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/75"
-                      style={{ animationDuration: '1.8s' }}
-                    />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-                  </span>
-                  <span>OPERATIONAL</span>
-                </span>
-              </div>
             </nav>
           </div>
         </div>
