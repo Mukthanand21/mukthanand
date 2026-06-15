@@ -73,7 +73,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     return id;
   }, []);
 
-  /* ─── cycleLetter: cycle through 5 scripts × 2 passes, then lock to English ─── */
+  /* ─── cycleLetter: 6 cycles at 40ms each, then lock to English ─── */
   const cycleLetter = useCallback((
     idx: number,
     letter: string,
@@ -86,7 +86,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     if (!scripts) { onLock(); return; }
 
     let iteration = 0;
-    const total = scripts.length * 2; // 10 iterations
+    const total = 6; // 3 dim + 3 bright
 
     const step = () => {
       if (skipRef.current) return;
@@ -95,21 +95,20 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         const si = iteration % scripts.length;
         span.textContent = scripts[si];
         span.style.fontFamily = SCRIPT_FONTS[si];
-        span.style.color = iteration < scripts.length ? '#4D3A4D' : '#8A6A8A';
+        span.style.color = iteration < 3 ? '#4D3A4D' : '#8A6A8A';
         span.style.transform = 'scale(1)';
 
-        const delay = iteration < scripts.length ? 80 : 55;
         iteration++;
-        T(step, delay);
+        T(step, 50);
       } else {
         // LOCK to English — gold flash + scale pop
-        span.style.transition = 'color 0.3s, font-family 0.15s, transform 0.3s';
+        span.style.transition = 'color 0.15s, font-family 0.08s, transform 0.15s';
         span.style.fontFamily = "'Syne', sans-serif";
         span.style.color = '#E8B65A';
         span.style.transform = 'scale(1.15)';
         span.textContent = letter;
 
-        // After 200ms: settle to white
+        // After 120ms: settle to white
         T(() => {
           if (skipRef.current) return;
           if (span) {
@@ -117,7 +116,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
             span.style.transform = 'scale(1)';
           }
           onLock();
-        }, 200);
+        }, 180);
       }
     };
 
@@ -136,9 +135,9 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       if (typedCharsRef.current >= text.length) {
         clearInterval(interval);
         setIsTyping(false);
-        T(onDone, 250);
+        T(onDone, 150);
       }
-    }, 55);
+    }, 33);
     timersRef.current.push(interval);
   }, [T]);
 
@@ -191,55 +190,53 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     RAF(draw);
   }, [RAF]);
 
-  /* ─── Sequential letter cycling ─── */
+  /* ─── Hybrid cascade letter cycling ─── */
   const startLetterCycling = useCallback(() => {
-    let currentIdx = 0;
+    setStatusText('RESOLVING IDENTITY...');
+    setProgress(35);
 
-    const processNext = () => {
-      if (skipRef.current) return;
-      if (currentIdx >= LETTERS.length) {
-        // All letters locked — 60ms gap then gold line sweeps in
-        setProgress(85);
-        T(() => {
+    let lockedCount = 0;
+
+    for (let i = 0; i < LETTERS.length; i++) {
+      // First 3 letters: 0ms, 150ms, 300ms — each subsequent: 250ms after previous begins
+      const offset = i < 3 ? i * 150 : 300 + (i - 2) * 250;
+
+      T(() => {
+        if (skipRef.current) return;
+
+        cycleLetter(i, LETTERS[i], () => {
           if (skipRef.current) return;
-          setShowGoldLine(true);
-          setProgress(100);
+          lockedCount++;
 
-          // After 300ms: type SYSTEM READY directly (no blank gap)
-          T(() => {
-            if (skipRef.current) return;
-            typeIn('SYSTEM READY', () => {
+          // Progress + status nudges
+          setProgress(35 + Math.floor((lockedCount / LETTERS.length) * 65));
+          if (lockedCount === 3) setStatusText('VERIFYING...');
+          else if (lockedCount === 6) setStatusText('CALIBRATING...');
+          else if (lockedCount === 8) setStatusText('FINALIZING...');
+
+          // All letters locked — gold line + SYSTEM READY
+          if (lockedCount === LETTERS.length) {
+            setProgress(100);
+            T(() => {
               if (skipRef.current) return;
-              onCompleteRef.current?.();
+              setShowGoldLine(true);
+
               T(() => {
                 if (skipRef.current) return;
-                setPhase('complete');
-              }, 400);
-            });
-          }, 300);
-        }, 60);
-        return;
-      }
-
-      // Update progress for this letter
-      setProgress(35 + Math.floor((currentIdx / LETTERS.length) * 45));
-
-      // Cycle this letter
-      cycleLetter(currentIdx, LETTERS[currentIdx], () => {
-        if (skipRef.current) return;
-        currentIdx++;
-
-        // Intermediate status nudges every 2 letters
-        if (currentIdx === 2) setStatusText('VERIFYING...');
-        else if (currentIdx === 4) setStatusText('CALIBRATING...');
-        else if (currentIdx === 6) setStatusText('FINALIZING...');
-
-        // 60ms gap before next letter
-        T(processNext, 60);
-      });
-    };
-
-    processNext();
+                typeIn('SYSTEM READY', () => {
+                  if (skipRef.current) return;
+                  onCompleteRef.current?.();
+                  T(() => {
+                    if (skipRef.current) return;
+                    setPhase('complete');
+                  }, 400);
+                });
+              }, 300);
+            }, 36);
+          }
+        });
+      }, offset);
+    }
   }, [T, cycleLetter, typeIn]);
 
   /* ─── Keyboard interrupt ─── */
@@ -280,16 +277,16 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           if (skipRef.current) return;
           onCompleteRef.current?.();
           setPhase('complete');
-        }, 200);
+        }, 120);
       }, 10);
       return;
     }
 
-    /* Stage 1: Black flash (80ms) */
+    /* Stage 1: Black flash (48ms) */
     T(() => {
       if (skipRef.current) return;
 
-      /* Stage 2: System boot (80ms) */
+      /* Stage 2: System boot (48ms) */
       setPhase('active');
       startParticles();
       setStatusText('INITIALIZING...');
@@ -298,22 +295,22 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       T(() => {
         if (skipRef.current) return;
 
-        /* Stage 3: Asset loading (680ms) */
+        /* Stage 3: Asset loading (360ms) */
         setStatusText('LOADING ASSETS...');
         setProgress(20);
 
         T(() => {
           if (skipRef.current) return;
 
-          /* Stage 4: Identity resolution (1080ms) */
+          /* Stage 4: Identity resolution (240ms) */
           setStatusText('RESOLVING IDENTITY...');
           setProgress(35);
 
-          /* Stage 5: Sequential letter cycling */
+          /* Stage 5: Hybrid cascade letter cycling */
           startLetterCycling();
-        }, 400);
-      }, 600);
-    }, 80);
+        }, 240);
+      }, 360);
+    }, 48);
 
     return () => {
       timersRef.current.forEach(clearTimeout);
@@ -370,7 +367,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                     minWidth: '0.6em',
                     textAlign: 'center',
                     lineHeight: 1.1,
-                    transition: 'color 0.3s, font-family 0.15s, transform 0.3s',
+                    transition: 'color 0.15s, font-family 0.08s, transform 0.15s',
                     color: '#3D2A3D',
                     fontFamily: "'Syne', sans-serif",
                   }}
@@ -386,7 +383,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                 height: '2px',
                 background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)',
                 width: showGoldLine ? 'min(320px, 80vw)' : '0px',
-                transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
+                transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)',
                 margin: '18px auto 14px',
               }}
             />
