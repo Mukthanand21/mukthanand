@@ -30,6 +30,7 @@
   /* ─── Easing Tokens ─── */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out: cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-cinematic: cubic-bezier(0.22, 1, 0.36, 1); /* Dramatic ease-out for hero reveals */
   --ease-linear: linear;
 
   /* ─── Layout ─── */

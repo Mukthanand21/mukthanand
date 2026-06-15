@@ -1,21 +1,22 @@
 # specs-v2 / 000 — Overview & Design System
-> **STATUS: LOCKED**
-> This document supersedes all v1 specs. Agents must not deviate from any token,
-> motion rule, or typography decision defined here without opening a dedicated MR
-> that updates this file first.
+> **STATUS: V3** — This file supersedes all previous versions.
+> Agents must not deviate from any token, motion rule, or typography decision
+> defined here without opening a dedicated MR that updates this file first.
 
 ---
 
 ## 1. Design Philosophy
 
-The portfolio is a **running production system**, not a static CV.
-Every visual and motion decision should reinforce this metaphor:
-- Pages are **endpoints** (`/status`, `/services`, `/changelog`, `/stack`, `/contact`)
-- The entrance is a **system boot**, not a page load
-- Data labels, version tags, and status indicators use **monospace** — they are system output
-- Display headings use **bold sans** — they are the identity layer above the system
+The portfolio is a **luxury editorial experience / digital atelier**, not a CV or a server dashboard.
+Every visual and motion decision should reinforce this:
 
-The visitor should feel like they are **accessing a live service**, not browsing a portfolio.
+- The entrance is a **cinematic title sequence** (like a film production logo), not a system boot
+- The multilingual script cycling → English lock is the **hero moment** — it tells a story
+- Gold (`#E8B65A`) on deep black (`#0A0A0A`) is the signature palette — luxury, warm, editorial
+- Interiors are **minimalist gallery spaces** — generous whitespace, careful hierarchy, premium typography
+- Interactions are **fluid and reactive** — magnetic cursors, kinetic scroll, WebGL imagery
+
+The visitor should feel like they have entered a **curated brand experience**, not browsed a portfolio.
 
 ---
 
@@ -23,22 +24,22 @@ The visitor should feel like they are **accessing a live service**, not browsing
 
 | Token | Value | Usage |
 |---|---|---|
-| `--color-bg` | `#0A0A0A` | Page background |
+| `--color-bg` | `#0A0A0A` | Page background — deep black |
 | `--color-bg-elevated` | `#111111` | Cards, panels, elevated surfaces |
 | `--color-bg-subtle` | `#1A1A1A` | Borders, dividers, hover states |
-| `--color-accent` | `#E8B65A` | Primary accent — gold. CTAs, active nav, version tags, method badges |
-| `--color-accent-dim` | `#A87E35` | Dimmed gold — secondary accent, hover states on accent elements |
-| `--color-text-primary` | `#F3EAEF` | Headings, primary body text |
+| `--color-accent` | `#E8B65A` | Primary accent — gold. CTAs, active nav, hero accent, bootloader lock |
+| `--color-accent-dim` | `#A87E35` | Dimmed gold — hover states, secondary accents |
+| `--color-text-primary` | `#F3EAEF` | Warm off-white — headings, primary body text |
 | `--color-text-secondary` | `#B79CAE` | Descriptions, subtitles, body copy |
 | `--color-text-muted` | `#6B4D6B` | Labels, timestamps, metadata, ticker text |
-| `--color-success` | `#A8C3A0` | Availability dot, operational status |
+| `--color-success` | `#A8C3A0` | Availability indicator |
 | `--color-border` | `#1A1A1A` | All borders and dividers |
 
 ### Rules
 - No cyan. No violet. No pure black (`#000`) or pure white (`#FFF`).
-- The only light element allowed is `--color-text-primary` (`#F3EAEF`) — a warm off-white, never cold white.
-- Gold (`--color-accent`) is used **sparingly** — one dominant element per section (active nav item, method badge, section label). Never fill large areas with gold except the CTA button.
-- Background is always `--color-bg`. No gradients on the background.
+- The only light element is `--color-text-primary` (`#F3EAEF`) — warm off-white, never cold white.
+- Gold is used **sparingly** — one dominant accent per view. Never fill large areas with gold.
+- No gradients on the page background. Gradients on elements (gold line, overlays) are permitted.
 
 ---
 
@@ -47,12 +48,12 @@ The visitor should feel like they are **accessing a live service**, not browsing
 ### Typefaces
 | Role | Font | Weight | Usage |
 |---|---|---|---|
-| Display | `'Inter', system-ui, sans-serif` | 700 | Hero name, section headings |
-| Body | `'Inter', system-ui, sans-serif` | 400–500 | Descriptions, paragraphs |
-| Mono | `'JetBrains Mono', monospace` | 400–500 | Method badges, version tags, labels, section slugs (`/status`), ticker, timestamps |
+| Display | `'Cabinet Grotesk', sans-serif` | 700–800 | Hero name, section titles, large numbers |
+| Body | `'Inter', system-ui, sans-serif` | 400–500 | Descriptions, paragraphs, UI labels |
+| UI (labels/tags) | `'Inter', system-ui, sans-serif` | 400–500 | Method badges, version tags, labels, nav links — tracked out |
 
-> Inter is the primary font. Load via Google Fonts or bundle locally.
-> JetBrains Mono for all monospace contexts. Load via Google Fonts or bundle locally.
+> **No JetBrains Mono in UI chrome.** Inter with `letter-spacing: 0.08em` replaces all mono contexts.
+> JetBrains Mono is permitted only for inline code snippets in project descriptions.
 
 ### Scale
 | Token | Size | Usage |
@@ -62,74 +63,80 @@ The visitor should feel like they are **accessing a live service**, not browsing
 | `--text-lg` | `18px` | Lead paragraphs |
 | `--text-md` | `15px` | Card titles, body |
 | `--text-sm` | `13px` | Card descriptions |
-| `--text-xs` | `11px` | Mono labels, tags, timestamps |
+| `--text-xs` | `11px` | Labels, tags, timestamps |
 
 ### Rules
-- Letter-spacing: `-0.03em` on display sizes (hero, section titles). `+0.08em` on mono labels.
+- Letter-spacing: `-0.03em` on display sizes (hero, section titles). `+0.08em` on labels/tags.
 - Line height: `1.0` on hero. `1.6` on body. `1.4` on card text.
 - No italic anywhere.
-- No text-transform uppercase except on mono labels (version tags, method badges, section slugs, nav items).
+- No text-transform uppercase on body text. Uppercase permitted only on labels, tags, and nav links.
+- Cabinet Grotesk should be the **first thing the visitor reads** — hero name and top-level headings.
 
 ---
 
 ## 4. Motion Language — LOCKED
 
-### 4.1 Entrance Sequence (Full Cinematic Boot)
+### 4.1 Entrance Sequence (Cinematic Title)
 
-This is the most important animation in the portfolio. It runs once on first load.
-Every stage must complete before the next begins.
+This is the most important animation in the portfolio. It runs once on first load as a **film-style title sequence**, not a system boot.
 
-**Stage 1 — Black flash (0ms–80ms)**
-- Screen starts at `#000000` for 80ms — a cold start.
+**Stage 1 — Black void (0ms–300ms)**
+- Screen is pure `#000` for 300ms. No text, no particles, no indicators. Complete silence.
 
-**Stage 2 — Boot loader (80ms–1200ms)**
-- Background transitions from `#000` to `--color-bg` over 300ms.
-- Monospace text appears center-screen: `MUKTHANAND.DEV` in `--color-text-muted`, letter-spacing `0.3em`.
-- Below it: a thin 200px progress bar (`--color-border` track, `--color-accent` fill).
-- Progress bar fills in **4 non-linear steps** (12% → 38% → 71% → 100%) with 100–180ms gaps between steps — feels like real system initialization, not a smooth animation.
-- Each step triggers a **status line** in mono below the bar (e.g. `LOADING ASSETS...`, `MOUNTING ROUTES...`, `RESOLVING STACK...`, `SYSTEM READY`).
-- On `SYSTEM READY`: the status line color shifts from `--color-text-muted` to `--color-accent` (gold).
+**Stage 2 — Script cycling (300ms–2500ms)**
+- 10 letters (M-U-K-T-H-A-N-A-N-D) appear center-screen in `--color-text-muted` (dim).
+- Each letter cycles through 5 Indian scripts (Telugu, Devanagari, Tamil, Kannada, Bengali) at staggered intervals, creating a wave-like cascade effect.
+- Letters gradually brighten as they cycle — from `--color-text-muted` toward `--color-text-primary`.
+- No status text. No progress bar. No percentages. The letters are the entire show.
 
-**Stage 3 — Particle burst (1200ms–1600ms)**
-- On completion: 18–24 small particles (`4px` circles, color `--color-accent` at 60% opacity) burst outward from center in random directions, decelerating over 400ms, then fade to 0 opacity.
-- Simultaneously: the loader text and bar fade out over 200ms.
+**Stage 3 — Gold lock (2500ms–3000ms)**
+- Letters lock to English left-to-right with a 100ms stagger (250ms total for all 10).
+- On lock: each letter flashes gold (`--color-accent`), scales to 1.15x, then settles to `--color-text-primary`.
+- All letters resolved: the name "MUKTHANAND" glows in warm white.
 
-**Stage 4 — Page reveal (1600ms onward)**
-- Nav fades in from top (`translateY(-12px)` → `0`, opacity `0→1`, 400ms).
-- Hero version tag (`v2.0.0 — FINAL YEAR BUILD`) fades up, 100ms delay.
-- Hero line 1 (`Mukthanand`) — height reveal from `0` to full, `600ms`, `cubic-bezier(0.16,1,0.3,1)`, 200ms delay.
-- Hero line 2 (`Reddy.`) — same, 120ms after line 1, color `--color-accent`.
-- Hero description + CTA buttons — fade + `translateY(12px→0)`, 500ms, 200ms after line 2.
-- Sidebar panel — fade + `translateX(12px→0)`, 500ms, simultaneous with description.
-- Ticker — begins scrolling immediately after nav reveal.
-- Project cards — fade + `translateY(16px→0)`, staggered 80ms per card, begin after description.
+**Stage 4 — The glow + gold line (3000ms–3600ms)**
+- A thin gold underline (`--color-accent`, 2px, centered, `min(320px, 80vw)` wide) sweeps in from center over 600ms.
+- The name holds in full brightness for 600ms of stillness — the visitor reads and absorbs.
 
+**Stage 5 — Mask reveal (3600ms–4800ms)**
+- A dramatic vertical iris wipe (GSAP `clip-path` animation) reveals the hero section beneath.
+- Duration: 1200ms. Easing: `cubic-bezier(0.22, 1, 0.36, 1)`.
+- The boot overlay parts like a curtain, revealing the full hero composition.
 
-### 4.2 Scroll Animations (per-section)
-- Framer Motion is **permitted and preferred** for scroll reveals and stagger animations. Vanilla `requestAnimationFrame` is reserved for the BootLoader only.
-- Every section's content animates in on scroll entry: `translateY(20px→0)` + `opacity(0→1)`, `500ms`, `cubic-bezier(0.16,1,0.3,1)`.
-- Stagger child elements 60ms apart within a section.
-- Use `IntersectionObserver` with `threshold: 0.15`.
-- Elements only animate once (not on scroll-out).
-- Respect `prefers-reduced-motion`: if set, skip all transforms — use opacity fade only (200ms).
+**Reduced motion:** `prefers-reduced-motion` triggers a 300ms quick reveal — skip all stages, show "MUKTHANAND" immediately in `--color-text-primary`, fade in over 300ms.
+
+### 4.2 Scroll Animations
+- **Engine:** GSAP ScrollTrigger (not IntersectionObserver). Sync with Lenis via `gsap.ticker`.
+- Elements animate in on scroll entry: `translateY(24px→0)` + `opacity(0→1)`, `800ms`, `--ease-cinematic`.
+- Stagger child elements 80ms apart within a section.
+- Elements animate once (not on scroll-out).
+- Respect `prefers-reduced-motion`: skip all transforms — opacity fade only (200ms).
 
 ### 4.3 Hover States
-- Nav links: `--color-text-muted` → `--color-accent`, `150ms` ease. Underline slides in from left.
-- Cards: `border-color` → `--color-bg-subtle`, `background` lifts to `#453050`, `150ms`. No scale transforms on cards.
-- CTA button (gold): background `--color-accent` → `--color-accent-dim`, `120ms`. Slight `translateY(-1px)`.
-- Outline button: border `--color-border` → `--color-accent`, text → `--color-accent`, `150ms`.
+- **Nav links:** Magnetic UI — link pulls slightly toward cursor. Active state: underline slides in from left, `200ms`.
+- **Cards:** WebGL distortion on image (R3F shader). No-image cards: border lifts to `--color-bg-subtle`, `150ms`.
+- **CTA button (gold):** background `--color-accent` → `--color-accent-dim`, `120ms`. Slight `translateY(-1px)`.
+- **Outline button:** border `--color-border` → `--color-accent`, text → `--color-accent`, `150ms`.
+- **Custom cursor:** Morphs on interactive elements (arrow on links, magnifier on images). Scales up (1.5x) on hover.
 
 ### 4.4 Ticker
-- Continuous horizontal scroll, speed `0.4px/frame` (~24px/sec).
+- Continuous horizontal scroll using `requestAnimationFrame`, speed `0.4px/frame` (~24px/sec).
 - Content duplicated once for seamless loop.
 - Pauses on hover.
-- `--color-text-muted` text, letter-spacing `0.08em`, uppercase mono.
+- `--color-text-muted` text, letter-spacing `0.08em`, uppercase. Font: Inter (not JetBrains Mono).
 
-### 4.5 Easing Tokens
+### 4.5 Kinetic Scroll (Premium Interaction)
+- Hero text and section titles hook into scroll velocity (via Lenis).
+- On fast scroll: apply subtle skew/slant (max 3 degrees) in the direction of scroll.
+- On stop: spring back to 0 degrees over 400ms (`--ease-spring`).
+- Implemented via GSAP — not CSS.
+
+### 4.6 Easing Tokens
 | Token | Value | Usage |
 |---|---|---|
-| `--ease-spring` | `cubic-bezier(0.16,1,0.3,1)` | All reveal animations |
-| `--ease-out` | `cubic-bezier(0.0,0,0.2,1)` | Fades, hover transitions |
+| `--ease-spring` | `cubic-bezier(0.16, 1, 0.3, 1)` | UI hover transitions, spring-back animations |
+| `--ease-out` | `cubic-bezier(0.0, 0, 0.2, 1)` | Fades, simple reveals |
+| `--ease-cinematic` | `cubic-bezier(0.22, 1, 0.36, 1)` | Hero reveals, mask transitions, dramatic entrances |
 | `--ease-linear` | `linear` | Ticker, progress bar fill |
 
 ---
@@ -147,21 +154,22 @@ Every stage must complete before the next begins.
 
 ## 6. Component Tokens
 
-### Nav
-- Logo: `mukthanand` in mono, `--color-text-muted`. Green dot (`--color-success`) before it.
-- Links: mono, `--color-text-secondary`. Active: `--color-accent` + underline.
-- Right: `● OPERATIONAL` in mono, `--color-success`. Pulses at `1.8s` interval.
+### Nav (V3 — no terminal indicators)
+- Logo: `Mukthanand` in Inter, `--color-text-primary`, weight 500. No green dot before it.
+- Links: Inter, weight 400, `--color-text-secondary`. Active: `--color-accent` + underline.
+- No `● OPERATIONAL` indicator. No session counter. No uppercase-mono formatting on links.
+- Right side: minimal — just the nav links, centered or right-aligned.
 
 ### Cards
 - Background: `--color-bg-elevated`.
 - Border: `0.5px solid --color-border`.
-- Method badge (e.g. `POST /retrieve`): mono, `--color-text-xs`, background `#3D2A3D`, color `--color-accent`.
+- Method badge (e.g. `POST /retrieve`): Inter, `--text-xs`, background `#3D2A3D`, color `--color-accent`.
 - Title: `--text-md`, weight 600, `--color-text-primary`.
 - Description: `--text-sm`, `--color-text-secondary`.
-- Footer meta (URL, date): `--text-xs`, mono, `--color-text-muted`.
+- Footer meta (URL, date): `--text-xs`, `--color-text-muted`.
 
 ### Section Slug
-- E.g. `/status` — mono, `--color-accent`, `--text-xs`, uppercase, letter-spacing `0.1em`.
+- E.g. `/status` — Inter, `--color-accent`, `--text-xs`, uppercase, letter-spacing `0.1em`.
 - Always first element in a section, above the section title.
 
 ### Dividers
@@ -173,21 +181,20 @@ Every stage must complete before the next begins.
 - File: `/public/favicon.svg`
 - Design: `/ M` on `--color-bg` rounded square.
 - `/` in `--color-accent` (gold). `M` in `--color-text-primary` (off-white).
-- Font: bold sans-serif, ~18px on 32×32 canvas.
+- Font: Cabinet Grotesk bold, ~18px on 32×32 canvas.
 - Also provide `/public/favicon.png` (32×32 rasterized fallback).
-- `index.html`: `<link rel="icon" type="image/svg+xml" href="/favicon.svg" />`
 
 ---
 
 ## 8. Agent Rules
 
 1. **Never override a LOCKED token.** If a change is needed, open a MR that updates this file first.
-2. **All colors must reference CSS custom properties** (`var(--color-bg)` etc.), never hardcoded hex values in component files.
+2. **All colors must reference CSS custom properties** (`var(--color-bg)` etc.), never hardcoded hex.
 3. **All motion must check `prefers-reduced-motion`** before applying transforms.
-4. **The entrance sequence runs on every page load.** No session memory. On revisit, the full cinematic sequence replays. respect `prefers-reduced-motion`, which triggers a 300ms quick reveal only.
-5. **Framer Motion** is permitted and preferred for scroll reveals, stagger animations, and entrance sequences. Vanilla `requestAnimationFrame` is reserved for the BootLoader particle burst only.
-6. **Particles must degrade gracefully.** If `canvas` is not supported, skip Stage 3 silently.
-7. **Typography:** Load Inter and JetBrains Mono via `<link rel="preconnect">` + Google Fonts in `index.html`. Subset to Latin only.
-8. **No cyan, no violet, no pure black, no pure white.** PR reviewers should reject any component using these.
-9. **Issue #16 (real content) is a separate MR.** Do not block section implementation on content — use the placeholder copy from v1 specs until #16 lands.
-10. **The `/contact` social links arrow bug** (`&nearr;` rendering as literal text) must be fixed in the same MR as the `/contact` section v2 rebuild.
+4. **The entrance sequence runs on every page load.** No session memory. Full cinematic sequence plays each time. respect `prefers-reduced-motion`, which triggers a 300ms quick reveal only.
+5. **Animation stack:** GSAP for sequenced animations + scroll reveals. Lenis for smooth scrolling. R3F for WebGL effects. Framer Motion is deprecated for new work.
+6. **No terminal tropes.** No `● OPERATIONAL`, no `SESSION:`, no `INITIALIZING...` text, no progress percentages. The bootloader is cinematic, not diagnostic.
+7. **Typography:** Cabinet Grotesk via Fontshare CDN for display. Inter via Google Fonts for body. No JetBrains Mono in UI chrome.
+8. **No cyan, no violet, no pure black, no pure white.**
+9. **Issue #16 (real content) is a separate MR.** Do not block section implementation on content.
+10. **The `/contact` social links arrow bug** (`&nearr;` rendering as literal text) must be fixed.

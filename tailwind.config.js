@@ -22,12 +22,12 @@ export default {
         border: 'var(--color-border)',
       },
       fontFamily: {
-        // Inter = primary sans (display + body)
+        // Cabinet Grotesk = editorial display (hero, section titles, large numbers)
+        display: ['"Cabinet Grotesk"', 'sans-serif'],
+        // Inter = primary sans (body text, UI, labels)
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        // JetBrains Mono = monospace (labels, tags, version badges)
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
-        // Display alias — same as sans (Inter weight 700 for headings)
-        display: ['Inter', 'system-ui', 'sans-serif'],
+        // Mono alias — Inter with letter-spacing for labels & tags (no VS Code mono)
+        mono: ['Inter', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         // v2 type scale (specs-v2/000-overview.md §3)
