@@ -1,10 +1,12 @@
 import { Section } from '../components/Section';
 import { Reveal } from '../motion/Reveal';
 
-/* ─── skill group data ─── */
+/* ─── skill group data — placeholder until #16 ─── */
+type Level = 'strongest' | 'strong' | 'familiar';
+
 type Skill = {
   name: string;
-  level: 'strongest' | 'strong' | 'familiar';
+  level: Level;
 };
 
 type Group = {
@@ -31,74 +33,72 @@ const groups: Group[] = [
       { name: 'RAG Pipelines', level: 'strong' },
       { name: 'FAISS', level: 'strong' },
       { name: 'API Gateway Patterns', level: 'strong' },
+      { name: 'SQLAlchemy / Alembic', level: 'strong' },
     ],
   },
   {
     category: 'Frontend',
     items: [
       { name: 'React', level: 'strong' },
-      { name: 'Vite', level: 'strong' },
-      { name: 'Streamlit', level: 'strong' },
+      { name: 'TypeScript', level: 'strong' },
       { name: 'Tailwind CSS', level: 'strong' },
+      { name: 'HTML / CSS', level: 'strong' },
     ],
   },
   {
-    category: 'DevOps / Tools',
+    category: 'DevOps & Tools',
     items: [
-      { name: 'Git & GitLab CI/CD', level: 'strongest' },
-      { name: 'Linux', level: 'strong' },
-      { name: 'Docker', level: 'strong' },
-      { name: 'Bruno', level: 'strong' },
-      { name: 'YAML / Specs', level: 'strong' },
+      { name: 'GitLab CI/CD', level: 'strong' },
+      { name: 'Git (rebase, force-with-lease)', level: 'strong' },
+      { name: 'Linux (Ubuntu)', level: 'strong' },
+      { name: 'Docker', level: 'familiar' },
+      { name: 'AWS (Cloud Foundations)', level: 'familiar' },
     ],
   },
   {
-    category: 'AI / LLM',
+    category: 'AI & ML',
     items: [
-      { name: 'RAG Architecture', level: 'strong' },
-      { name: 'Sentence Transformers', level: 'strong' },
+      { name: 'Hybrid Retrieval (FTS + pg_trgm)', level: 'strongest' },
       { name: 'Prompt Engineering', level: 'strong' },
-      { name: 'Groq / LLaMA Integration', level: 'strong' },
-      { name: 'Embeddings & Vector Search', level: 'strong' },
+      { name: 'Groq API / LLM Integration', level: 'strong' },
+      { name: 'Sentence-Transformers', level: 'familiar' },
+      { name: 'wav2vec2 / ASR', level: 'familiar' },
     ],
   },
 ];
 
-/* ─── level indicator ─── */
-function LevelDot({ level }: { level: Skill['level'] }) {
-  const colors = {
-    strongest: 'bg-accent',
-    strong: 'bg-fg-muted',
-    familiar: 'bg-fg-faint/40',
-  };
+/* ─── dot color mapping per spec ─── */
+const DOT_COLORS: Record<Level, string> = {
+  strongest: 'bg-accent',       // gold
+  strong: 'bg-success',          // sage green
+  familiar: 'bg-fg-muted',      // plum-muted
+};
 
-  return (
-    <span
-      className={`inline-block h-1.5 w-1.5 rounded-full ${colors[level]}`}
-      title={level}
-    />
-  );
-}
+/* ─── label mapping (uppercase per spec) ─── */
+const LEVEL_LABELS: Record<Level, string> = {
+  strongest: 'STRONGEST',
+  strong: 'STRONG',
+  familiar: 'FAMILIAR',
+};
 
 /* ─── single skill row ─── */
 function SkillRow({ skill }: { skill: Skill }) {
-  const label =
-    skill.level === 'strongest'
-      ? 'strongest'
-      : skill.level === 'strong'
-        ? 'strong'
-        : 'familiar';
-
   return (
     <span className="group inline-flex items-center gap-2">
-      <span className="font-mono text-sm text-fg transition-colors duration-200 group-hover:text-accent">
+      {/* skill name */}
+      <span className="text-md font-medium text-fg transition-colors duration-150 group-hover:text-accent">
         {skill.name}
       </span>
-      <span className="inline-flex items-center gap-1">
-        <LevelDot level={skill.level} />
-      </span>
-      <span className="font-mono text-[10px] uppercase tracking-widest text-fg-faint/50 transition-opacity duration-200 group-hover:opacity-100">
-        {label}
+
+      {/* proficiency dot */}
+      <span
+        className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${DOT_COLORS[skill.level]}`}
+        aria-hidden="true"
+      />
+
+      {/* proficiency label */}
+      <span className="font-mono text-xs uppercase tracking-wider text-fg-muted">
+        {LEVEL_LABELS[skill.level]}
       </span>
     </span>
   );
@@ -107,14 +107,14 @@ function SkillRow({ skill }: { skill: Skill }) {
 /* ─── skill group card ─── */
 function SkillGroup({ group, index }: { group: Group; index: number }) {
   return (
-    <Reveal delay={index * 0.1}>
-      <div className="rounded-2xl border border-surface bg-bg-alt p-8 sm:p-10">
+    <Reveal delay={index * 0.08}>
+      <div className="rounded-card border border-border bg-bg-elevated p-6">
         {/* category heading */}
         <h3 className="mb-6 font-mono text-xs uppercase tracking-[0.15em] text-fg-muted">
           {group.category}
         </h3>
 
-        {/* skills list */}
+        {/* skills list — wrapping flex row per spec */}
         <div className="flex flex-wrap gap-x-8 gap-y-4">
           {group.items.map((skill) => (
             <SkillRow key={skill.name} skill={skill} />
@@ -126,17 +126,18 @@ function SkillGroup({ group, index }: { group: Group; index: number }) {
 }
 
 /* ============================================================
-   /stack section
+   /stack section — specs-v2/004-stack.md
+   Discipline groups with honest proficiency signaling
    ============================================================ */
 export function Stack() {
   return (
     <Section id="stack" label="/stack">
-      <p className="mb-12 max-w-prose text-base leading-relaxed text-fg-muted">
+      <p className="mb-12 max-w-prose text-base leading-relaxed text-fg-secondary">
         Skills grouped by discipline. Depth signaled honestly — no filler, no
         charts.
       </p>
 
-      <div className="grid gap-6">
+      <div className="flex flex-col gap-5">
         {groups.map((group, i) => (
           <SkillGroup key={group.category} group={group} index={i} />
         ))}
