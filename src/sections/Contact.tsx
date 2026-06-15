@@ -8,14 +8,15 @@ const SPRING_EASE = [0.16, 1, 0.3, 1] as const;
 
 /* ─── social links ─── */
 const socialLinks = [
-  { label: 'GitHub', href: 'https://github.com/Mukthanand21' },
-  { label: 'GitLab', href: 'https://code.swecha.org/Mukthanand21' },
-  { label: 'LinkedIn', href: 'https://linkedin.com/in/mukthanand21' },
+  { label: 'GitHub', href: 'https://github.com/Mukthanand21', icon: 'devicon-github-original' },
+  { label: 'GitLab', href: 'https://code.swecha.org/Mukthanand21', icon: 'devicon-gitlab-plain' },
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/mukthanand21', icon: 'devicon-linkedin-plain' },
+  { label: 'Resume', href: 'https://drive.google.com/file/d/1x4HWdyhLU385gdNF4N_C3SwK1_5hhEGI/view?usp=sharing', icon: null },
 ];
 
 /* ─── Web3Forms access key ─── */
 // Replace with your key from https://web3forms.com
-const WEB3FORMS_KEY = 'YOUR_WEB3FORMS_KEY';
+const WEB3FORMS_KEY = '7d4ed926-a5cc-4b9d-9573-b03738eb2975';
 
 /* ─── form state ─── */
 type FormState = 'idle' | 'sending' | 'success' | 'error';
@@ -26,6 +27,8 @@ type FormState = 'idle' | 'sending' | 'success' | 'error';
    ============================================================ */
 export function Contact() {
   const [state, setState] = useState<FormState>('idle');
+  const [copied, setCopied] = useState(false);
+  const [requestId, setRequestId] = useState('');
   const reduced = usePrefersReducedMotion();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -43,6 +46,7 @@ export function Contact() {
       });
 
       if (res.ok) {
+        setRequestId(generateRequestId());
         setState('success');
         form.reset();
       } else {
@@ -51,6 +55,23 @@ export function Contact() {
     } catch {
       setState('error');
     }
+  };
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText('mukthanandreddy21@gmail.com');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard unavailable
+    }
+  };
+
+  const generateRequestId = () => {
+    const hex = Array.from({ length: 6 }, () =>
+      Math.floor(Math.random() * 16).toString(16),
+    ).join('');
+    return `REQ_${hex}`;
   };
 
   return (
@@ -74,6 +95,9 @@ export function Contact() {
                 <div className="mb-3 text-xs uppercase tracking-[0.08em] opacity-70">
                   REQUEST_RECEIVED
                 </div>
+                <p className="mb-1 text-success/80">
+                  {requestId}
+                </p>
                 <p>I'll respond within 48h.</p>
               </div>
             </div>
@@ -97,7 +121,7 @@ export function Contact() {
                   type="text"
                   required
                   autoComplete="name"
-                  className="w-full rounded-lg border-thin border-border bg-bg-elevated px-3.5 py-3 font-sans text-sm text-fg outline-none transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
+                  className="w-full rounded-lg border-thin border-border bg-bg-elevated px-3.5 py-3 font-sans text-sm text-fg outline-none caret-[var(--color-accent)] transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
                   placeholder="Your name"
                 />
               </div>
@@ -116,7 +140,7 @@ export function Contact() {
                   type="email"
                   required
                   autoComplete="email"
-                  className="w-full rounded-lg border-thin border-border bg-bg-elevated px-3.5 py-3 font-sans text-sm text-fg outline-none transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
+                  className="w-full rounded-lg border-thin border-border bg-bg-elevated px-3.5 py-3 font-sans text-sm text-fg outline-none caret-[var(--color-accent)] transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
                   placeholder="you@example.com"
                 />
               </div>
@@ -134,7 +158,7 @@ export function Contact() {
                   name="message"
                   required
                   rows={4}
-                  className="w-full resize-y rounded-lg border-thin border-border bg-bg-elevated px-3.5 py-3 font-sans text-sm text-fg outline-none transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
+                  className="w-full resize-y rounded-lg border-thin border-border bg-bg-elevated px-3.5 py-3 font-sans text-sm text-fg outline-none caret-[var(--color-accent)] transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
                   placeholder="What would you like to discuss?"
                 />
               </div>
@@ -192,15 +216,15 @@ export function Contact() {
               <h4 className="mb-3 font-mono text-xs uppercase tracking-[0.08em] text-fg-muted">
                 Direct Email
               </h4>
-              <a
-                href="mailto:mukthanandreddy21@gmail.com"
-                className="group inline-flex items-center gap-1.5 font-mono text-sm text-accent transition-colors duration-150 hover:opacity-70"
+              <button
+                onClick={handleCopyEmail}
+                className="group inline-flex cursor-pointer items-center gap-1.5 bg-transparent p-0 font-mono text-sm text-accent transition-colors duration-150 hover:opacity-70"
               >
                 <span>mukthanandreddy21@gmail.com</span>
-                <span className="inline-block text-fg-muted transition-colors duration-150 group-hover:text-accent">
-                  ↗
+                <span className="inline-block min-w-[4.5em] text-right font-mono text-xs text-fg-muted transition-colors duration-150 group-hover:text-accent">
+                  {copied ? 'Copied!' : '↗'}
                 </span>
-              </a>
+              </button>
             </div>
 
             {/* social */}
@@ -209,20 +233,52 @@ export function Contact() {
                 Social
               </h4>
               <ul className="space-y-3">
-                {socialLinks.map((link) => (
-                  <li key={link.label}>
+                {socialLinks.map((link, i) => (
+                  <motion.li
+                    key={link.label}
+                    initial={reduced ? {} : { opacity: 0, y: 8 }}
+                    whileInView={reduced ? {} : { opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-10% 0px' }}
+                    transition={{ duration: 0.3, ease: SPRING_EASE, delay: reduced ? 0 : i * 0.06 }}
+                  >
                     <a
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group inline-flex items-center gap-1.5 font-sans text-md font-medium text-fg transition-colors duration-150 hover:text-accent"
+                      className="group flex items-center justify-between rounded-lg border-thin border-border bg-bg-elevated px-4 py-3 transition-all duration-150 hover:border-accent/20 hover:bg-bg-subtle"
                     >
-                      <span>{link.label}</span>
-                      <span className="inline-block font-mono text-xs text-fg-muted transition-colors duration-150 group-hover:text-accent">
+                      <span className="flex items-center gap-2.5">
+                        {link.icon ? (
+                          <i
+                            className={`${link.icon} text-fg-muted transition-colors duration-150 group-hover:text-accent`}
+                            style={{ fontSize: '16px' }}
+                          />
+                        ) : (
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="h-4 w-4 shrink-0 text-fg-muted transition-colors duration-150 group-hover:text-accent"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                          </svg>
+                        )}
+                        <span className="font-sans text-md font-medium text-fg transition-colors duration-150 group-hover:text-accent">
+                          {link.label}
+                        </span>
+                      </span>
+                      <span className="font-mono text-xs text-fg-muted transition-colors duration-150 group-hover:text-accent">
                         ↗
                       </span>
                     </a>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
             </div>
