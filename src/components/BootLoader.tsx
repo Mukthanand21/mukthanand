@@ -46,6 +46,8 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   /* ─── UI state ─── */
   const [phase, setPhase] = useState<BootPhase>('boot');
   const [showGoldLine, setShowGoldLine] = useState(false);
+  const [systemReady, setSystemReady] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
 
   /* ─── Refs ─── */
   const containerRef = useRef<HTMLDivElement>(null);
@@ -131,15 +133,22 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
               if (skipRef.current) return;
               setShowGoldLine(true);
 
-              // Hold the glow for 500ms, then complete
+              // After gold line starts sweeping, fade in SYSTEM READY
               T(() => {
                 if (skipRef.current) return;
-                onCompleteRef.current?.();
+                setSystemReady(true);
+
+                // Hold the glow + SYSTEM READY for 600ms, then reveal
                 T(() => {
                   if (skipRef.current) return;
-                  setPhase('complete');
-                }, 200);
-              }, 500);
+                  onCompleteRef.current?.();
+                  setIsRevealing(true);
+                  T(() => {
+                    if (skipRef.current) return;
+                    setPhase('complete');
+                  }, 1200);
+                }, 600);
+              }, 400);
             }, 36);
           }
         });
@@ -157,7 +166,8 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
       onCompleteRef.current?.();
-      setPhase('complete');
+      setIsRevealing(true);
+      T(() => setPhase('complete'), 1200);
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -179,9 +189,13 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         setShowGoldLine(true);
         T(() => {
           if (skipRef.current) return;
-          onCompleteRef.current?.();
-          setPhase('complete');
-        }, 300);
+          setSystemReady(true);
+          T(() => {
+            if (skipRef.current) return;
+            onCompleteRef.current?.();
+            setPhase('complete');
+          }, 400);
+        }, 200);
       }, 10);
       return;
     }
@@ -211,6 +225,10 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       style={{
         backgroundColor: phase === 'boot' ? '#000' : 'var(--color-bg)',
         transition: 'background-color 0.3s ease-out',
+        clipPath: isRevealing ? 'inset(0 0 100% 0)' : 'inset(0 0 0 0)',
+        transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        transitionDuration: isRevealing ? '1.2s' : '0s',
+        transitionProperty: 'clip-path, background-color',
       }}
     >
       {phase === 'active' && (
@@ -251,9 +269,26 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
               background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)',
               width: showGoldLine ? 'min(320px, 80vw)' : '0px',
               transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)',
-              margin: '18px auto 0',
+              margin: '18px auto 10px',
             }}
           />
+
+          {/* SYSTEM READY — fades in after gold line, elegant, no typewriter */}
+          <div
+            style={{
+              opacity: systemReady ? 1 : 0,
+              transition: 'opacity 0.5s ease-out',
+              color: 'var(--color-accent)',
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 700,
+              fontSize: 'clamp(10px, 1.4vw, 14px)',
+              letterSpacing: '0.25em',
+              textTransform: 'uppercase',
+              height: '20px',
+            }}
+          >
+            SYSTEM READY
+          </div>
         </div>
       )}
     </div>
