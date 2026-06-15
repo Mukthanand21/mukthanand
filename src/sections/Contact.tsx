@@ -1,10 +1,6 @@
 import { type FormEvent, useState } from 'react';
-import { motion } from 'framer-motion';
 import { Section } from '../components/Section';
-import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
-
-/* ─── spring easing (mirrors --ease-spring) ─── */
-const SPRING_EASE = [0.16, 1, 0.3, 1] as const;
+import { Reveal } from '../motion/Reveal';
 
 /* ─── social links ─── */
 const socialLinks = [
@@ -29,8 +25,6 @@ export function Contact() {
   const [state, setState] = useState<FormState>('idle');
   const [copied, setCopied] = useState(false);
   const [requestId, setRequestId] = useState('');
-  const reduced = usePrefersReducedMotion();
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setState('sending');
@@ -82,12 +76,7 @@ export function Contact() {
 
       <div className="grid gap-12 lg:grid-cols-[1fr_auto]">
         {/* ─── form column ─── */}
-        <motion.div
-          initial={reduced ? {} : { opacity: 0, x: -12 }}
-          whileInView={reduced ? {} : { opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: '-10% 0px' }}
-          transition={{ duration: 0.5, ease: SPRING_EASE }}
-        >
+        <Reveal direction="left" delay={0} className="min-w-0">
           {state === 'success' ? (
             /* success — replace form entirely */
             <div className="flex min-h-[280px] items-center justify-center rounded-card border-thin border-success/20 bg-bg-subtle p-8">
@@ -201,15 +190,10 @@ export function Contact() {
               </button>
             </form>
           )}
-        </motion.div>
+        </Reveal>
 
         {/* ─── links column ─── */}
-        <motion.div
-          initial={reduced ? {} : { opacity: 0, x: 12 }}
-          whileInView={reduced ? {} : { opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: '-10% 0px' }}
-          transition={{ duration: 0.5, ease: SPRING_EASE, delay: reduced ? 0 : 0.08 }}
-        >
+        <Reveal direction="right" delay={0.08} className="min-w-0">
           <div className="space-y-8">
             {/* direct email */}
             <div>
@@ -232,15 +216,9 @@ export function Contact() {
               <h4 className="mb-3 font-mono text-xs uppercase tracking-[0.08em] text-fg-muted">
                 Social
               </h4>
-              <ul className="space-y-3">
+              <div className="space-y-3">
                 {socialLinks.map((link, i) => (
-                  <motion.li
-                    key={link.label}
-                    initial={reduced ? {} : { opacity: 0, y: 8 }}
-                    whileInView={reduced ? {} : { opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-10% 0px' }}
-                    transition={{ duration: 0.3, ease: SPRING_EASE, delay: reduced ? 0 : i * 0.06 }}
-                  >
+                  <Reveal key={link.label} delay={i * 0.06} className="list-none">
                     <a
                       href={link.href}
                       target="_blank"
@@ -278,12 +256,12 @@ export function Contact() {
                         ↗
                       </span>
                     </a>
-                  </motion.li>
+                  </Reveal>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
-        </motion.div>
+        </Reveal>
       </div>
     </Section>
   );
