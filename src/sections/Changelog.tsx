@@ -100,7 +100,6 @@ export function Changelog() {
   // Track which entries are visible for progressive accent line
   const [visibleUpTo, setVisibleUpTo] = useState(-1);
   const entryRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const setEntryRef = useCallback(
     (index: number) => (el: HTMLDivElement | null) => {
@@ -128,31 +127,15 @@ export function Changelog() {
     return () => observers.forEach((o) => o?.disconnect());
   }, []);
 
-  const progressHeight =
-    entries.length > 0
-      ? `${((visibleUpTo + 1) / entries.length) * 100}%`
-      : '0%';
-
-
-
   return (
     <Section id="changelog" label="/changelog">
       <p className="mb-12 max-w-prose text-base leading-relaxed text-fg-secondary">
         A record of builds, shipped features, and lessons learned.
       </p>
 
-      <div ref={containerRef} className="relative max-w-2xl">
-        {/* ─── continuous background line (border-color) ─── */}
-        <div className="absolute left-[6px] top-0 h-full w-px bg-border" />
-
-        {/* ─── progressive accent line overlay ─── */}
-        <div
-          className="absolute left-[6px] top-0 w-px bg-accent transition-all duration-500 ease-out"
-          style={{ height: progressHeight }}
-        />
-
+      <div className="max-w-2xl">
         {/* ─── entries ─── */}
-        <div className="relative flex flex-col">
+        <div className="flex flex-col">
           {entries.map((entry, i) => {
             const major = isMajor(entry.version);
             return (
@@ -162,11 +145,22 @@ export function Changelog() {
               >
                 <Reveal delay={i * 0.06}>
                   <div className="group grid grid-cols-[auto_1fr] gap-5 lg:gap-6">
-                    {/* ─── timeline column ─── */}
-                    <div className="flex flex-col items-center">
-                      {/* timeline dot */}
+                    {/* ─── timeline column: line + dot ─── */}
+                    <div className="relative flex flex-col items-center">
+                      {/* background line segment — always visible, fills column height */}
+                      <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-border" />
+
+                      {/* accent line segment — reveals when entry scrolls into view */}
                       <div
-                        className={`shrink-0 rounded-full bg-accent ${
+                        className="absolute left-1/2 top-0 w-px -translate-x-1/2 bg-accent transition-all duration-500 ease-out"
+                        style={{
+                          height: i <= visibleUpTo ? '100%' : '0%',
+                        }}
+                      />
+
+                      {/* timeline dot — on top of lines */}
+                      <div
+                        className={`relative z-10 shrink-0 rounded-full bg-accent ${
                           major ? 'h-3 w-3' : 'h-2 w-2'
                         }`}
                       />
