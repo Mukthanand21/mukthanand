@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
+import { BootBackground3D } from './BootBackground3D';
 
 /* ═══════════════════════════════════════════════════════
    Script data
@@ -48,6 +49,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   const [showGoldLine, setShowGoldLine] = useState(false);
   const [systemReady, setSystemReady] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [allLocked, setAllLocked] = useState(false);
 
   /* ─── Refs ─── */
   const containerRef = useRef<HTMLDivElement>(null);
@@ -129,6 +131,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
 
           // All letters locked — gold line sweeps in
           if (lockedCount === LETTERS.length) {
+            setAllLocked(true);
             T(() => {
               if (skipRef.current) return;
               setShowGoldLine(true);
@@ -224,13 +227,20 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
       style={{
         backgroundColor: phase === 'boot' ? '#000' : 'var(--color-bg)',
-        transition: 'background-color 0.3s ease-out',
-        clipPath: isRevealing ? 'inset(0 0 100% 0)' : 'inset(0 0 0 0)',
-        transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-        transitionDuration: isRevealing ? '1.2s' : '0s',
-        transitionProperty: 'clip-path, background-color',
       }}
     >
+      {/* 3D background — wireframe globe + scanning ring */}
+      <BootBackground3D phase={phase} allLocked={allLocked} />
+
+      <div
+        style={{
+          transition: 'background-color 0.3s ease-out',
+          clipPath: isRevealing ? 'inset(0 0 100% 0)' : 'inset(0 0 0 0)',
+          transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          transitionDuration: isRevealing ? '1.2s' : '0s',
+          transitionProperty: 'clip-path, background-color',
+        }}
+      >
       {phase === 'active' && (
         <div
           className="relative z-10 flex flex-col items-center"
@@ -291,6 +301,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
