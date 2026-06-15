@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Section } from '../components/Section';
 import { Ticker } from '../components/Ticker';
 import { MonolithRaymarch } from '../components/MonolithRaymarch';
-import { useKineticScroll } from '../motion/useKineticScroll';
 
 /* ============================================================
    specs-v2/001-status.md — Hero /status
@@ -148,13 +147,11 @@ function StatusSeparator() {
      Project preview cards
    ============================================================ */
 export function Status() {
-  const heroRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
-  const heroAccentRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
-
   return (
     <Section id="status" label="/status" className="pt-[48px]">
       {/* ─── Hero background: Ethereal gold smoke raymarching ─── */}
-      <div className="relative overflow-hidden -mx-gutter px-gutter">
+      {/* The volumetric raymarch renders "MUKTHANAND" as 3D gold smoke — the hero text itself */}
+      <div className="relative overflow-hidden -mx-gutter px-gutter min-h-[50vh] flex flex-col justify-center">
         <MonolithRaymarch text="MUKTHANAND" />
 
         {/* ─── version tag ─── */}
@@ -164,14 +161,8 @@ export function Status() {
 
         {/* ─── two-column hero ─── */}
         <div className="grid gap-12 lg:grid-cols-[1fr_auto] relative z-10">
-        {/* ─── identity block (left) ─── */}
+        {/* ─── identity block (left) — no h1, volumetric text is the hero ─── */}
         <div>
-          <h1 ref={heroRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-fg" style={{ willChange: 'transform' }}>
-            Mukthanand
-          </h1>
-          <h1 ref={heroAccentRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-accent" style={{ willChange: 'transform' }}>
-            Reddy.
-          </h1>
 
           <p className="mt-6 max-w-[420px] font-sans text-lg leading-relaxed text-fg-secondary">
             Backend &amp; full-stack engineer. Builds retrieval systems,
