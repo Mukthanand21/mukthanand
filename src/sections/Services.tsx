@@ -1,53 +1,101 @@
 import { Section } from '../components/Section';
 import { Reveal } from '../motion/Reveal';
 
-/* ─── project data ─── */
+/* ─── service data — placeholder until #16 ─── */
+type ServiceStatus = 'live' | 'archived';
+type LinkLabel = { href: string; label: string };
+
 type Service = {
   method: string;
   path: string;
   name: string;
   description: string;
   tech: string[];
-  href: string;
-  label: string;
+  link: LinkLabel | null; // null for archived services with no link
+  status: ServiceStatus;
 };
 
 const services: Service[] = [
   {
     method: 'POST',
-    path: '/query',
+    path: '/retrieve',
     name: 'Ask Your Corpus',
     description:
       'Contributed to a shared production RAG application — owned the Postgres-native retrieval layer using pgvector, eliminating the need for a separate vector database. Achieved sub-second retrieval with Bring-Your-Own-Key (BYOK) support.',
     tech: ['PostgreSQL', 'pgvector', 'Python', 'FastAPI'],
-    href: '#',
-    label: 'Live demo (Ask Your Corpus)',
+    link: { href: 'https://corpus.swecha.org', label: 'corpus.swecha.org' },
+    status: 'live',
   },
-  /* ─── add more projects here ─── */
-  // {
-  //   method: 'GET',
-  //   path: '/api',
-  //   name: 'Your Project',
-  //   description: 'One-line description of what this service does.',
-  //   tech: ['Tech 1', 'Tech 2'],
-  //   href: '#',
-  //   label: 'View project',
-  // },
+  {
+    method: 'POST',
+    path: '/chat',
+    name: 'Scheme Saathi',
+    description:
+      'Telugu-first Telegram bot for government scheme discovery, built at the Aarna / Swecha Hackathon. Integrated intent classification and slot-filling for natural-language queries in Telugu.',
+    tech: ['Python', 'Telegram API', 'FastAPI', 'PostgreSQL'],
+    link: { href: 'https://t.me/scheme_saathi_bot', label: '@scheme_saathi_bot' },
+    status: 'live',
+  },
+  {
+    method: 'GET',
+    path: '/faq',
+    name: 'FAQ Sense',
+    description:
+      'RAG-powered FAQ assistant that answers user queries against a curated document corpus. Deployed on Streamlit Cloud with Groq for fast LLM inference and Sentence Transformers for embeddings.',
+    tech: ['Streamlit', 'Groq', 'Sentence Transformers', 'FAISS'],
+    link: {
+      href: 'https://faqsense.streamlit.app',
+      label: 'streamlit cloud',
+    },
+    status: 'live',
+  },
+  {
+    method: 'GET',
+    path: '/errors',
+    name: 'Paste & Fix Agent',
+    description:
+      'Debugging assistant that accepts error logs and suggests fixes using Groq LLM inference. Built as a lightweight proof-of-concept for automated error-resolution tooling.',
+    tech: ['Python', 'Groq', 'Streamlit'],
+    link: null,
+    status: 'archived',
+  },
+  {
+    method: 'POST',
+    path: '/transcribe',
+    name: 'Corpus Audio Pipeline',
+    description:
+      'Experimental pipeline for transcribing Telugu audio content using wav2vec2 ASR models. Explored feasibility of community-contributed audio-to-text workflows for low-resource languages.',
+    tech: ['Python', 'wav2vec2', 'Hugging Face'],
+    link: null,
+    status: 'archived',
+  },
 ];
 
-/* ─── method badge ─── */
-function MethodBadge({ method }: { method: string }) {
-  const colors =
-    method === 'POST'
-      ? 'border-live/25 bg-live/10 text-live'
-      : method === 'GET'
-        ? 'border-accent/25 bg-accent/10 text-accent'
-        : 'border-warning/25 bg-warning/10 text-warning';
+/* ─── status dot + label ─── */
+function StatusBadge({ status }: { status: ServiceStatus }) {
+  const color =
+    status === 'live'
+      ? 'text-success'
+      : 'text-fg-muted';
 
   return (
     <span
-      className={`inline-flex rounded-md border px-2.5 py-0.5 font-mono text-xs font-semibold uppercase ${colors}`}
+      className={`inline-flex items-center gap-1.5 font-mono text-xs ${color}`}
     >
+      <span
+        className={`inline-block h-1.5 w-1.5 rounded-full ${
+          status === 'live' ? 'bg-success' : 'bg-fg-muted'
+        }`}
+      />
+      <span className="uppercase tracking-wider">{status}</span>
+    </span>
+  );
+}
+
+/* ─── method badge ─── */
+function MethodBadge({ method }: { method: string }) {
+  return (
+    <span className="inline-flex rounded border border-border bg-bg px-2.5 py-0.5 font-mono text-xs uppercase leading-none text-accent">
       {method}
     </span>
   );
@@ -56,68 +104,80 @@ function MethodBadge({ method }: { method: string }) {
 /* ─── individual service card ─── */
 function ServiceCard({ service, index }: { service: Service; index: number }) {
   return (
-    <Reveal delay={index * 0.1}>
-      <article className="group relative rounded-2xl border border-surface bg-bg-alt p-8 transition-all duration-500 hover:border-accent/20 hover:shadow-[0_0_40px_-8px_rgba(34,211,238,0.08)] sm:p-10">
-        {/* card glow on hover */}
-        <div className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-accent/[0.03] to-transparent" />
-        </div>
-
-        <div className="relative">
-          {/* header row: method badge + path */}
-          <div className="mb-5 flex items-center gap-3">
+    <Reveal delay={index * 0.08}>
+      <article
+        className={`group rounded-card border border-border bg-bg-elevated p-6 transition-all duration-150 hover:border-bg-subtle hover:bg-[#453050] sm:p-8 ${
+          service.status === 'archived' ? 'opacity-70' : ''
+        }`}
+      >
+        {/* header row: method + path + status (left) · link (right) */}
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2.5">
             <MethodBadge method={service.method} />
             <span className="font-mono text-sm text-fg-muted">
               {service.path}
             </span>
+            <StatusBadge status={service.status} />
           </div>
 
-          {/* project name */}
-          <h3 className="mb-3 font-display text-heading text-fg-strong transition-colors duration-300 group-hover:text-accent">
-            {service.name}
-          </h3>
+          {/* top-right link */}
+          {service.link ? (
+            <a
+              href={service.link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-accent"
+              aria-label={service.link.label}
+            >
+              {service.link.label} &rarr;
+            </a>
+          ) : (
+            <span className="shrink-0 font-mono text-xs text-fg-muted">
+              &mdash;
+            </span>
+          )}
+        </div>
 
-          {/* description */}
-          <p className="mb-6 max-w-prose leading-relaxed text-fg-muted">
-            {service.description}
-          </p>
+        {/* service name */}
+        <h3 className="text-xl font-semibold text-fg transition-colors duration-150 group-hover:text-accent">
+          {service.name}
+        </h3>
 
-          {/* tech tags */}
-          <div className="mb-6 flex flex-wrap gap-2">
+        {/* description */}
+        <p className="mt-3 max-w-prose text-md leading-relaxed text-fg-secondary">
+          {service.description}
+        </p>
+
+        {/* tech tags */}
+        {service.tech.length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-2">
             {service.tech.map((t) => (
               <span
                 key={t}
-                className="rounded-full border border-fg-faint/15 bg-surface/50 px-3 py-1 font-mono text-xs text-fg-faint"
+                className="rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono text-xs text-fg-muted"
               >
                 {t}
               </span>
             ))}
           </div>
-
-          {/* link */}
-          <a
-            href={service.href}
-            className="group/link inline-flex items-center gap-2 font-mono text-sm text-accent transition-opacity duration-300 hover:opacity-70"
-            aria-label={service.label}
-          >
-            <span>View project</span>
-            <span className="inline-block transition-transform duration-300 group-hover/link:translate-x-1">
-              &rarr;
-            </span>
-          </a>
-        </div>
+        )}
       </article>
     </Reveal>
   );
 }
 
 /* ============================================================
-   /services section
+   /services section — specs-v2/002-services.md
+   Full-width cards, vertical list, projects as API services
    ============================================================ */
 export function Services() {
   return (
     <Section id="services" label="/services">
-      <div className="grid gap-8">
+      <p className="mb-10 max-w-prose text-base leading-relaxed text-fg-secondary">
+        Services I&rsquo;ve shipped or contributed to.
+      </p>
+
+      <div className="flex flex-col gap-5">
         {services.map((service, i) => (
           <ServiceCard key={service.name} service={service} index={i} />
         ))}
