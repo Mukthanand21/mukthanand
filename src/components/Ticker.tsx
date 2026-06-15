@@ -1,76 +1,77 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
-/* ─── ticker content ─── */
-const TICKER_ITEMS = [
-  'OPEN TO SOFTWARE, AI & FULL-STACK OPPORTUNITIES',
-  'GRADUATING JULY 2025',
-  'CURRENTLY: HYBRID RETRIEVAL @ CORPUS.SWECHA.ORG',
-  'BUILT WITH REACT + VITE + TAILWIND',
-  'CI/CD VIA GITLAB PAGES',
+/* ─── ticker items ─── */
+const ITEMS = [
+  'Backend Engineer',
+  'Full-Stack Developer',
+  'Retrieval Systems',
+  'Agentic Tooling',
+  'RAG Pipelines',
+  'Available for Hire',
+  'Open Source',
 ];
 
-const ITEM_SEPARATOR = '✦';
+const SEPARATOR = '  \u2022  ';
+const SPEED = 0.4; // px per frame (~24px/sec as specified)
 
-/* ─── continuous horizontal scroll ticker ─── */
+/* ============================================================
+   Ticker — specs-v2/000-overview.md §4.4
+   Continuous horizontal scroll, pauses on hover.
+   ============================================================ */
 export function Ticker() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const reduced = usePrefersReducedMotion();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    if (reduced || !scrollRef.current) return;
 
-    let animationId: number;
-    let scrollPos = 0;
-    const speed = 0.4; // px per frame (~24px/sec at 60fps)
+    const el = scrollRef.current;
+    let pos = 0;
+    let raf: number;
 
-    const tick = () => {
-      if (!container) return;
-      if (!isHovered) {
-        scrollPos += speed;
-        container.scrollLeft = scrollPos;
-
-        // Reset to beginning when we've scrolled past one copy
-        const halfScroll = container.scrollWidth / 2;
-        if (scrollPos >= halfScroll) {
-          scrollPos = 0;
-          container.scrollLeft = 0;
-        }
-      }
-      animationId = requestAnimationFrame(tick);
+    const animate = () => {
+      pos -= SPEED;
+      const half = el.scrollWidth / 2;
+      if (Math.abs(pos) >= half) pos = 0;
+      el.style.transform = `translateX(${pos}px)`;
+      raf = requestAnimationFrame(animate);
     };
 
-    animationId = requestAnimationFrame(tick);
+    raf = requestAnimationFrame(animate);
 
-    return () => cancelAnimationFrame(animationId);
-  }, [isHovered]);
+    const pause = () => cancelAnimationFrame(raf);
+    const resume = () => { raf = requestAnimationFrame(animate); };
 
-  // Double the items for seamless loop
-  const displayedItems = [...TICKER_ITEMS, ...TICKER_ITEMS];
+    el.addEventListener('mouseenter', pause);
+    el.addEventListener('mouseleave', resume);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener('mouseenter', pause);
+      el.removeEventListener('mouseleave', resume);
+    };
+  }, [reduced]);
+
+  const content = ITEMS.join(SEPARATOR) + SEPARATOR;
+
+  if (reduced) {
+    return (
+      <div className="overflow-hidden rounded-card border-thin border-border bg-bg-elevated px-4 py-3">
+        <div className="whitespace-nowrap font-mono text-xs text-fg-muted">
+          {content}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div
-      ref={containerRef}
-      className="overflow-hidden border-y border-border py-3"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      role="marquee"
-      aria-live="off"
-    >
-      <div className="flex w-max gap-8">
-        {displayedItems.map((item, i) => (
-          <span
-            key={`${item}-${i}`}
-            className="inline-flex shrink-0 items-center gap-8 font-mono text-xs uppercase tracking-widest text-fg-muted"
-          >
-            <span>{item}</span>
-            {i < displayedItems.length - 1 && (
-              <span className="text-fg-faint/40" aria-hidden="true">
-                {ITEM_SEPARATOR}
-              </span>
-            )}
-          </span>
-        ))}
+    <div className="overflow-hidden rounded-card border-thin border-border bg-bg-elevated px-4 py-3" aria-hidden="true">
+      <div
+        ref={scrollRef}
+        className="inline-block whitespace-nowrap font-mono text-xs text-fg-muted will-change-transform"
+      >
+        {content}{content}
       </div>
     </div>
   );
