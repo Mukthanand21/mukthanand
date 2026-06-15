@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Nav } from './Nav';
 import { Footer } from './Footer';
 import { BootLoader } from './BootLoader';
+import { LensCursor } from './LensCursor';
 import { ScrollProvider } from '../motion/ScrollProvider';
 
 // Shared app shell: nav, routed section content, footer.
@@ -17,6 +18,7 @@ export function Layout() {
       {/* hide content until boot is complete */}
       <div className={bootComplete ? '' : 'invisible'}>
         <ScrollProvider>
+          <LensCursor />
           {/* skip-to-content link for keyboard users */}
           <a
             href="#main-content"
