@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, LayoutGroup } from 'framer-motion';
 import { Section } from '../components/Section';
 import { SkillIcon } from '../components/SkillIcon';
+import { SkillConstellation } from '../components/SkillConstellation';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 import { useMagneticTilt } from '../hooks/useMagneticTilt';
 
@@ -207,8 +208,13 @@ export function Stack() {
   return (
     <Section id="stack" label="/stack">
       <p className="mb-6 max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
-        Skills grouped by discipline. Depth signaled honestly — no filler, no charts.
+        Skills grouped by discipline. Move your cursor through the constellation.
       </p>
+
+      {/* Interactive constellation */}
+      <div className="mb-8">
+        <SkillConstellation />
+      </div>
 
       {/* tab navigation */}
       <LayoutGroup>
