@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { Section } from '../components/Section';
 import { Reveal } from '../motion/Reveal';
 
@@ -94,138 +93,88 @@ function EntryTag({ label }: { label: string }) {
 
 /* ============================================================
    /changelog section — specs-v2/003-changelog.md
-   Vertical timeline with progressive line drawing
+   Vertical timeline with per-entry dot + connecting line.
+   Dot aligned to version + date baseline (4px top offset).
    ============================================================ */
 export function Changelog() {
-  // Track which entries are visible for progressive accent line
-  const [visibleUpTo, setVisibleUpTo] = useState(-1);
-  const entryRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const setEntryRef = useCallback(
-    (index: number) => (el: HTMLDivElement | null) => {
-      entryRefs.current[index] = el;
-    },
-    [],
-  );
-
-  useEffect(() => {
-    const refs = entryRefs.current;
-    const observers: (IntersectionObserver | null)[] = refs.map((el, i) => {
-      if (!el) return null;
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setVisibleUpTo((prev) => Math.max(prev, i));
-            observer.unobserve(el);
-          }
-        },
-        { threshold: 0.15 },
-      );
-      observer.observe(el);
-      return observer;
-    });
-    return () => observers.forEach((o) => o?.disconnect());
-  }, []);
-
-  const progressHeight =
-    entries.length > 0
-      ? `${((visibleUpTo + 1) / entries.length) * 100}%`
-      : '0%';
-
-
-
   return (
     <Section id="changelog" label="/changelog">
       <p className="mb-12 max-w-prose text-base leading-relaxed text-fg-secondary">
         A record of builds, shipped features, and lessons learned.
       </p>
 
-      <div ref={containerRef} className="relative max-w-2xl">
-        {/* ─── continuous background line (border-color) ─── */}
-        <div className="absolute left-[6px] top-0 h-full w-px bg-border" />
+      <div className="max-w-2xl">
+        {entries.map((entry, i) => {
+          const major = isMajor(entry.version);
+          const isLast = i === entries.length - 1;
 
-        {/* ─── progressive accent line overlay ─── */}
-        <div
-          className="absolute left-[6px] top-0 w-px bg-accent transition-all duration-500 ease-out"
-          style={{ height: progressHeight }}
-        />
-
-        {/* ─── entries ─── */}
-        <div className="relative flex flex-col">
-          {entries.map((entry, i) => {
-            const major = isMajor(entry.version);
-            return (
-              <div
-                key={entry.version}
-                ref={setEntryRef(i)}
-              >
-                <Reveal delay={i * 0.06}>
-                  <div className="group grid grid-cols-[auto_1fr] gap-5 lg:gap-6">
-                    {/* ─── timeline column ─── */}
-                    <div className="flex flex-col items-center">
-                      {/* timeline dot */}
-                      <div
-                        className={`shrink-0 rounded-full bg-accent ${
-                          major ? 'h-3 w-3' : 'h-2 w-2'
-                        }`}
-                      />
-                    </div>
-
-                    {/* ─── content column ─── */}
+          return (
+            <div key={entry.version}>
+              <Reveal delay={i * 0.06}>
+                <div className="group flex items-start gap-5">
+                  {/* ─── dot column ─── */}
+                  <div className="flex shrink-0 flex-col items-center w-[20px]">
+                    {/* dot */}
                     <div
-                      className={`${
-                        i < entries.length - 1 ? 'pb-12 lg:pb-14' : ''
+                      className={`shrink-0 rounded-full bg-accent mt-[4px] ${
+                        major ? 'h-3 w-3' : 'h-[10px] w-[10px]'
                       }`}
-                    >
-                      {/* header: version + date + tags */}
-                      <div className="mb-2 flex flex-wrap items-center gap-2.5">
-                        <span
-                          className={`font-mono uppercase text-accent ${
-                            major ? 'text-xs' : 'text-[11px]'
-                          }`}
-                        >
-                          {entry.version}
-                        </span>
-                        <span className="font-mono text-[11px] text-fg-muted">
-                          &mdash; {entry.date}
-                        </span>
-                        <span className="hidden sm:inline-flex sm:flex-wrap sm:items-center sm:gap-1.5">
-                          {entry.tags?.map((tag) => (
-                            <EntryTag key={tag} label={tag} />
-                          ))}
-                        </span>
-                      </div>
+                    />
+                    {/* connecting line — hidden on last entry */}
+                    {!isLast && (
+                      <div className="w-px flex-1 bg-border mt-[8px] min-h-[60px]" />
+                    )}
+                  </div>
 
-                      {/* tags on mobile — separate row */}
-                      {entry.tags && entry.tags.length > 0 && (
-                        <div className="mb-2 flex flex-wrap gap-2 sm:hidden">
-                          {entry.tags.map((tag) => (
-                            <EntryTag key={tag} label={tag} />
-                          ))}
-                        </div>
-                      )}
-
-                      {/* title */}
-                      <h3
-                        className={`font-semibold text-fg transition-colors duration-150 group-hover:text-accent ${
-                          major ? 'text-xl' : 'text-lg'
+                  {/* ─── content column ─── */}
+                  <div className={`flex-1 ${!isLast ? 'pb-8' : ''}`}>
+                    {/* header: version + date + tags */}
+                    <div className="mb-2 flex flex-wrap items-center gap-2.5">
+                      <span
+                        className={`font-mono uppercase text-accent ${
+                          major ? 'text-xs' : 'text-[11px]'
                         }`}
                       >
-                        {entry.title}
-                      </h3>
-
-                      {/* description */}
-                      <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-fg-secondary">
-                        {entry.description}
-                      </p>
+                        {entry.version}
+                      </span>
+                      <span className="font-mono text-[11px] text-fg-muted">
+                        &mdash; {entry.date}
+                      </span>
+                      <span className="hidden sm:inline-flex sm:flex-wrap sm:items-center sm:gap-1.5">
+                        {entry.tags?.map((tag) => (
+                          <EntryTag key={tag} label={tag} />
+                        ))}
+                      </span>
                     </div>
+
+                    {/* tags on mobile — separate row */}
+                    {entry.tags && entry.tags.length > 0 && (
+                      <div className="mb-2 flex flex-wrap gap-2 sm:hidden">
+                        {entry.tags.map((tag) => (
+                          <EntryTag key={tag} label={tag} />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* title */}
+                    <h3
+                      className={`font-semibold text-fg transition-colors duration-150 group-hover:text-accent ${
+                        major ? 'text-xl' : 'text-lg'
+                      }`}
+                    >
+                      {entry.title}
+                    </h3>
+
+                    {/* description */}
+                    <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-fg-secondary">
+                      {entry.description}
+                    </p>
                   </div>
-                </Reveal>
-              </div>
-            );
-          })}
-        </div>
+                </div>
+              </Reveal>
+            </div>
+          );
+        })}
       </div>
     </Section>
   );
