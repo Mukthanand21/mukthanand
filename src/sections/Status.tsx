@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Section } from '../components/Section';
 import { Ticker } from '../components/Ticker';
+import { useKineticScroll } from '../motion/useKineticScroll';
 
 /* ============================================================
    specs-v2/001-status.md — Hero /status
@@ -146,21 +147,24 @@ function StatusSeparator() {
      Project preview cards
    ============================================================ */
 export function Status() {
+  const heroRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
+  const heroAccentRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
+
   return (
     <Section id="status" label="/status" className="pt-[48px]">
       {/* ─── version tag ─── */}
       <p className="mb-8 font-mono text-xs uppercase tracking-[0.1em] text-accent">
-        v2.0.0 &mdash; FINAL YEAR BUILD
+        v3.0.0 &mdash; FINAL YEAR BUILD
       </p>
 
       {/* ─── two-column hero ─── */}
       <div className="grid gap-12 lg:grid-cols-[1fr_auto]">
         {/* ─── identity block (left) ─── */}
         <div>
-          <h1 className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-fg">
+          <h1 ref={heroRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-fg" style={{ willChange: 'transform' }}>
             Mukthanand
           </h1>
-          <h1 className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-accent">
+          <h1 ref={heroAccentRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-accent" style={{ willChange: 'transform' }}>
             Reddy.
           </h1>
 
