@@ -17,8 +17,8 @@ export function Layout() {
       <BootLoader onComplete={() => setBootComplete(true)} />
 
       <BootContext.Provider value={{ bootComplete }}>
-      {/* hide content until boot is complete */}
-      <div className={bootComplete ? '' : 'invisible'}>
+      {/* Content renders behind BootLoader overlay, entrance animations handle reveal */}
+      <div>
         <ScrollProvider>
           <LensCursor />
           {/* skip-to-content link for keyboard users */}
