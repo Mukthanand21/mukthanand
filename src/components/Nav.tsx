@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useScrollDirection } from '../hooks/useScrollDirection';
+import { useBoot } from '../hooks/useBoot';
 
 /* ─── nav links — editorial labels, no uppercase-mono ─── */
 const LINKS = [
@@ -47,8 +48,23 @@ function NavItem({ to, label }: { to: string; label: string }) {
    - Mobile hamburger with animated slide-down + blur backdrop
    ============================================================ */
 export function Nav() {
+  const { bootComplete } = useBoot();
+  const [revealed, setRevealed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const scrollDir = useScrollDirection(10);
+
+  /* ─── Entrance animation on boot ─── */
+  useEffect(() => {
+    if (bootComplete) {
+      const t = setTimeout(() => setRevealed(true), 100);
+      return () => clearTimeout(t);
+    }
+  }, [bootComplete]);
+
+  const navStyle: React.CSSProperties = {
+    opacity: revealed ? 1 : 0,
+    transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s',
+  };
 
   // Body scroll lock when mobile menu is open
   useEffect(() => {
@@ -108,6 +124,7 @@ export function Nav() {
       />
 
       <header
+        style={navStyle}
         className={`relative sticky top-0 z-[100] border-b border-border bg-bg/90 backdrop-blur-md transition-transform duration-300 ${
           isHidden ? '-translate-y-full' : 'translate-y-0'
         }`}

@@ -5,12 +5,12 @@
    Staggered entrance animations (used by Status.tsx)
    ═══════════════════════════════════════════════════════ */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-6px); }
+  from { opacity: 0; transform: translateY(-16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 

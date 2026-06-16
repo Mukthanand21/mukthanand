@@ -233,7 +233,7 @@ export function Status() {
       {/* ─── Status bar (fadeDown from top) ─── */}
       <div
         style={E.bar}
-        className="mb-8 flex flex-wrap gap-x-6 gap-y-1.5 font-mono text-xs tracking-[0.04em] text-fg-muted"
+        className="mb-8 flex flex-wrap items-center gap-x-2 font-mono text-xs tracking-[0.04em] text-fg-muted"
       >
         <span className="inline-flex items-center gap-1.5">
           <span
@@ -242,9 +242,13 @@ export function Status() {
           />
           {previewProjects.length} services running
         </span>
+        <span className="text-fg-faint/30 mx-1" aria-hidden="true">&middot;</span>
         <span className="text-accent">build v3.0.0</span>
+        <span className="text-fg-faint/30 mx-1" aria-hidden="true">&middot;</span>
         <span>uptime 142d 06:21:14</span>
+        <span className="text-fg-faint/30 mx-1" aria-hidden="true">&middot;</span>
         <span>region blr-1</span>
+        <span className="text-fg-faint/30 mx-1" aria-hidden="true">&middot;</span>
         <span>load {loadVal}</span>
       </div>
 
