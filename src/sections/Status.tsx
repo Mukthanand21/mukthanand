@@ -4,6 +4,7 @@ import { Section } from '../components/Section';
 import { Ticker } from '../components/Ticker';
 import { useKineticScroll } from '../motion/useKineticScroll';
 import { KineticSwapper } from '../components/KineticSwapper';
+import { Starfield } from '../components/Starfield';
 
 /* ============================================================
    specs-v2/001-status.md — Hero /status
@@ -153,13 +154,17 @@ export function Status() {
 
   return (
     <Section id="status" label="/status" className="pt-[48px]">
-      {/* ─── version tag ─── */}
-      <p className="mb-8 font-mono text-xs uppercase tracking-[0.1em] text-accent">
-        v3.0.0 &mdash; FINAL YEAR BUILD
-      </p>
+      {/* ─── starfield background ─── */}
+      <div className="relative overflow-hidden">
+        <Starfield />
 
-      {/* ─── two-column hero ─── */}
-      <div className="grid gap-12 lg:grid-cols-[1fr_auto]">
+        {/* ─── version tag ─── */}
+        <p className="relative mb-8 font-mono text-xs uppercase tracking-[0.1em] text-accent" style={{ zIndex: 1 }}>
+          v3.0.0 &mdash; FINAL YEAR BUILD
+        </p>
+
+        {/* ─── two-column hero ─── */}
+        <div className="relative grid gap-12 lg:grid-cols-[1fr_auto]" style={{ zIndex: 1 }}>
         {/* ─── identity block (left) ─── */}
         <div>
           <h1 ref={heroRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-fg" style={{ willChange: 'transform' }}>
@@ -238,6 +243,7 @@ export function Status() {
             />
           </div>
         </aside>
+      </div>
       </div>
 
       {/* ─── ticker ─── */}
