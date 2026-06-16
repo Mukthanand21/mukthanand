@@ -2,11 +2,35 @@ import { useRef, useEffect, useCallback } from 'react';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 /* ─── star constants ─── */
-const STAR_COUNT = 280;
-const FIELD_DEPTH = 1200;
-const FOCAL_LENGTH = 500;
-const SPEED = 0.6;
-const PARALLAX_FACTOR = 0.04;
+const STAR_COUNT = 500;
+const FIELD_DEPTH = 2000;
+const FOCAL_LENGTH = 600;
+const SPEED = 0.3;
+const PARALLAX_FACTOR = 0.05;
+
+/* ─── nebula constants ─── */
+const NEBULA_OPACITY = 0.06;
+const NEBULA_DRIFT = 0.05;
+
+/* ─── nebula color palette (very subtle) ─── */
+const NEBULA_COLORS: Array<{ r: number; g: number; b: number }> = [
+  { r: 180, g: 140, b: 255 }, // soft violet
+  { r: 232, g: 182, b: 90 },  // gold
+  { r: 200, g: 160, b: 220 }, // lavender
+  { r: 160, g: 120, b: 200 }, // muted purple
+  { r: 220, g: 180, b: 140 }, // warm amber
+  { r: 255, g: 210, b: 180 }, // warm peach
+  { r: 140, g: 170, b: 255 }, // soft blue
+];
+
+type NebulaBlob = {
+  x: number;
+  y: number;
+  radius: number;
+  color: { r: number; g: number; b: number };
+  dx: number;
+  dy: number;
+};
 
 /* ─── shooting star constants ─── */
 const METEOR_INTERVAL_MIN = 3000;
@@ -96,10 +120,10 @@ type Meteor = {
 /* ─── generate a single star ─── */
 function createStar(): Star {
   return {
-    x: (Math.random() - 0.5) * 2000,
-    y: (Math.random() - 0.5) * 1200,
+    x: (Math.random() - 0.5) * 3000,
+    y: (Math.random() - 0.5) * 2000,
     z: Math.random() * FIELD_DEPTH,
-    size: Math.random() * 2 + 0.3,
+    size: Math.random() * 2.5 + 0.4,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
     twinkleSpeed: Math.random() * 0.02 + 0.005,
     twinklePhase: Math.random() * Math.PI * 2,
@@ -157,9 +181,22 @@ export function Starfield({ className = '', fixed = false }: { className?: strin
   const lastTimeRef = useRef(0);
   const reduced = usePrefersReducedMotion();
 
-  /* ─── initialise star field ─── */
+  /* ─── initialise star field + nebula ─── */
   useEffect(() => {
     starsRef.current = Array.from({ length: STAR_COUNT }, createStar);
+  }, []);
+
+  /* ─── nebula blobs (created once, stored in ref) ─── */
+  const nebulaRef = useRef<NebulaBlob[]>([]);
+  useEffect(() => {
+    nebulaRef.current = NEBULA_COLORS.map((color) => ({
+      x: Math.random() * 2000 - 500,
+      y: Math.random() * 1500 - 250,
+      radius: 300 + Math.random() * 500,
+      color,
+      dx: (Math.random() - 0.5) * NEBULA_DRIFT,
+      dy: (Math.random() - 0.5) * NEBULA_DRIFT,
+    }));
   }, []);
 
   /* ─── mouse tracking ─── */
@@ -219,6 +256,30 @@ export function Starfield({ className = '', fixed = false }: { className?: strin
 
       ctx.clearRect(0, 0, w, h);
 
+      /* ─── nebula layer (behind stars) ─── */
+      const blobs = nebulaRef.current;
+      for (let b = 0; b < blobs.length; b++) {
+        const blob = blobs[b];
+        if (!reduced) {
+          blob.x += blob.dx;
+          blob.y += blob.dy;
+        }
+
+        // Wrap around screen edges slowly
+        if (blob.x < -blob.radius) blob.x = w + blob.radius;
+        if (blob.x > w + blob.radius) blob.x = -blob.radius;
+        if (blob.y < -blob.radius) blob.y = h + blob.radius;
+        if (blob.y > h + blob.radius) blob.y = -blob.radius;
+
+        const grad = ctx.createRadialGradient(blob.x, blob.y, 0, blob.x, blob.y, blob.radius);
+        grad.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${NEBULA_OPACITY})`);
+        grad.addColorStop(0.4, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${NEBULA_OPACITY * 0.5})`);
+        grad.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, 0)`);
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+      }
+
       /* ─── background stars ─── */
       const stars = starsRef.current;
       for (let i = 0; i < stars.length; i++) {
@@ -226,8 +287,8 @@ export function Starfield({ className = '', fixed = false }: { className?: strin
         if (!reduced) star.z -= SPEED;
         if (star.z <= 0) {
           star.z = FIELD_DEPTH;
-          star.x = (Math.random() - 0.5) * 2000;
-          star.y = (Math.random() - 0.5) * 1200;
+          star.x = (Math.random() - 0.5) * 3000;
+          star.y = (Math.random() - 0.5) * 2000;
         }
 
         const scale = cx / (star.z + 1);
