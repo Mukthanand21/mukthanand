@@ -26,8 +26,8 @@ export default {
         display: ['"Cabinet Grotesk"', 'sans-serif'],
         // Inter = primary sans (body text, UI, labels)
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        // Mono alias — Inter with letter-spacing for labels & tags (no VS Code mono)
-        mono: ['Inter', 'system-ui', 'sans-serif'],
+        // JetBrains Mono — code, version tags, terminal-style labels
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       fontSize: {
         // v2 type scale (specs-v2/000-overview.md §3)
