@@ -182,12 +182,12 @@ export function Services() {
   }
 
   const E = {
-    title: eStyle('fadeDown', 900, 0),
-    content: eStyle('fadeIn', 1, 200),
+    title: eStyle('fadeDown', 400, 0),
+    content: eStyle('fadeIn', 1, 100),
   };
 
   return (
-    <Section id="services" label="/services">
+    <Section id="services" label="/services" labelStyle={E.title}>
       <p style={E.title} className="mb-10 max-w-prose text-base leading-relaxed text-fg-secondary">
         Services I&rsquo;ve shipped or contributed to.
       </p>

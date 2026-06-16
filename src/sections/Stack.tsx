@@ -222,12 +222,12 @@ export function Stack() {
   }
 
   const E = {
-    title: eStyle('fadeDown', 900, 0),
-    content: eStyle('fadeIn', 1, 200),
+    title: eStyle('fadeDown', 400, 0),
+    content: eStyle('fadeIn', 1, 100),
   };
 
   return (
-    <Section id="stack" label="/stack">
+    <Section id="stack" label="/stack" labelStyle={E.title}>
       <p style={E.title} className="mb-6 max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
         Skills grouped by discipline. Depth signaled honestly — no filler, no charts.
       </p>

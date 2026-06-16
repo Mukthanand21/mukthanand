@@ -102,12 +102,12 @@ export function Changelog() {
   }
 
   const E = {
-    title: eStyle('fadeDown', 900, 0),
-    content: eStyle('fadeIn', 1, 200),
+    title: eStyle('fadeDown', 400, 0),
+    content: eStyle('fadeIn', 1, 100),
   };
 
   return (
-    <Section id="changelog" label="/changelog">
+    <Section id="changelog" label="/changelog" labelStyle={E.title}>
       <p style={E.title} className="mb-12 max-w-prose text-base leading-relaxed text-fg-secondary">
         A record of builds, shipped features, and lessons learned.
       </p>
