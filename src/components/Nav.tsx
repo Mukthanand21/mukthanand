@@ -18,7 +18,7 @@ function NavItem({ to, label }: { to: string; label: string }) {
       {({ isActive }) => (
         <>
           <span
-            className={`font-sans text-sm tracking-wide transition-colors duration-150 ${
+            className={`font-mono text-sm tracking-wide transition-colors duration-150 ${
               isActive
                 ? 'text-accent'
                 : 'text-fg-secondary group-hover:text-accent'
@@ -116,7 +116,7 @@ export function Nav() {
           {/* logo / name */}
           <NavLink
             to="/status"
-            className="font-sans text-sm font-medium tracking-wide text-fg transition-colors duration-150 hover:text-accent"
+            className="font-mono text-sm font-medium tracking-wide text-fg transition-colors duration-150 hover:text-accent"
           >
             Mukthanand
           </NavLink>
@@ -180,7 +180,7 @@ export function Nav() {
                       to={l.to}
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
-                        `block py-3 font-sans text-sm tracking-wide transition-colors duration-150 ${
+                        `block py-3 font-mono text-sm tracking-wide transition-colors duration-150 ${
                           isActive
                             ? 'text-accent'
                             : 'text-fg-secondary hover:text-accent'

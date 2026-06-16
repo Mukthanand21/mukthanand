@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Section } from '../components/Section';
 import { Reveal } from '../motion/Reveal';
+import { useBoot } from '../hooks/useBoot';
 
 /* ─── service data — placeholder until #16 ─── */
 type ServiceStatus = 'live' | 'archived';
@@ -171,13 +173,36 @@ function ServiceCard({ service, index }: { service: Service; index: number }) {
    Full-width cards, vertical list, projects as API services
    ============================================================ */
 export function Services() {
+  const { bootComplete } = useBoot();
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    if (bootComplete) {
+      const t = setTimeout(() => setRevealed(true), 30);
+      return () => clearTimeout(t);
+    }
+  }, [bootComplete]);
+
+  function eStyle(anim: string, dur: number, del: number): React.CSSProperties {
+    if (!revealed) return { opacity: 0 };
+    return {
+      animation: `${anim} ${dur}ms ${del}ms cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+      opacity: 0,
+    };
+  }
+
+  const E = {
+    title: eStyle('fadeDown', 900, 0),
+    content: eStyle('fadeIn', 1, 200),
+  };
+
   return (
     <Section id="services" label="/services">
-      <p className="mb-10 max-w-prose text-base leading-relaxed text-fg-secondary">
+      <p style={E.title} className="mb-10 max-w-prose text-base leading-relaxed text-fg-secondary">
         Services I&rsquo;ve shipped or contributed to.
       </p>
 
-      <div className="flex flex-col gap-5">
+      <div style={E.content} className="flex flex-col gap-5">
         {services.map((service, i) => (
           <ServiceCard key={service.name} service={service} index={i} />
         ))}

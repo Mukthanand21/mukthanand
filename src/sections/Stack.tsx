@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, LayoutGroup } from 'framer-motion';
 import { Section } from '../components/Section';
 import { SkillIcon } from '../components/SkillIcon';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 import { useMagneticTilt } from '../hooks/useMagneticTilt';
+import { useBoot } from '../hooks/useBoot';
 
 /* ─── types ─── */
 type Level = 'strongest' | 'strong' | 'familiar';
@@ -201,16 +202,39 @@ function TabPill({
    Tab-navigated discipline groups with featured skill cards
    ============================================================ */
 export function Stack() {
+  const { bootComplete } = useBoot();
+  const [revealed, setRevealed] = useState(false);
   const [activeTab, setActiveTab] = useState(groups[0].id);
   const currentGroup = groups.find((g) => g.id === activeTab)!;
 
+  useEffect(() => {
+    if (bootComplete) {
+      const t = setTimeout(() => setRevealed(true), 30);
+      return () => clearTimeout(t);
+    }
+  }, [bootComplete]);
+
+  function eStyle(anim: string, dur: number, del: number): React.CSSProperties {
+    if (!revealed) return { opacity: 0 };
+    return {
+      animation: `${anim} ${dur}ms ${del}ms cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+      opacity: 0,
+    };
+  }
+
+  const E = {
+    title: eStyle('fadeDown', 900, 0),
+    content: eStyle('fadeIn', 1, 200),
+  };
+
   return (
     <Section id="stack" label="/stack">
-      <p className="mb-6 max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
+      <p style={E.title} className="mb-6 max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
         Skills grouped by discipline. Depth signaled honestly — no filler, no charts.
       </p>
 
       {/* tab navigation */}
+      <div style={E.content}>
       <LayoutGroup>
         <div className="mb-7 flex flex-wrap gap-x-3 gap-y-2">
           {groups.map((g) => (
@@ -226,6 +250,7 @@ export function Stack() {
 
       {/* active tab panel */}
       <TabPanel key={currentGroup.id} group={currentGroup} />
+      </div>
     </Section>
   );
 }
