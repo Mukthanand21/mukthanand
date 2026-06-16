@@ -4,6 +4,7 @@ import { Section } from '../components/Section';
 import { Ticker } from '../components/Ticker';
 import { useKineticScroll } from '../motion/useKineticScroll';
 import { KineticSwapper } from '../components/KineticSwapper';
+import { ServerRack } from '../components/ServerRack';
 
 /* ============================================================
    specs-v2/001-status.md — Hero /status
@@ -55,6 +56,30 @@ export function Status() {
 
   return (
     <Section id="status" label="/status" className="pt-[48px]">
+      {/* ─── 3D server rack background ─── */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+        <ServerRack />
+        {/* Vignette overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 100%)',
+            zIndex: 1,
+          }}
+        />
+        {/* Film grain overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            opacity: 0.035,
+            zIndex: 2,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '100px 100px',
+          }}
+        />
+      </div>
+
       {/* ─── version tag ─── */}
       <p className="mb-8 font-mono text-xs uppercase tracking-[0.1em] text-accent">
         v2.0.0 &mdash; FINAL YEAR BUILD
