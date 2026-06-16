@@ -147,7 +147,7 @@ function spawnMeteor(w: number, h: number): Meteor {
    - Gold Streak: quick, bright gold, short tail
    - Violet Comet: slow, violet, long tail with fragment particles
    ============================================================ */
-export function Starfield({ className = '' }: { className?: string }) {
+export function Starfield({ className = '', fixed = false }: { className?: string; fixed?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: 0, y: 0 });
   const starsRef = useRef<Star[]>([]);
@@ -204,6 +204,13 @@ export function Starfield({ className = '' }: { className?: string }) {
     lastTimeRef.current = performance.now();
 
     const drawFrame = () => {
+      // Pause when tab is hidden — saves battery/CPU
+      if (document.hidden) {
+        lastTimeRef.current = performance.now();
+        rafRef.current = requestAnimationFrame(drawFrame);
+        return;
+      }
+
       const w = canvas.width;
       const h = canvas.height;
       const mx = mouseRef.current.x * PARALLAX_FACTOR;
@@ -347,11 +354,12 @@ export function Starfield({ className = '' }: { className?: string }) {
       className={className}
       aria-hidden="true"
       style={{
-        position: 'absolute',
+        position: fixed ? 'fixed' : 'absolute',
         inset: 0,
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
+        zIndex: 0,
       }}
     />
   );

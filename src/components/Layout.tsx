@@ -5,6 +5,7 @@ import { Footer } from './Footer';
 import { BootLoader } from './BootLoader';
 import { LensCursor } from './LensCursor';
 import { ScrollProvider } from '../motion/ScrollProvider';
+import { Starfield } from './Starfield';
 
 // Shared app shell: nav, routed section content, footer.
 // GSAP + Lenis via ScrollProvider wraps the entire app for smooth scroll.
@@ -13,10 +14,13 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-bg text-fg">
+      {/* full-viewport starfield background */}
+      <Starfield fixed />
+
       <BootLoader onComplete={() => setBootComplete(true)} />
 
       {/* hide content until boot is complete */}
-      <div className={bootComplete ? '' : 'invisible'}>
+      <div className={bootComplete ? 'relative' : 'invisible relative'} style={{ zIndex: 1 }}>
         <ScrollProvider>
           <LensCursor />
           {/* skip-to-content link for keyboard users */}
