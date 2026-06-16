@@ -184,7 +184,7 @@ function ServerUnit({
         </mesh>
       )}
 
-      {(index === 1 || index === 2) && <Fan />}
+      {(index === 1 || index === 2) && <Fan speed={2.2 + index * 0.4} />}
     </group>
   );
 }
@@ -192,12 +192,12 @@ function ServerUnit({
 /* ============================================================
    Spinning Fan
    ============================================================ */
-function Fan() {
+function Fan({ speed }: { speed: number }) {
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame((_, delta) => {
     if (groupRef.current) {
-      groupRef.current.rotation.z += delta * 2.4;
+      groupRef.current.rotation.z += delta * speed;
     }
   });
 
@@ -257,7 +257,7 @@ function FloatingMotes() {
       </bufferGeometry>
       <pointsMaterial
         color={0xe8b65a}
-        size={0.025}
+        size={0.018}
         transparent
         opacity={0.35}
         sizeAttenuation
@@ -280,12 +280,14 @@ function SceneContents({ startIntro }: { startIntro: boolean }) {
   const rimRef = useRef<THREE.SpotLight>(null);
   const topAccentRef = useRef<THREE.PointLight>(null);
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   const camStart = useMemo(
-    () => ({ pos: new THREE.Vector3(11, 4.5, 13), look: new THREE.Vector3(0, 2.5, 0) }),
+    () => ({ pos: new THREE.Vector3(isMobile ? 9 : 11, 4.5, isMobile ? 11 : 13), look: new THREE.Vector3(0, 2.5, 0) }),
     [],
   );
   const camEnd = useMemo(
-    () => ({ pos: new THREE.Vector3(6.2, 1.3, 8), look: new THREE.Vector3(0, 1.6, 0) }),
+    () => ({ pos: new THREE.Vector3(isMobile ? 5.2 : 6.2, 1.3, isMobile ? 7 : 8), look: new THREE.Vector3(0, 1.6, 0) }),
     [],
   );
 

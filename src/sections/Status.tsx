@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Section } from '../components/Section';
 import { Ticker } from '../components/Ticker';
@@ -8,10 +9,24 @@ import { ServerRack } from '../components/ServerRack';
 import { useBoot } from '../hooks/useBoot';
 
 /* ============================================================
-   specs-v2/001-status.md — Hero /status
-   No entrance animation — BootLoader handles all Stage 4 reveals.
-   Two-column identity + status sidebar layout.
+   Draft-matched Hero /status
+   Staggered entrance animations triggered after boot:
+   Status bar (1.8s) → Label (2.1s) → Heading (2.25s/2.4s)
+   → Sub (2.65s) → Buttons (2.85s) → Rack readout (3.1s)
    ============================================================ */
+
+/* ─── Entrance animation helper ─── */
+const ENTRANCE_CSS = {
+  transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+} as const;
+
+function entranceStyle(animation: string, durationMs: number, delayMs: number, revealed: boolean): React.CSSProperties {
+  if (!revealed) return { opacity: 0 };
+  return {
+    animation: `${animation} ${durationMs}ms ${delayMs}ms ${ENTRANCE_CSS.transitionTimingFunction} forwards`,
+    opacity: 0,
+  };
+}
 
 /* ─── project preview data (placeholder until issue #16) ─── */
 type PreviewProject = {
@@ -51,6 +66,13 @@ const previewProjects: PreviewProject[] = [
     href: '#',
     status: 'live',
   },
+];
+
+/* ─── rack readout data (matches draft) ─── */
+const RACK_READOUT = [
+  { unit: 'U1', service: '/retrieve', tech: 'pgvector', state: 'live' as const },
+  { unit: 'U2', service: '/chat', tech: 'scheme saathi', state: 'live' as const },
+  { unit: 'U3', service: '/agentic', tech: 'tooling', state: 'idle' as const },
 ];
 
 /* ─── method badge ─── */
@@ -142,17 +164,45 @@ function StatusSeparator() {
 }
 
 /* ============================================================
-   /status section — specs-v2/001-status.md
+   /status section — Draft-matched Hero
    Layout:
-     Version tag
-     Two-column grid: identity (left) + status sidebar (right)
-     Ticker
-     Project preview cards
+     Status bar → Label → Two-column grid → Ticker → Cards → Rack readout
+   All entrance animations staggered after boot.
    ============================================================ */
 export function Status() {
   const { bootComplete } = useBoot();
   const heroRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
   const heroAccentRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
+
+  /* ─── Entrance reveal (triggers after boot) ─── */
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    if (bootComplete) {
+      const t = setTimeout(() => setRevealed(true), 30);
+      return () => clearTimeout(t);
+    }
+  }, [bootComplete]);
+
+  /* ─── Dynamic load readout ─── */
+  const [loadVal, setLoadVal] = useState('0.42');
+  useEffect(() => {
+    const id = setInterval(() => {
+      setLoadVal((0.3 + Math.random() * 0.25).toFixed(2));
+    }, 2500);
+    return () => clearInterval(id);
+  }, []);
+
+  /* ─── Entrance delay map (matches draft timings) ─── */
+  const E = {
+    bar:     entranceStyle('fadeDown', 900,  0,   revealed),
+    label:   entranceStyle('fadeUp',  1000, 300, revealed),
+    heading: entranceStyle('fadeUp',  1100, 450, revealed),
+    accent:  entranceStyle('fadeUp',  1100, 600, revealed),
+    sub:     entranceStyle('fadeUp',  1000, 850, revealed),
+    actions: entranceStyle('fadeUp',  900,  1050, revealed),
+    rack:    entranceStyle('fadeIn',  1000, 1300, revealed),
+    content: entranceStyle('fadeIn',  1,    0,   revealed),
+  };
 
   return (
     <Section id="status" label="/status" className="pt-[48px]">
@@ -180,24 +230,42 @@ export function Status() {
         />
       </div>
 
-      {/* ─── version tag ─── */}
-      <p className="mb-8 font-mono text-xs uppercase tracking-[0.1em] text-accent">
-        v3.0.0 &mdash; FINAL YEAR BUILD
+      {/* ─── Status bar (fadeDown from top) ─── */}
+      <div
+        style={E.bar}
+        className="mb-8 flex flex-wrap gap-x-6 gap-y-1.5 font-mono text-xs tracking-[0.04em] text-fg-muted"
+      >
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            className="inline-block h-1.5 w-1.5 rounded-full bg-success"
+            style={{ boxShadow: '0 0 6px 1px rgba(93,202,165,0.6)' }}
+          />
+          {previewProjects.length} services running
+        </span>
+        <span className="text-accent">build v3.0.0</span>
+        <span>uptime 142d 06:21:14</span>
+        <span>region blr-1</span>
+        <span>load {loadVal}</span>
+      </div>
+
+      {/* ─── /status label (fadeUp) ─── */}
+      <p style={E.label} className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-accent">
+        /status &mdash; final year build
       </p>
 
       {/* ─── two-column hero ─── */}
-      <div className="grid gap-12 lg:grid-cols-[1fr_auto]">
+      <div style={E.content} className="grid gap-12 lg:grid-cols-[1fr_auto]">
         {/* ─── identity block (left) ─── */}
         <div>
-          <h1 ref={heroRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-fg" style={{ willChange: 'transform' }}>
+          <h1 ref={heroRef} style={{ ...E.heading, willChange: 'transform' }} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-fg">
             Mukthanand
           </h1>
-          <h1 ref={heroAccentRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-accent" style={{ willChange: 'transform' }}>
+          <h1 ref={heroAccentRef} style={{ ...E.accent, willChange: 'transform' }} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-accent">
             Reddy.
           </h1>
 
           {/* role line */}
-          <div className="mt-4">
+          <div style={E.sub} className="mt-4">
             <KineticSwapper
               prefix="Open to"
               words={[
@@ -213,13 +281,13 @@ export function Status() {
             />
           </div>
 
-          <p className="mt-6 max-w-[420px] font-sans text-lg leading-relaxed text-fg-secondary">
+          <p style={E.sub} className="mt-6 max-w-[420px] font-sans text-lg leading-relaxed text-fg-secondary">
             Backend &amp; full-stack engineer. Builds retrieval systems,
             agentic tooling, and tools for underserved communities.
           </p>
 
           {/* CTA buttons */}
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div style={E.actions} className="mt-8 flex flex-wrap items-center gap-4">
             {/* primary CTA — gold filled */}
             <Link
               to="/services"
@@ -241,7 +309,7 @@ export function Status() {
 
         {/* ─── status sidebar (right) — hidden on mobile, shown on lg ─── */}
         <aside className="hidden lg:block lg:w-64">
-          <div className="flex flex-col gap-6 border-l border-border pl-8">
+          <div style={E.content} className="flex flex-col gap-6 border-l border-border pl-8">
             <StatusBlock
               label="CURRENT STATUS"
               value="Hybrid RAG retrieval"
@@ -268,12 +336,12 @@ export function Status() {
       </div>
 
       {/* ─── ticker ─── */}
-      <div className="mt-20">
+      <div style={E.content} className="mt-20">
         <Ticker />
       </div>
 
       {/* ─── project preview cards ─── */}
-      <div className="mt-12">
+      <div style={E.content} className="mt-12">
         <p className="mb-6 font-mono text-xs uppercase tracking-[0.1em] text-fg-muted">
           Featured Services
         </p>
@@ -282,6 +350,19 @@ export function Status() {
             <ProjectPreviewCard key={project.name} project={project} />
           ))}
         </div>
+      </div>
+
+      {/* ─── Rack readout footer (fadeIn, draft-matched) ─── */}
+      <div
+        style={E.rack}
+        className="mt-20 flex flex-wrap justify-between gap-x-6 gap-y-2 font-mono text-xs tracking-[0.08em] text-fg-muted/40"
+      >
+        {RACK_READOUT.map((item) => (
+          <span key={item.unit}>
+            <span className="text-accent/60">{item.unit}</span>
+            &nbsp;{item.service} &middot; {item.tech} &middot; {item.state}
+          </span>
+        ))}
       </div>
     </Section>
   );
