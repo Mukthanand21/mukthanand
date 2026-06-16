@@ -9,11 +9,49 @@ const SPEED = 0.6;
 const PARALLAX_FACTOR = 0.04;
 
 /* ─── shooting star constants ─── */
-const METEOR_INTERVAL_MIN = 3000;  // ms between meteors (min)
-const METEOR_INTERVAL_MAX = 8000;  // ms between meteors (max)
-const METEOR_DURATION = 1200;      // ms for a meteor to travel
-const METEOR_TAIL_LENGTH = 80;     // pixels behind the head
-const METEOR_SPEED = 6;            // pixels per frame
+const METEOR_INTERVAL_MIN = 3000;
+const METEOR_INTERVAL_MAX = 8000;
+
+type MeteorStyle = 'gold-streak' | 'violet-comet';
+
+type MeteorConfig = {
+  color: { r: number; g: number; b: number };
+  headCore: { r: number; g: number; b: number };
+  speed: number;
+  lifetime: number;      // ms base
+  tailLength: number;    // pixels
+  tailDots: number;
+  headGlowRadius: number;
+  headCoreRadius: number;
+  fragments: boolean;
+};
+
+const METEOR_STYLES: Record<MeteorStyle, MeteorConfig> = {
+  'gold-streak': {
+    color: { r: 255, g: 220, b: 150 },
+    headCore: { r: 255, g: 245, b: 230 },
+    speed: 6,
+    lifetime: 1200,
+    tailLength: 80,
+    tailDots: 20,
+    headGlowRadius: 4,
+    headCoreRadius: 1.5,
+    fragments: false,
+  },
+  'violet-comet': {
+    color: { r: 180, g: 140, b: 255 },  // soft violet #B48CFF
+    headCore: { r: 220, g: 200, b: 255 }, // light violet core
+    speed: 3.5,
+    lifetime: 2200,
+    tailLength: 180,
+    tailDots: 30,
+    headGlowRadius: 6,
+    headCoreRadius: 2,
+    fragments: true,
+  },
+};
+
+const STYLE_KEYS = Object.keys(METEOR_STYLES) as MeteorStyle[];
 
 /* ─── color palette (warm gold tones) ─── */
 const COLORS = [
@@ -23,8 +61,6 @@ const COLORS = [
   { r: 200, g: 170, b: 120 }, // muted gold
   { r: 245, g: 220, b: 200 }, // warm cream
 ];
-
-const METEOR_COLOR = { r: 255, g: 220, b: 150 }; // warm bright gold
 
 type Star = {
   x: number;
@@ -36,14 +72,25 @@ type Star = {
   twinklePhase: number;
 };
 
+type Fragment = {
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  life: number;     // 0→1
+  decay: number;    // how fast life decreases per frame
+  size: number;
+};
+
 type Meteor = {
   x: number;
   y: number;
   dx: number;
   dy: number;
-  age: number;       // ms since spawn
-  lifetime: number;  // ms total
-  active: boolean;
+  age: number;
+  lifetime: number;
+  style: MeteorStyle;
+  fragments: Fragment[];
 };
 
 /* ─── generate a single star ─── */
@@ -59,37 +106,46 @@ function createStar(): Star {
   };
 }
 
-/* ─── spawn a shooting star at a random position ─── */
+/* ─── spawn a shooting star ─── */
 function spawnMeteor(w: number, h: number): Meteor {
+  const style = STYLE_KEYS[Math.floor(Math.random() * STYLE_KEYS.length)];
+  const cfg = METEOR_STYLES[style];
   const margin = 60;
-  // Spawn from top or left edges
-  const fromTop = Math.random() > 0.5;
-  const x = fromTop ? Math.random() * w : (Math.random() > 0.5 ? -margin : w + margin);
-  const y = fromTop ? -margin : Math.random() * h;
 
-  // Direction: downward-right, -0.5 to 0.5 rad from straight-down
-  const angle = Math.PI / 2 + (Math.random() - 0.5) * 1.0;
-  const speed = METEOR_SPEED * (0.8 + Math.random() * 0.6);
+  // Gold streaks spawn from top/left; violet comets spawn from any edge
+  let sx: number, sy: number;
+  if (style === 'gold-streak') {
+    const fromTop = Math.random() > 0.5;
+    sx = fromTop ? Math.random() * w : (Math.random() > 0.5 ? -margin : w + margin);
+    sy = fromTop ? -margin : Math.random() * h;
+  } else {
+    const edge = Math.floor(Math.random() * 4); // 0:top, 1:right, 2:bottom, 3:left
+    sx = edge === 0 ? Math.random() * w : edge === 1 ? w + margin : edge === 3 ? -margin : Math.random() * w;
+    sy = edge === 0 ? -margin : edge === 1 ? Math.random() * h : edge === 2 ? h + margin : Math.random() * h;
+  }
+
+  // Direction: gold goes downward-right, violet goes more horizontal
+  const baseAngle = style === 'gold-streak' ? Math.PI / 2 : Math.PI * 0.6;
+  const angle = baseAngle + (Math.random() - 0.5) * 0.8;
+  const speed = cfg.speed * (0.8 + Math.random() * 0.6);
   const dx = Math.cos(angle) * speed;
   const dy = Math.sin(angle) * speed;
 
   return {
-    x, y, dx, dy,
+    x: sx, y: sy, dx, dy,
     age: 0,
-    lifetime: METEOR_DURATION * (0.7 + Math.random() * 0.6),
-    active: true,
+    lifetime: cfg.lifetime * (0.7 + Math.random() * 0.6),
+    style,
+    fragments: [],
   };
 }
 
 /* ============================================================
    Starfield — Canvas-based 3D starfield background.
 
-   Renders stars flying slowly through 3D space with:
-   - Gold/warm color palette matching the site accent
-   - Mouse parallax: stars shift subtly with cursor
-   - Subtle twinkle per star
-   - Occasional shooting stars with gold tails
-   - Respects prefers-reduced-motion (static render, no meteors)
+   Two meteor styles:
+   - Gold Streak: quick, bright gold, short tail
+   - Violet Comet: slow, violet, long tail with fragment particles
    ============================================================ */
 export function Starfield({ className = '' }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -135,14 +191,11 @@ export function Starfield({ className = '' }: { className?: string }) {
 
     const cx = FOCAL_LENGTH;
 
-    // Schedule next meteor spawn
     const scheduleNext = () => {
       if (reduced) return;
       const delay = METEOR_INTERVAL_MIN + Math.random() * (METEOR_INTERVAL_MAX - METEOR_INTERVAL_MIN);
       spawnTimerRef.current = window.setTimeout(() => {
-        const w = canvas.width;
-        const h = canvas.height;
-        meteorsRef.current.push(spawnMeteor(w, h));
+        meteorsRef.current.push(spawnMeteor(canvas.width, canvas.height));
         scheduleNext();
       }, delay) as unknown as number;
     };
@@ -159,16 +212,11 @@ export function Starfield({ className = '' }: { className?: string }) {
 
       ctx.clearRect(0, 0, w, h);
 
-      /* ─── draw background stars ─── */
+      /* ─── background stars ─── */
       const stars = starsRef.current;
-
       for (let i = 0; i < stars.length; i++) {
         const star = stars[i];
-
-        if (!reduced) {
-          star.z -= SPEED;
-        }
-
+        if (!reduced) star.z -= SPEED;
         if (star.z <= 0) {
           star.z = FIELD_DEPTH;
           star.x = (Math.random() - 0.5) * 2000;
@@ -178,16 +226,11 @@ export function Starfield({ className = '' }: { className?: string }) {
         const scale = cx / (star.z + 1);
         const px = star.x * scale + w / 2 + mx * (FIELD_DEPTH - star.z) * 0.3;
         const py = star.y * scale + h / 2 + my * (FIELD_DEPTH - star.z) * 0.3;
-
         if (px < -10 || px > w + 10 || py < -10 || py > h + 10) continue;
 
         const size = Math.max(0.2, star.size * scale);
         const depthAlpha = Math.min(1, (1 - star.z / FIELD_DEPTH) * 2);
-
-        const twinkle = reduced
-          ? 1
-          : 0.6 + 0.4 * Math.sin(star.twinklePhase + now * star.twinkleSpeed);
-
+        const twinkle = reduced ? 1 : 0.6 + 0.4 * Math.sin(star.twinklePhase + now * star.twinkleSpeed);
         const alpha = depthAlpha * twinkle;
 
         ctx.beginPath();
@@ -203,14 +246,15 @@ export function Starfield({ className = '' }: { className?: string }) {
         }
       }
 
-      /* ─── draw & update shooting stars ─── */
+      /* ─── meteors ─── */
       if (!reduced) {
         const meteors = meteorsRef.current;
-        const dt = Math.min(32, now - lastTimeRef.current); // cap at ~30fps to avoid jumps
+        const dt = Math.min(32, now - lastTimeRef.current);
         lastTimeRef.current = now;
 
         for (let i = meteors.length - 1; i >= 0; i--) {
           const m = meteors[i];
+          const cfg = METEOR_STYLES[m.style];
           m.age += dt;
 
           if (m.age >= m.lifetime) {
@@ -218,42 +262,67 @@ export function Starfield({ className = '' }: { className?: string }) {
             continue;
           }
 
-          // Position
+          // Advance position
           m.x += m.dx;
           m.y += m.dy;
 
-          // Life progress 0→1
           const progress = m.age / m.lifetime;
-          const fadeOut = 1 - progress; // fade toward end
+          const fadeOut = 1 - progress;
           const headBright = fadeOut;
 
-          // Draw trail
-          const tailSteps = 20;
-          for (let t = tailSteps; t >= 0; t--) {
-            const frac = t / tailSteps;
-            const tx = m.x - m.dx * frac * (METEOR_TAIL_LENGTH / METEOR_SPEED);
-            const ty = m.y - m.dy * frac * (METEOR_TAIL_LENGTH / METEOR_SPEED);
+          // ─── spawn fragments (violet-comet only) ───
+          if (cfg.fragments && Math.random() < 0.15) {
+            m.fragments.push({
+              x: m.x - m.dx * (cfg.tailLength / cfg.speed) * 0.6,
+              y: m.y - m.dy * (cfg.tailLength / cfg.speed) * 0.6,
+              dx: (Math.random() - 0.5) * 2,
+              dy: (Math.random() - 0.5) * 2,
+              life: 1,
+              decay: 0.02 + Math.random() * 0.03,
+              size: 1 + Math.random() * 2,
+            });
+          }
+
+          // ─── draw trail ───
+          for (let t = cfg.tailDots; t >= 0; t--) {
+            const frac = t / cfg.tailDots;
+            const tx = m.x - m.dx * frac * (cfg.tailLength / cfg.speed);
+            const ty = m.y - m.dy * frac * (cfg.tailLength / cfg.speed);
             const trailAlpha = headBright * (1 - frac) * 0.7;
-
             if (trailAlpha < 0.01) continue;
-
             const radius = Math.max(0.5, 1.5 * (1 - frac * 0.7));
             ctx.beginPath();
             ctx.arc(tx, ty, radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${METEOR_COLOR.r}, ${METEOR_COLOR.g}, ${METEOR_COLOR.b}, ${trailAlpha})`;
+            ctx.fillStyle = `rgba(${cfg.color.r}, ${cfg.color.g}, ${cfg.color.b}, ${trailAlpha})`;
             ctx.fill();
           }
 
-          // Head glow
+          // ─── draw fragments (violet-comet only) ───
+          for (let f = m.fragments.length - 1; f >= 0; f--) {
+            const frag = m.fragments[f];
+            frag.x += frag.dx;
+            frag.y += frag.dy;
+            frag.life -= frag.decay;
+            if (frag.life <= 0) {
+              m.fragments.splice(f, 1);
+              continue;
+            }
+            ctx.beginPath();
+            ctx.arc(frag.x, frag.y, frag.size * frag.life, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${cfg.color.r}, ${cfg.color.g}, ${cfg.color.b}, ${frag.life * 0.5})`;
+            ctx.fill();
+          }
+
+          // ─── head glow ───
           ctx.beginPath();
-          ctx.arc(m.x, m.y, 4, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${METEOR_COLOR.r}, ${METEOR_COLOR.g}, ${METEOR_COLOR.b}, ${headBright * 0.3})`;
+          ctx.arc(m.x, m.y, cfg.headGlowRadius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${cfg.color.r}, ${cfg.color.g}, ${cfg.color.b}, ${headBright * 0.3})`;
           ctx.fill();
 
-          // Bright head core
+          // ─── bright head core ───
           ctx.beginPath();
-          ctx.arc(m.x, m.y, 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 245, 230, ${headBright * 0.9})`;
+          ctx.arc(m.x, m.y, cfg.headCoreRadius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${cfg.headCore.r}, ${cfg.headCore.g}, ${cfg.headCore.b}, ${headBright * 0.9})`;
           ctx.fill();
         }
       }
