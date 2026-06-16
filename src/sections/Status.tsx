@@ -5,6 +5,7 @@ import { Ticker } from '../components/Ticker';
 import { useKineticScroll } from '../motion/useKineticScroll';
 import { KineticSwapper } from '../components/KineticSwapper';
 import { ServerRack } from '../components/ServerRack';
+import { useBoot } from '../hooks/useBoot';
 
 /* ============================================================
    specs-v2/001-status.md — Hero /status
@@ -149,6 +150,7 @@ function StatusSeparator() {
      Project preview cards
    ============================================================ */
 export function Status() {
+  const { bootComplete } = useBoot();
   const heroRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
   const heroAccentRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
 
@@ -156,7 +158,7 @@ export function Status() {
     <Section id="status" label="/status" className="pt-[48px]">
       {/* ─── 3D server rack background ─── */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
-        <ServerRack />
+        <ServerRack startIntro={bootComplete} />
         {/* Vignette overlay */}
         <div
           className="absolute inset-0 pointer-events-none"

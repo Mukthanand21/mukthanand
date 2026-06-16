@@ -270,7 +270,7 @@ function FloatingMotes() {
 /* ============================================================
    Scene Contents (Camera + Lights + Rack)
    ============================================================ */
-function SceneContents() {
+function SceneContents({ startIntro }: { startIntro: boolean }) {
   const { camera, scene } = useThree();
   const rackRef = useRef<THREE.Group>(null);
   const mouse = useRef({ x: 0, y: 0 });
@@ -321,9 +321,13 @@ function SceneContents() {
     smoothMouse.current.x += (mouse.current.x - smoothMouse.current.x) * 0.04;
     smoothMouse.current.y += (mouse.current.y - smoothMouse.current.y) * 0.04;
 
-    // ─── Intro dolly (time-based) ───
-    if (introStartRef.current === null) introStartRef.current = elapsed;
-    const introT = Math.min((elapsed - introStartRef.current) / INTRO_DURATION, 1);
+    // ─── Intro dolly (time-based, gated by startIntro) ───
+    if (startIntro && introStartRef.current === null) {
+      introStartRef.current = elapsed;
+    }
+    const introT = introStartRef.current !== null
+      ? Math.min((elapsed - introStartRef.current) / INTRO_DURATION, 1)
+      : 0;
     const introEased = easeOutExpo(introT);
 
     if (!doneRef.current) {
@@ -427,7 +431,7 @@ function SceneContents() {
 /* ============================================================
    ServerRack — Main Export
    ============================================================ */
-export function ServerRack() {
+export function ServerRack({ startIntro = false }: { startIntro?: boolean }) {
   return (
     <Canvas
       shadows
@@ -453,7 +457,7 @@ export function ServerRack() {
         pointerEvents: 'none',
       }}
     >
-      <SceneContents />
+      <SceneContents startIntro={startIntro} />
     </Canvas>
   );
 }
