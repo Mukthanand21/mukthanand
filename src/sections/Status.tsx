@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Section } from '../components/Section';
 import { Ticker } from '../components/Ticker';
 import { useKineticScroll } from '../motion/useKineticScroll';
+import { KineticSwapper } from '../components/KineticSwapper';
 
 /* ============================================================
    specs-v2/001-status.md — Hero /status
@@ -167,6 +168,23 @@ export function Status() {
           <h1 ref={heroAccentRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-accent" style={{ willChange: 'transform' }}>
             Reddy.
           </h1>
+
+          {/* role line */}
+          <div className="mt-4">
+            <KineticSwapper
+              prefix="Open to"
+              words={[
+                'AI roles',
+                'Backend roles',
+                'Full Stack roles',
+                'Applied AI roles',
+              ]}
+              className="font-sans text-base leading-relaxed text-fg-secondary"
+              wordClassName="text-accent"
+              interval={2500}
+              as="p"
+            />
+          </div>
 
           <p className="mt-6 max-w-[420px] font-sans text-lg leading-relaxed text-fg-secondary">
             Backend &amp; full-stack engineer. Builds retrieval systems,
