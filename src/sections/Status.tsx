@@ -205,7 +205,7 @@ export function Status() {
   };
 
   return (
-    <Section id="status" label="/status" className="pt-[48px]">
+    <Section id="status" label="/status" className="pt-[48px]" hideLabel>
       {/* ─── 3D server rack background ─── */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
         <ServerRack startIntro={bootComplete} />
