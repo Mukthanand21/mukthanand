@@ -380,7 +380,7 @@ function SceneContents({ startIntro }: { startIntro: boolean }) {
       <ambientLight intensity={0.6} color={0x0c0b0a} />
       <directionalLight
         position={[5, 7, 4]}
-        intensity={2.0}
+        intensity={2.8}
         color={0xfff0d8}
         castShadow
         shadow-mapSize-width={2048}
@@ -400,8 +400,20 @@ function SceneContents({ startIntro }: { startIntro: boolean }) {
         color={0xe8b65a}
         target-position={[0, 1.5, 0]}
       />
-      <pointLight position={[2, -0.5, 5]} intensity={0.7} color={0x3a4a66} distance={15} />
-      <pointLight ref={topAccentRef} position={[0, 5.3, 1.5]} intensity={1.5} color={0xe8b65a} distance={6} />
+      <pointLight position={[2, -0.5, 5]} intensity={1.2} color={0x3a4a66} distance={15} />
+      <pointLight ref={topAccentRef} position={[0, 5.3, 1.5]} intensity={1.8} color={0xe8b65a} distance={6} />
+
+      {/* Back rim light to separate rack from background */}
+      <spotLight
+        position={[0, 2.5, -3]}
+        intensity={1.2}
+        distance={10}
+        angle={0.6}
+        penumbra={0.8}
+        decay={1}
+        color={0x8a6a8a}
+        target-position={[0, 2.5, 0]}
+      />
 
       {/* Floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.12, 0]} receiveShadow material={materials.floor}>
@@ -443,7 +455,7 @@ export function ServerRack({ startIntro = false }: { startIntro?: boolean }) {
         alpha: false,
         outputColorSpace: THREE.SRGBColorSpace,
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.15,
+        toneMappingExposure: 1.5,
       }}
       camera={{
         fov: 28,
