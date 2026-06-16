@@ -186,13 +186,14 @@ export function Starfield({ className = '', fixed = false }: { className?: strin
     starsRef.current = Array.from({ length: STAR_COUNT }, createStar);
   }, []);
 
-  /* ─── nebula blobs (created once, stored in ref) ─── */
+  /* ─── nebula blobs (generated lazily using viewport dimensions) ─── */
   const nebulaRef = useRef<NebulaBlob[]>([]);
-  useEffect(() => {
+  const generateNebula = useCallback((w: number, h: number) => {
+    const maxDim = Math.max(w, h);
     nebulaRef.current = NEBULA_COLORS.map((color) => ({
-      x: Math.random() * 2000 - 500,
-      y: Math.random() * 1500 - 250,
-      radius: 300 + Math.random() * 500,
+      x: Math.random() * maxDim * 1.4 - maxDim * 0.2,
+      y: Math.random() * maxDim * 1.4 - maxDim * 0.2,
+      radius: maxDim * (0.15 + Math.random() * 0.3),
       color,
       dx: (Math.random() - 0.5) * NEBULA_DRIFT,
       dy: (Math.random() - 0.5) * NEBULA_DRIFT,
@@ -220,8 +221,12 @@ export function Starfield({ className = '', fixed = false }: { className?: strin
     if (!ctx) return;
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const ww = window.innerWidth;
+      const wh = window.innerHeight;
+      canvas.width = ww;
+      canvas.height = wh;
+      // Regenerate nebula positions on resize
+      generateNebula(ww, wh);
     };
     resize();
     window.addEventListener('resize', resize);
