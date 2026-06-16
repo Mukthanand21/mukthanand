@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Section } from '../components/Section';
 import { Reveal } from '../motion/Reveal';
+import { useBoot } from '../hooks/useBoot';
 
 /* ─── changelog entry data — placeholder until #16 ─── */
 type Entry = {
@@ -81,13 +83,36 @@ function EntryTag({ label }: { label: string }) {
    Dot aligned to version + date baseline (4px top offset).
    ============================================================ */
 export function Changelog() {
+  const { bootComplete } = useBoot();
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    if (bootComplete) {
+      const t = setTimeout(() => setRevealed(true), 30);
+      return () => clearTimeout(t);
+    }
+  }, [bootComplete]);
+
+  function eStyle(anim: string, dur: number, del: number): React.CSSProperties {
+    if (!revealed) return { opacity: 0 };
+    return {
+      animation: `${anim} ${dur}ms ${del}ms cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+      opacity: 0,
+    };
+  }
+
+  const E = {
+    title: eStyle('fadeDown', 900, 0),
+    content: eStyle('fadeIn', 1, 200),
+  };
+
   return (
     <Section id="changelog" label="/changelog">
-      <p className="mb-12 max-w-prose text-base leading-relaxed text-fg-secondary">
+      <p style={E.title} className="mb-12 max-w-prose text-base leading-relaxed text-fg-secondary">
         A record of builds, shipped features, and lessons learned.
       </p>
 
-      <div className="max-w-2xl">
+      <div style={E.content} className="max-w-2xl">
         {entries.map((entry, i) => {
           const major = isMajor(entry.version);
           const isLast = i === entries.length - 1;

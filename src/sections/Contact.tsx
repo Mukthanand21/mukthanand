@@ -1,6 +1,7 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useState, useEffect } from 'react';
 import { Section } from '../components/Section';
 import { Reveal } from '../motion/Reveal';
+import { useBoot } from '../hooks/useBoot';
 
 /* ─── social links ─── */
 const socialLinks = [
@@ -22,9 +23,32 @@ type FormState = 'idle' | 'sending' | 'success' | 'error';
    POST /hire — framed as an API endpoint
    ============================================================ */
 export function Contact() {
+  const { bootComplete } = useBoot();
+  const [entered, setEntered] = useState(false);
   const [state, setState] = useState<FormState>('idle');
   const [copied, setCopied] = useState(false);
   const [requestId, setRequestId] = useState('');
+
+  useEffect(() => {
+    if (bootComplete) {
+      const t = setTimeout(() => setEntered(true), 30);
+      return () => clearTimeout(t);
+    }
+  }, [bootComplete]);
+
+  function eStyle(anim: string, dur: number, del: number): React.CSSProperties {
+    if (!entered) return { opacity: 0 };
+    return {
+      animation: `${anim} ${dur}ms ${del}ms cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+      opacity: 0,
+    };
+  }
+
+  const E = {
+    title: eStyle('fadeDown', 900, 0),
+    content: eStyle('fadeIn', 1, 200),
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setState('sending');
@@ -70,11 +94,11 @@ export function Contact() {
 
   return (
     <Section id="contact" label="POST /hire">
-      <p className="mb-10 max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
+      <p style={E.title} className="mb-10 max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
         Send a request directly, or reach out through any channel below.
       </p>
 
-      <div className="grid gap-12 lg:grid-cols-[1fr_auto]">
+      <div style={E.content} className="grid gap-12 lg:grid-cols-[1fr_auto]">
         {/* ─── form column ─── */}
         <Reveal direction="left" delay={0} className="min-w-0">
           {state === 'success' ? (
