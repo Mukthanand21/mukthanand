@@ -192,15 +192,15 @@ export function Status() {
     return () => clearInterval(id);
   }, []);
 
-  /* ─── Entrance delay map (matches draft timings) ─── */
+  /* ─── Entrance delay map (snappier durations) ─── */
   const E = {
-    bar:     entranceStyle('fadeDown', 900,  0,   revealed),
-    label:   entranceStyle('fadeUp',  1000, 300, revealed),
-    heading: entranceStyle('fadeUp',  1100, 450, revealed),
-    accent:  entranceStyle('fadeUp',  1100, 600, revealed),
-    sub:     entranceStyle('fadeUp',  1000, 850, revealed),
-    actions: entranceStyle('fadeUp',  900,  1050, revealed),
-    rack:    entranceStyle('fadeIn',  1000, 1300, revealed),
+    bar:     entranceStyle('fadeDown', 500,  0,   revealed),
+    label:   entranceStyle('fadeUp',  500,  150, revealed),
+    heading: entranceStyle('fadeUp',  550,  250, revealed),
+    accent:  entranceStyle('fadeUp',  550,  350, revealed),
+    sub:     entranceStyle('fadeUp',  500,  450, revealed),
+    actions: entranceStyle('fadeUp',  450,  550, revealed),
+    rack:    entranceStyle('fadeIn',  500,  700, revealed),
     content: entranceStyle('fadeIn',  1,    0,   revealed),
   };
 

@@ -45,8 +45,8 @@ export function Contact() {
   }
 
   const E = {
-    title: eStyle('fadeDown', 900, 0),
-    content: eStyle('fadeIn', 1, 200),
+    title: eStyle('fadeDown', 400, 0),
+    content: eStyle('fadeIn', 1, 100),
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -93,7 +93,7 @@ export function Contact() {
   };
 
   return (
-    <Section id="contact" label="POST /hire">
+    <Section id="contact" label="POST /hire" labelStyle={E.title}>
       <p style={E.title} className="mb-10 max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
         Send a request directly, or reach out through any channel below.
       </p>
