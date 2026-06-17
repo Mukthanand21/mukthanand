@@ -16,64 +16,48 @@ const entries: Entry[] = [
     date: 'JUN 2026',
     title: 'Graduation Release',
     description:
-      'Bachelor\'s degree completion — Ready to ship full-time: backend, full-stack, and AI roles.',
-    tags: ['Education', 'B.Tech CSE'],
-  },
-  {
-    version: 'v1.5.0',
-    date: 'MAY 2026',
-    title: 'Shipped Internship Report',
-    description:
-      'Completed and submitted internship report on Knowledge-Graph-Augmented Hybrid Retrieval for low-resource languages.',
-    tags: ['Viswam AI', 'IIIT Hyderabad'],
+      'Completed B.Tech in Computer Science & Engineering at ICFAI Tech Hyderabad. CGPA 7.85. Ready to ship full-time across backend, full-stack, and AI engineering roles.',
+    tags: ['Education', 'B.Tech CSE', 'ICFAI Tech Hyderabad'],
   },
   {
     version: 'v1.4.0',
     date: 'APR 2026',
-    title: 'Merged feat/rag — Hybrid Retrieval Live',
+    title: 'Ask Your Corpus — Hybrid RAG Live',
     description:
-      'Merged the RAG retrieval feature to production on corpus.swecha.org. Postgres-native hybrid search (FTS + pg_trgm) with pgvector for semantic retrieval.',
-    tags: ['corpus.swecha.org', 'PostgreSQL', 'pgvector'],
+      'Owned and shipped the full RAG retrieval feature for corpus.swecha.org. Hybrid FTS + pg_trgm, BYOK LLM architecture, sub-second retrieval. Also shipped Spotify-style transcript sync UI and API cleanup MRs.',
+    tags: ['corpus.swecha.org', 'PostgreSQL', 'FastAPI', 'React'],
   },
   {
     version: 'v1.3.0',
     date: 'MAR 2026',
-    title: 'Scheme Saathi — Telugu-First Telegram Bot',
+    title: 'Scheme Saathi — 48hr Hackathon Ship',
     description:
-      'Built a Telegram bot for discovering government schemes in Telugu. Won at the Aarna / Swecha Hackathon. Integrated intent classification and slot-filling for natural-language queries.',
-    tags: ['Hackathon', 'Telegram', 'Telugu NLP'],
+      'Built and deployed a Telugu-first Telegram bot at a 48hr Aarna/Swecha hackathon. Talked directly to SMB owners and auto drivers to validate the problem. Added voice I/O using Groq API. Also shipped unregister-doctor feature full-stack on EHRS.',
+    tags: ['Hackathon', 'Telugu NLP', 'Telegram', 'EHRS'],
   },
   {
     version: 'v1.2.0',
     date: 'FEB 2026',
-    title: 'Joined Viswam AI as Software & AI Intern',
+    title: 'EHRS Contributions — Healthcare Platform',
     description:
-      'Started an internship at Viswam AI, an IIIT Hyderabad initiative. Focused on RAG pipelines, retrieval systems, and AI tooling for underserved languages.',
-    tags: ['Internship', 'Viswam AI', 'IIIT Hyderabad'],
+      'Contributed to the EHRS open-source healthcare platform — frontend fixes, unit tests, and UI improvements. First production MRs merged into a shared medical-camp platform used by real clinics.',
+    tags: ['EHRS', 'Healthcare', 'React', 'FastAPI'],
   },
   {
     version: 'v1.1.0',
     date: 'JAN 2026',
-    title: 'FAQ Sense — RAG FAQ Assistant',
+    title: 'Joined Viswam AI — FAQSense Shipped',
     description:
-      'Built and deployed a RAG-powered FAQ assistant on Streamlit Cloud. Uses Sentence Transformers for embeddings and Groq for fast LLM inference.',
-    tags: ['Streamlit', 'Groq', 'RAG'],
+      'Joined Viswam AI (IIIT Hyderabad initiative) as AI Developer Intern. First month: Linux, version control, prompt engineering, agentic AI. Shipped FAQSense, a semantic FAQ search assistant, at a hackathon. Live on Streamlit Cloud.',
+    tags: ['Viswam AI', 'IIIT Hyderabad', 'FAQ Sense', 'Streamlit'],
   },
   {
     version: 'v1.0.0',
-    date: 'AUG 2025',
-    title: 'First Production Deploy',
+    date: 'JUN 2024',
+    title: 'First Open Source Contribution — Skillbanc',
     description:
-      'Deployed Paste & Fix Agent — a debugging assistant powered by Groq LLM that accepts error logs and suggests fixes. First end-to-end AI tool shipped.',
-    tags: ['Groq', 'Streamlit', 'AI Tooling'],
-  },
-  {
-    version: 'v0.1.0',
-    date: 'JUN 2022',
-    title: 'Enrolled — B.Tech Computer Science & Engineering',
-    description:
-      'Began my undergraduate degree at ICFAI Foundation for Higher Education, Hyderabad. Laid the foundation in CS fundamentals, data structures, and algorithms.',
-    tags: ['Education', 'ICFAI Tech'],
+      'Contributed to the Skillbanc Manim Templates open-source repo. Built math animations for Indian school textbooks (Grades 1,2,6,8,9) covering Fractions, Decimals, Exponents, and Geometric Constructions. First experience with Git, GitHub, branches, and PRs.',
+    tags: ['Open Source', 'Python', 'Manim', 'Education'],
   },
 ];
 

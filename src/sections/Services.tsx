@@ -21,8 +21,8 @@ const services: Service[] = [
     path: '/retrieve',
     name: 'Ask Your Corpus',
     description:
-      'Contributed to a shared production RAG application — owned the Postgres-native retrieval layer using pgvector, eliminating the need for a separate vector database. Achieved sub-second retrieval with Bring-Your-Own-Key (BYOK) support.',
-    tech: ['PostgreSQL', 'pgvector', 'Python', 'FastAPI'],
+      'Built the RAG system for Corpus, a 10k+ user open-source platform. Designed PostgreSQL-native hybrid retrieval (FTS + pg_trgm) with 92% top-1 accuracy, 50–200 ms scan times, and a BYOK architecture supporting multiple LLM providers.',
+    tech: ['PostgreSQL', 'pg_trgm', 'FastAPI', 'Python', 'React', 'TypeScript'],
     link: { href: 'https://corpus.swecha.org', label: 'corpus.swecha.org' },
     status: 'live',
   },
@@ -31,8 +31,8 @@ const services: Service[] = [
     path: '/chat',
     name: 'Scheme Saathi',
     description:
-      'Telugu-first Telegram bot for government scheme discovery, built at the Aarna / Swecha Hackathon. Integrated intent classification and slot-filling for natural-language queries in Telugu.',
-    tech: ['Python', 'Telegram API', 'FastAPI', 'PostgreSQL'],
+      'Built at a 48hr hackathon, a Telugu-first Telegram bot helping Telangana SMB owners discover government schemes, check eligibility, and get document guidance in their native language. Added voice input (STT) and voice output (TTS) using Groq API.',
+    tech: ['Python', 'Telegram Bot API', 'Groq', 'STT', 'TTS', 'Telugu NLP'],
     link: { href: 'https://t.me/scheme_saathi_bot', label: '@scheme_saathi_bot' },
     status: 'live',
   },
@@ -41,32 +41,22 @@ const services: Service[] = [
     path: '/faq',
     name: 'FAQ Sense',
     description:
-      'RAG-powered FAQ assistant that answers user queries against a curated document corpus. Deployed on Streamlit Cloud with Groq for fast LLM inference and Sentence Transformers for embeddings.',
-    tech: ['Streamlit', 'Groq', 'Sentence Transformers', 'FAISS'],
+      'Semantic FAQ search assistant built during a hackathon at Viswam AI. Uses Sentence-Transformers for embeddings, FAISS for vector search, and Groq API for answer generation. Deployed on Streamlit Cloud.',
+    tech: ['Python', 'Sentence-Transformers', 'FAISS', 'Groq', 'Streamlit'],
     link: {
       href: 'https://faqsense.streamlit.app',
-      label: 'streamlit cloud',
+      label: 'faqsense.streamlit.app',
     },
     status: 'live',
   },
   {
     method: 'GET',
-    path: '/errors',
-    name: 'Paste & Fix Agent',
+    path: '/pharmacy',
+    name: 'MediFlow AI',
     description:
-      'Debugging assistant that accepts error logs and suggests fixes using Groq LLM inference. Built as a lightweight proof-of-concept for automated error-resolution tooling.',
-    tech: ['Python', 'Groq', 'Streamlit'],
-    link: null,
-    status: 'archived',
-  },
-  {
-    method: 'POST',
-    path: '/transcribe',
-    name: 'Corpus Audio Pipeline',
-    description:
-      'Experimental pipeline for transcribing Telugu audio content using wav2vec2 ASR models. Explored feasibility of community-contributed audio-to-text workflows for low-resource languages.',
-    tech: ['Python', 'wav2vec2', 'Hugging Face'],
-    link: null,
+      'Full-stack pharmacy management system with AI sales prediction. Built with Flask (backend), PostgreSQL (database), and Tailwind CSS (frontend). Includes a Linear Regression ML model to forecast medicine sales and inventory needs.',
+    tech: ['Python', 'Flask', 'PostgreSQL', 'Tailwind CSS', 'Machine Learning', 'Linear Regression'],
+    link: { href: 'https://github.com/Mukthanand21/MediFlow.ai', label: 'github.com/Mukthanand21/MediFlow.ai' },
     status: 'archived',
   },
 ];

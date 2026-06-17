@@ -2,7 +2,7 @@
 const SOCIALS = [
   { label: 'GitHub', href: 'https://github.com/Mukthanand21' },
   { label: 'GitLab', href: 'https://gitlab.com/mukthanandreddy21' },
-  { label: 'LinkedIn', href: 'https://linkedin.com/in/mukthanand-reddy' },
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/mukthanand21' },
 ];
 
 /* ============================================================
@@ -20,7 +20,7 @@ export function Footer() {
               <span>system operational</span>
             </p>
             <p className="font-mono text-xs text-fg-faint/50">
-              &copy; {new Date().getFullYear()} Mukthanand Reddy &mdash; built
+              &copy; {new Date().getFullYear()} Mukthanand Reddy, built
               with React + Vite
             </p>
           </div>
@@ -36,9 +36,6 @@ export function Footer() {
                 className="group inline-flex items-center gap-1.5 font-mono text-sm text-fg-muted transition-colors duration-200 hover:text-accent"
               >
                 <span>{s.label}</span>
-                <span className="text-fg-faint transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  &nearr;
-                </span>
               </a>
             ))}
           </div>

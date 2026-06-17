@@ -11,104 +11,6 @@ import { KineticSwapper } from '../components/KineticSwapper';
    Two-column identity + status sidebar layout.
    ============================================================ */
 
-/* ─── project preview data (placeholder until issue #16) ─── */
-type PreviewProject = {
-  method: string;
-  path: string;
-  name: string;
-  description: string;
-  href: string;
-  status: 'live' | 'in progress';
-};
-
-const previewProjects: PreviewProject[] = [
-  {
-    method: 'POST',
-    path: '/retrieve',
-    name: 'Ask Your Corpus',
-    description:
-      'Contributed to a shared RAG app — owned the Postgres-native retrieval layer with pgvector.',
-    href: '#',
-    status: 'live',
-  },
-  {
-    method: 'POST',
-    path: '/chat',
-    name: 'Scheme Saathi',
-    description:
-      'Telugu-first Telegram bot for government scheme discovery, built at Aarna/Swecha Hackathon.',
-    href: '#',
-    status: 'live',
-  },
-  {
-    method: 'GET',
-    path: '/faq',
-    name: 'FAQ Sense',
-    description:
-      'RAG-powered FAQ assistant deployed on Streamlit Cloud with Groq inference.',
-    href: '#',
-    status: 'live',
-  },
-];
-
-/* ─── method badge ─── */
-function MethodBadge({ method }: { method: string }) {
-  return (
-    <span className="inline-flex rounded border-thin border-accent/20 bg-[#3D2A3D] px-2 py-0.5 font-mono text-xs font-semibold uppercase leading-none text-accent">
-      {method}
-    </span>
-  );
-}
-
-/* ─── status indicator dot ─── */
-function StatusDot({ status }: { status: PreviewProject['status'] }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 font-mono text-xs uppercase text-fg-muted">
-      <span
-        className={`inline-block h-1.5 w-1.5 rounded-full ${
-          status === 'live' ? 'bg-success' : 'bg-accent'
-        }`}
-      />
-      <span>{status}</span>
-    </span>
-  );
-}
-
-/* ─── project preview card (condensed /services card) ─── */
-function ProjectPreviewCard({ project }: { project: PreviewProject }) {
-  return (
-    <article className="group rounded-card border-thin border-border bg-bg-elevated p-4 transition-all duration-150 hover:border-accent/20 hover:bg-[#453050] sm:p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="mb-2 flex flex-wrap items-center gap-2.5">
-            <MethodBadge method={project.method} />
-            <span className="font-mono text-xs text-fg-muted">
-              {project.path}
-            </span>
-            <StatusDot status={project.status} />
-          </div>
-          <h3 className="font-sans text-md font-semibold text-fg transition-colors duration-150 group-hover:text-accent">
-            {project.name}
-          </h3>
-          <p className="mt-1 font-sans text-sm leading-relaxed text-fg-secondary">
-            {project.description}
-          </p>
-        </div>
-
-        <a
-          href={project.href}
-          className="mt-1 shrink-0 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-accent"
-          aria-label={`View ${project.name}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          &rarr;
-        </a>
-      </div>
-    </article>
-  );
-}
-
 /* ─── status sidebar block ─── */
 function StatusBlock({
   label,
@@ -117,7 +19,7 @@ function StatusBlock({
 }: {
   label: string;
   value: ReactNode;
-  sub?: string;
+  sub?: ReactNode;
 }) {
   return (
     <div>
@@ -155,7 +57,7 @@ export function Status() {
     <Section id="status" label="/status" className="pt-[48px]">
       {/* ─── version tag ─── */}
       <p className="mb-8 font-mono text-xs uppercase tracking-[0.1em] text-accent">
-        v3.0.0 &mdash; FINAL YEAR BUILD
+        v2.0.0 &mdash; FINAL YEAR BUILD
       </p>
 
       {/* ─── two-column hero ─── */}
@@ -186,9 +88,11 @@ export function Status() {
             />
           </div>
 
-          <p className="mt-6 max-w-[420px] font-sans text-lg leading-relaxed text-fg-secondary">
-            Backend &amp; full-stack engineer. Builds retrieval systems,
-            agentic tooling, and tools for underserved communities.
+          <p className="mt-6 font-sans text-lg leading-relaxed text-fg-secondary">
+            Backend and full-stack engineer focused on building reliable AI-powered products.
+            Built hybrid RAG retrieval for a 10k+ user open-source platform, and contributed to healthcare
+            and language-tech systems at Viswam AI. Open to full-time roles in backend,
+            full-stack, and AI engineering.
           </p>
 
           {/* CTA buttons */}
@@ -216,24 +120,24 @@ export function Status() {
         <aside className="hidden lg:block lg:w-64">
           <div className="flex flex-col gap-6 border-l border-border pl-8">
             <StatusBlock
-              label="CURRENT STATUS"
-              value="Hybrid RAG retrieval"
-              sub="corpus.swecha.org — in progress"
+              label="CURRENT FOCUS"
+              value="AI Systems &amp; Backend Engineering"
             />
             <StatusSeparator />
             <StatusBlock
-              label="LAST DEPLOYED"
-              value="v1.4.0"
-              sub="feat/rag merged to main"
+              label="RECENT IMPACT"
+              value="Ask Your Corpus (RAG)"
+              sub={"10k+ users \u2022 92% accuracy"}
             />
             <StatusSeparator />
             <StatusBlock
               label="AVAILABILITY"
-              value={
-                <span className="inline-flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-full bg-success" />
-                  Open to roles — Jun 2026
-                </span>
+              value="Open to Full-Time Roles"
+              sub={
+                <>
+                  AI • Backend • Full-Stack<br />
+                  Graduating 2026
+                </>
               }
             />
           </div>
@@ -243,18 +147,6 @@ export function Status() {
       {/* ─── ticker ─── */}
       <div className="mt-20">
         <Ticker />
-      </div>
-
-      {/* ─── project preview cards ─── */}
-      <div className="mt-12">
-        <p className="mb-6 font-mono text-xs uppercase tracking-[0.1em] text-fg-muted">
-          Featured Services
-        </p>
-        <div className="grid gap-3">
-          {previewProjects.map((project) => (
-            <ProjectPreviewCard key={project.name} project={project} />
-          ))}
-        </div>
       </div>
     </Section>
   );
