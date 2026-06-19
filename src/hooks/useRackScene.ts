@@ -136,7 +136,6 @@ function createRack(
 ) {
   const group = new THREE.Group();
   const leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite: THREE.Sprite }[] = [];
-  const fans: THREE.Group[] = [];
   // Labels removed
 
   /* ─── Materials with varied roughness ─── */
@@ -153,13 +152,6 @@ function createRack(
     roughness: 0.4 + (Math.random() - 0.5) * 0.08,
     envMap,
     envMapIntensity: 0.25,
-  });
-  const matBrushedPanel = new THREE.MeshStandardMaterial({ 
-    color: shade(colors.bgSubtle, 2.3), 
-    metalness: 0.75, 
-    roughness: 0.5 + (Math.random() - 0.5) * 0.1,
-    envMap,
-    envMapIntensity: 0.3,
   });
   const matAccentTrim = new THREE.MeshStandardMaterial({
     color: colors.accent, 
@@ -566,23 +558,6 @@ function createRack(
       });
     }
 
-    /* Fans */
-    if (detailed && !isMobile && (i === 1 || i === 2)) {
-      const fanGroup = new THREE.Group();
-      fanGroup.position.set(unitWidth / 2 - 0.55, 0, 0.045);
-      fanGroup.add(new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.011, 8, 20), matAccentTrim));
-      for (let b = 0; b < 6; b++) {
-        const bladeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.016, 0.007), matBrushedPanel);
-        bladeMesh.position.set(0.05, 0, 0);
-        const pivot = new THREE.Group();
-        pivot.rotation.z = (b / 6) * Math.PI * 2;
-        pivot.add(bladeMesh);
-        fanGroup.add(pivot);
-      }
-      unitGroup.add(fanGroup);
-      fans.push(fanGroup);
-    }
-
     /* Separator */
     if (i < unitData.length - 1) {
       const sepMesh = new THREE.Mesh(new THREE.BoxGeometry(unitWidth, 0.008, 0.07), matChassisInner);
@@ -671,7 +646,7 @@ function createRack(
   baseMesh.receiveShadow = true;
   group.add(baseMesh);
 
-  return { group, leds, fans };
+  return { group, leds };
 }
 
 /* ─── Read colors from CSS at runtime ─── */
@@ -701,7 +676,6 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     renderer: THREE.WebGLRenderer;
     heroGroup: THREE.Group;
     leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite: THREE.Sprite }[];
-    fans: THREE.Group[];
     motes: THREE.Points;
     moteGeo: THREE.BufferGeometry;
     rimLight: THREE.SpotLight;
@@ -839,7 +813,6 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     );
     scene.add(hero.group);
     const leds = hero.leds.slice();
-    const fans = hero.fans.slice();
 
     /* Side racks (desktop only) — subtle inward tilt for focus */
     if (!isMobile) {
@@ -976,7 +949,7 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     const state = {
       scene, camera, renderer,
       heroGroup: hero.group,
-      leds, fans, motes, moteGeo,
+      leds, motes, moteGeo,
       rimLight, topAccent,
       glowMat,
       clock: new THREE.Clock(),
@@ -1052,11 +1025,6 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
           led.sprite.material.opacity = spriteOpacity * (0.65 + intensity * 0.35);
         }
       });
-
-      /* Fans (desktop only) — no-op on mobile since fans don't exist */
-      if (!reduced && !isMobile) {
-        fans.forEach((fan, i) => { fan.rotation.z += dt * (2.2 + i * 0.4); });
-      }
 
       /* Motes — slow drift (static on mobile) */
       if (!reduced && !isMobile) {
