@@ -1,153 +1,180 @@
-import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Section } from '../components/Section';
 import { Ticker } from '../components/Ticker';
 import { useKineticScroll } from '../motion/useKineticScroll';
 import { KineticSwapper } from '../components/KineticSwapper';
+import { RackScene } from '../components/RackScene';
+import { useBootComplete } from '../components/Layout';
 
 /* ============================================================
    specs-v2/001-status.md — Hero /status
-   No entrance animation — BootLoader handles all Stage 4 reveals.
-   Two-column identity + status sidebar layout.
+   styled as premium editorial + 3D server rack background.
    ============================================================ */
 
-/* ─── status sidebar block ─── */
-function StatusBlock({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: ReactNode;
-  sub?: ReactNode;
-}) {
-  return (
-    <div>
-      <p className="mb-2 font-mono text-xs uppercase tracking-[0.1em] text-fg-muted">
-        {label}
-      </p>
-      <p className="font-sans text-md font-medium text-fg">{value}</p>
-      {sub && (
-        <p className="mt-0.5 font-sans text-sm leading-relaxed text-fg-secondary">
-          {sub}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ─── divider between sidebar blocks ─── */
-function StatusSeparator() {
-  return <div className="h-px bg-border" />;
-}
+/* ─── Grain overlay texture ─── */
+const GRAIN_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E";
 
 /* ============================================================
    /status section — specs-v2/001-status.md
    Layout:
-     Version tag
-     Two-column grid: identity (left) + status sidebar (right)
-     Ticker
-     Project preview cards
+     - 3D server rack background (RackScene)
+     - Vignette + grain overlays
+     - Status bar (top)
+     - Two-column grid: identity (left) + status sidebar (right)
+     - Rack readout (bottom)
+     - Ticker
+     - Project preview cards
    ============================================================ */
 export function Status() {
   const heroRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
   const heroAccentRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
+  const bootComplete = useBootComplete();
 
   return (
-    <Section id="status" label="/status" className="pt-[48px]">
-      {/* ─── version tag ─── */}
-      <p className="mb-8 font-mono text-xs uppercase tracking-[0.1em] text-accent">
-        v2.0.0 &mdash; FINAL YEAR BUILD
-      </p>
+    <section
+      id="status"
+      className="relative min-h-screen overflow-hidden pt-6 -mx-gutter"
+      style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
+    >
+      {/* ─── 3D rack background ─── */}
+      <RackScene bootComplete={bootComplete} />
 
-      {/* ─── two-column hero ─── */}
-      <div className="grid gap-12 lg:grid-cols-[1fr_auto]">
-        {/* ─── identity block (left) ─── */}
-        <div>
-          <h1 ref={heroRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-fg" style={{ willChange: 'transform' }}>
-            Mukthanand
-          </h1>
-          <h1 ref={heroAccentRef} className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0] text-accent" style={{ willChange: 'transform' }}>
-            Reddy.
-          </h1>
+      {/* ─── Vignette overlay — absolute, scoped to hero section ─── */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[5]"
+        style={{
+          background: 'radial-gradient(ellipse 50% 50% at center, transparent 60%, rgba(0,0,0,0.05) 100%)',
+        }}
+        aria-hidden="true"
+      />
 
-          {/* role line */}
-          <div className="mt-4">
-            <KineticSwapper
-              prefix="Open to"
-              words={[
-                'AI roles',
-                'Backend roles',
-                'Full Stack roles',
-                'Applied AI roles',
-              ]}
-              className="font-sans text-base leading-relaxed text-fg-secondary"
-              wordClassName="text-accent"
-              interval={2500}
-              as="p"
-            />
-          </div>
+      {/* ─── Grain overlay — absolute, scoped to hero section ─── */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[6]"
+        style={{
+          opacity: 0.035,
+          backgroundImage: `url("${GRAIN_SVG}")`,
+        }}
+        aria-hidden="true"
+      />
 
-          <p className="mt-6 font-sans text-lg leading-relaxed text-fg-secondary">
-            Backend and full-stack engineer focused on building reliable AI-powered products.
-            Built hybrid RAG retrieval for a 10k+ user open-source platform, and contributed to healthcare
-            and language-tech systems at Viswam AI. Open to full-time roles in backend,
-            full-stack, and AI engineering.
+      {/* ─── Content overlay ─── */}
+      <div className="relative z-10 flex min-h-screen flex-col justify-center" style={{ pointerEvents: 'none', padding: '6vh 7vw' }}>
+          {/* ─── version tag ─── */}
+          <p
+            className="mb-5 font-sans text-xs tracking-[0.1em]"
+            style={{
+              color: '#444441',
+              opacity: 0,
+              animation: 'statusFadeUp 1s 2.1s cubic-bezier(0.16,1,0.3,1) forwards',
+            }}
+          >
+            v3.0.0 &mdash; final year build
           </p>
 
-          {/* CTA buttons */}
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            {/* primary CTA — gold filled */}
-            <Link
-              to="/services"
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 font-sans text-sm font-semibold text-[#0A0A0A] transition-all duration-[120ms] hover:bg-accent-dim hover:-translate-y-px"
-            >
-              <span>view services</span>
-              <span className="text-xs">&rarr;</span>
-            </Link>
+          {/* ─── identity block ─── */}
+          <div>
+              <h1
+                ref={heroRef}
+                className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0]"
+                style={{
+                  color: '#f5f3ee',
+                  willChange: 'transform',
+                  opacity: 0,
+                  animation: 'statusFadeUp 1.1s 2.25s cubic-bezier(0.16,1,0.3,1) forwards',
+                }}
+              >
+                Mukthanand
+              </h1>
+              <h1
+                ref={heroAccentRef}
+                className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0]"
+                style={{
+                  color: '#EF9F27',
+                  willChange: 'transform',
+                  opacity: 0,
+                  animation: 'statusFadeUp 1.1s 2.4s cubic-bezier(0.16,1,0.3,1) forwards',
+                }}
+              >
+                Reddy.
+              </h1>
 
-            {/* secondary CTA — outline */}
-            <Link
-              to="/changelog"
-              className="inline-flex items-center gap-2 rounded-lg border-thin border-border px-5 py-2.5 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent"
-            >
-              <span>read changelog</span>
-            </Link>
-          </div>
-        </div>
+              {/* role line */}
+              <div className="mt-4">
+                <KineticSwapper
+                  prefix="Open to"
+                  words={[
+                    'AI roles',
+                    'Backend roles',
+                    'Full Stack roles',
+                    'Applied AI roles',
+                  ]}
+                  className="font-sans text-base leading-relaxed"
+                  wordStyle={{ color: '#D3D1C7' }}
+                  interval={2500}
+                  as="p"
+                  style={{ color: '#888780' }}
+                />
+              </div>
 
-        {/* ─── status sidebar (right) — hidden on mobile, shown on lg ─── */}
-        <aside className="hidden lg:block lg:w-64">
-          <div className="flex flex-col gap-6 border-l border-border pl-8">
-            <StatusBlock
-              label="CURRENT FOCUS"
-              value="AI Systems &amp; Backend Engineering"
-            />
-            <StatusSeparator />
-            <StatusBlock
-              label="RECENT IMPACT"
-              value="Ask Your Corpus (RAG)"
-              sub={"10k+ users \u2022 92% accuracy"}
-            />
-            <StatusSeparator />
-            <StatusBlock
-              label="AVAILABILITY"
-              value="Open to Full-Time Roles"
-              sub={
-                <>
-                  AI • Backend • Full-Stack<br />
-                  Graduating 2026
-                </>
-              }
-            />
-          </div>
-        </aside>
+              <p
+                className="mt-6 max-w-[34ch] font-sans text-lg leading-relaxed"
+                style={{
+                  color: '#888780',
+                  opacity: 0,
+                  animation: 'statusFadeUp 1s 2.65s cubic-bezier(0.16,1,0.3,1) forwards',
+                }}
+              >
+                Backend & full-stack engineer. Builds retrieval systems,
+                agentic tooling, and tools for underserved communities.
+              </p>
+
+              {/* CTA buttons */}
+              <div
+                className="mt-8 flex flex-wrap items-center gap-4"
+                style={{
+                  pointerEvents: 'auto',
+                  opacity: 0,
+                  animation: 'statusFadeUp 0.9s 2.85s cubic-bezier(0.16,1,0.3,1) forwards',
+                }}
+              >
+                {/* primary CTA — gold filled */}
+                <Link
+                  to="/services"
+                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 font-sans text-sm font-semibold text-[#0A0A0A] transition-all duration-[120ms] hover:bg-accent-dim hover:-translate-y-px"
+                >
+                  <span>view services</span>
+                  <span className="text-xs">&rarr;</span>
+                </Link>
+
+                {/* secondary CTA — outline */}
+                <Link
+                  to="/changelog"
+                  className="inline-flex items-center gap-2 rounded-lg border-thin border-border px-5 py-2.5 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent"
+                >
+                  <span>read changelog</span>
+                </Link>
+              </div>
+            </div>
       </div>
 
       {/* ─── ticker ─── */}
-      <div className="mt-20">
+      <div className="relative z-10 mt-20">
         <Ticker />
       </div>
-    </Section>
+
+      {/* ─── Animation keyframes ─── */}
+      <style>{`
+        @keyframes statusFadeUp {
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .status-bar, .label, h1, h1 span, .sub, .actions {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+          }
+        }
+      `}</style>
+    </section>
   );
 }

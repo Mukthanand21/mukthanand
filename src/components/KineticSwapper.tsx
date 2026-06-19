@@ -8,8 +8,10 @@ type KineticSwapperProps = {
   className?: string;
   /** Additional classes for the rotating word (e.g. text-accent for gold color) */
   wordClassName?: string;
+  wordStyle?: React.CSSProperties;
   interval?: number;
   as?: 'h1' | 'h2' | 'h3' | 'span' | 'p' | 'div';
+  style?: React.CSSProperties;
 };
 
 /* ============================================================
@@ -26,6 +28,8 @@ export function KineticSwapper({
   wordClassName = '',
   interval = 2200,
   as: Tag = 'h1',
+  style,
+  wordStyle,
 }: KineticSwapperProps) {
   const [index, setIndex] = useState(0);
   const reduced = usePrefersReducedMotion();
@@ -42,14 +46,14 @@ export function KineticSwapper({
 
   if (reduced || words.length === 0) {
     return (
-      <Tag className={className}>
-        {prefix} <span className={wordClassName}>{words[0] ?? ''}</span>
+      <Tag className={className} style={style}>
+        {prefix} <span className={wordClassName} style={wordStyle}>{words[0] ?? ''}</span>
       </Tag>
     );
   }
 
   return (
-    <Tag className={className} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25em' }}>
+    <Tag className={className} style={{ ...style, display: 'flex', flexWrap: 'wrap', gap: '0.25em' }}>
       <span>{prefix}&nbsp;</span>
       <span style={{ position: 'relative', display: 'inline-block', overflow: 'hidden', height: '1.2em' }}>
         <AnimatePresence mode="popLayout">
@@ -63,7 +67,7 @@ export function KineticSwapper({
               y: { type: 'spring', stiffness: 200, damping: 20 },
               opacity: { duration: 0.25 },
             }}
-            style={{ display: 'inline-block' }}
+            style={{ ...wordStyle, display: 'inline-block' }}
           >
             {words[index]}
           </motion.span>
