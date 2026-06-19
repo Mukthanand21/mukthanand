@@ -180,6 +180,20 @@ function createRack(
     envMapIntensity: 0.5,
   });
 
+  /* ─── Port/connector materials ─── */
+  const matPort = new THREE.MeshStandardMaterial({
+    color: 0x0a0a0a,
+    metalness: 0.1,
+    roughness: 0.8,
+  });
+
+  const matPortLED = new THREE.MeshStandardMaterial({
+    color: 0x00ff88,
+    emissive: 0x00ff88,
+    emissiveIntensity: 0.8,
+    roughness: 0.3,
+  });
+
   const grilleTexBase = makeGrilleTexture(colors.bgSubtle, colors.bg);
   const railTexBase = makeRailTexture(colors.bgSubtle, colors.bg);
 
@@ -316,23 +330,141 @@ function createRack(
     handleMesh.position.set(0, -(unitHeight - unitGap) / 2 + 0.012, 0.045);
     unitGroup.add(handleMesh);
 
-    /* LEDs — emissive glow with varied sizes */
-    const ledCount = detailed ? (isMobile ? 1 : 3) : 1;
+    /* Ethernet ports (right side) — desktop only */
+    if (detailed && !isMobile) {
+      const portCount = 3;
+      const portStartY = unitHeight * 0.15;
+      for (let p = 0; p < portCount; p++) {
+        // Port recess
+        const portRecess = new THREE.Mesh(
+          new THREE.BoxGeometry(0.018, 0.012, 0.008),
+          matPort
+        );
+        portRecess.position.set(
+          unitWidth / 2 - 0.08,
+          portStartY - p * 0.04,
+          0.044
+        );
+        unitGroup.add(portRecess);
+
+        // Port activity LED (tiny, random blink)
+        const portLED = new THREE.Mesh(
+          new THREE.CircleGeometry(0.003, 8),
+          matPortLED.clone()
+        );
+        portLED.position.set(
+          unitWidth / 2 - 0.074,
+          portStartY - p * 0.04,
+          0.046
+        );
+        unitGroup.add(portLED);
+
+        // Store for animation
+        leds.push({
+          material: portLED.material as THREE.MeshStandardMaterial,
+          blinkSpeed: 2.5 + Math.random() * 1.5,
+          phase: Math.random() * Math.PI * 2,
+          state: 'live',
+          sprite: new THREE.Sprite(), // dummy sprite
+        });
+      }
+    }
+
+    /* LCD status display (top unit only) — desktop only */
+    if (detailed && !isMobile && i === 0) {
+      // LCD recess
+      const lcdRecess = new THREE.Mesh(
+        new THREE.BoxGeometry(0.35, 0.12, 0.008),
+        matPort
+      );
+      lcdRecess.position.set(-unitWidth / 2 + 0.3, 0, 0.044);
+      unitGroup.add(lcdRecess);
+
+      // LCD screen with text
+      const lcdCanvas = document.createElement('canvas');
+      lcdCanvas.width = 256;
+      lcdCanvas.height = 64;
+      const lcdCtx = lcdCanvas.getContext('2d')!;
+      
+      lcdCtx.fillStyle = '#001a0d';
+      lcdCtx.fillRect(0, 0, 256, 64);
+      lcdCtx.font = 'bold 18px monospace';
+      lcdCtx.fillStyle = '#00ff88';
+      lcdCtx.fillText('███ ONLINE', 8, 24);
+      lcdCtx.font = '14px monospace';
+      lcdCtx.fillText('CPU 42°C  RAM 67%', 8, 48);
+
+      const lcdTex = new THREE.CanvasTexture(lcdCanvas);
+      const lcdMat = new THREE.MeshBasicMaterial({
+        map: lcdTex,
+        color: 0x00ff88,
+      });
+      const lcdScreen = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.34, 0.11),
+        lcdMat
+      );
+      lcdScreen.position.set(-unitWidth / 2 + 0.3, 0, 0.046);
+      unitGroup.add(lcdScreen);
+    }
+
+    /* Mounting screws (4 corners) — desktop only */
+    if (detailed && !isMobile) {
+      const screwMat = new THREE.MeshStandardMaterial({
+        color: 0x1a1a1a,
+        metalness: 0.8,
+        roughness: 0.3,
+      });
+      const screwPositions = [
+        [-unitWidth / 2 + 0.04, unitHeight / 2 - 0.03],
+        [unitWidth / 2 - 0.04, unitHeight / 2 - 0.03],
+        [-unitWidth / 2 + 0.04, -unitHeight / 2 + 0.03],
+        [unitWidth / 2 - 0.04, -unitHeight / 2 + 0.03],
+      ];
+      screwPositions.forEach(([x, y]) => {
+        const screw = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.006, 0.006, 0.004, 8),
+          screwMat
+        );
+        screw.rotation.x = Math.PI / 2;
+        screw.position.set(x, y, 0.047);
+        unitGroup.add(screw);
+      });
+    }
+
+    /* Ventilation slits (horizontal lines on grille) — desktop only */
+    if (detailed && !isMobile) {
+      const slitCount = 8;
+      const slitSpacing = grilleH / (slitCount + 1);
+      const slitMat = new THREE.LineBasicMaterial({ color: 0x0a0a0a, linewidth: 1 });
+      
+      for (let s = 1; s <= slitCount; s++) {
+        const slitGeo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(-grilleW / 2 + 0.05, -grilleH / 2 + s * slitSpacing, 0),
+          new THREE.Vector3(grilleW / 2 - 0.05, -grilleH / 2 + s * slitSpacing, 0),
+        ]);
+        const slit = new THREE.Line(slitGeo, slitMat);
+        slit.position.set(detailed ? width * 0.07 : 0, 0, 0.039);
+        unitGroup.add(slit);
+      }
+    }
+
+    /* LEDs — emissive glow with varied sizes + realistic LED bar */
+    const ledCount = detailed ? (isMobile ? 1 : 5) : 1;
     for (let l = 0; l < ledCount; l++) {
-      const state = (l === 0) ? unit.state : 'idle';
+      const state = (l === 0) ? unit.state : (l === 1 ? 'warn' : 'idle');
       const isPrimary = l === 0;
-      const ledSize = isPrimary ? 0.045 : 0.035; // Primary LED larger
+      const ledSize = isPrimary ? 0.012 : 0.008; // Smaller, more realistic
       
       const c = state === 'live' ? colors.success : (state === 'warn' ? colors.accentDim : colors.bgSubtle);
       const ledMat = new THREE.MeshStandardMaterial({
         color: c,
         emissive: c,
-        emissiveIntensity: isPrimary ? 1.2 : 1.0,
+        emissiveIntensity: isPrimary ? 1.4 : 1.0,
         roughness: 0.25,
         metalness: 0.1,
       });
-      const ledMesh = new THREE.Mesh(new THREE.CircleGeometry(ledSize, 14), ledMat);
-      ledMesh.position.set(unitWidth / 2 - 0.14 - l * 0.11, unitHeight * 0.18, 0.046);
+      const ledMesh = new THREE.Mesh(new THREE.CircleGeometry(ledSize, 12), ledMat);
+      ledMesh.position.set(unitWidth / 2 - 0.14 - l * 0.025, unitHeight * 0.18, 0.046);
       unitGroup.add(ledMesh);
 
       /* Glow sprite behind LED — synced with emissive pulse */
@@ -340,15 +472,15 @@ function createRack(
       const glowSpriteMat = new THREE.SpriteMaterial({
         map: glowTex,
         transparent: true,
-        opacity: isPrimary ? 0.38 : 0.32,
+        opacity: isPrimary ? 0.35 : 0.28,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       });
       const glowSprite = new THREE.Sprite(glowSpriteMat);
-      const glowScale = isPrimary ? 0.14 : 0.12;
+      const glowScale = isPrimary ? 0.05 : 0.04;
       glowSprite.scale.set(glowScale, glowScale, 1);
       glowSprite.position.set(
-        unitWidth / 2 - 0.14 - l * 0.11,
+        unitWidth / 2 - 0.14 - l * 0.025,
         unitHeight * 0.18,
         0.043,
       );
@@ -392,6 +524,48 @@ function createRack(
   const capMesh = new THREE.Mesh(new THREE.BoxGeometry(width + 0.03, 0.03, depth + 0.03), matAccentTrim);
   capMesh.position.set(0, height + 0.015, 0);
   group.add(capMesh);
+
+  /* Mounting ears (rack brackets) — left and right */
+  if (detailed && !isMobile) {
+    [-1, 1].forEach(side => {
+      // L-shaped bracket
+      const earMat = new THREE.MeshStandardMaterial({
+        color: shade(colors.bg, 0.7),
+        metalness: 0.85,
+        roughness: 0.4,
+        envMap,
+        envMapIntensity: 0.3,
+      });
+      
+      // Vertical part
+      const earVert = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, height * 0.95, 0.025),
+        earMat
+      );
+      earVert.position.set(side * (width / 2 + 0.04), height / 2, 0);
+      group.add(earVert);
+
+      // Horizontal flange (mounting surface)
+      const earHoriz = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 0.035, 0.08),
+        earMat
+      );
+      earHoriz.position.set(side * (width / 2 + 0.04), height * 0.8, -0.03);
+      group.add(earHoriz);
+
+      // Screw holes in flange
+      const holePositions = [height * 0.8 - 0.01, height * 0.8 + 0.01];
+      holePositions.forEach(y => {
+        const hole = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.005, 0.005, 0.01, 8),
+          new THREE.MeshStandardMaterial({ color: 0x0a0a0a })
+        );
+        hole.rotation.z = Math.PI / 2;
+        hole.position.set(side * (width / 2 + 0.04), y, -0.03);
+        group.add(hole);
+      });
+    });
+  }
 
   /* Base */
   const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(width + 0.25, 0.12, depth + 0.25), matChassisOuter);
