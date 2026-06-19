@@ -325,10 +325,33 @@ function createRack(
     grilleMesh.position.set(detailed ? width * 0.07 : 0, 0, 0.038);
     unitGroup.add(grilleMesh);
 
-    /* Handle */
-    const handleMesh = new THREE.Mesh(new THREE.BoxGeometry(unitWidth * 0.92, 0.014, 0.018), matBrushedPanel);
+    /* Handle with grip texture */
+    const handleMat = new THREE.MeshStandardMaterial({
+      color: shade(colors.bgSubtle, 2.1),
+      metalness: 0.4, // Less metallic (rubber grip)
+      roughness: 0.7,
+      envMap,
+      envMapIntensity: 0.15,
+    });
+    const handleMesh = new THREE.Mesh(new THREE.BoxGeometry(unitWidth * 0.92, 0.014, 0.018), handleMat);
     handleMesh.position.set(0, -(unitHeight - unitGap) / 2 + 0.012, 0.045);
     unitGroup.add(handleMesh);
+
+    // Grip ridges (horizontal texture)
+    if (detailed && !isMobile) {
+      for (let r = 0; r < 12; r++) {
+        const ridge = new THREE.Mesh(
+          new THREE.BoxGeometry(0.01, 0.012, 0.002),
+          handleMat
+        );
+        ridge.position.set(
+          -unitWidth * 0.4 + r * 0.07,
+          -(unitHeight - unitGap) / 2 + 0.012,
+          0.047
+        );
+        unitGroup.add(ridge);
+      }
+    }
 
     /* Ethernet ports (right side) — desktop only */
     if (detailed && !isMobile) {
@@ -405,6 +428,52 @@ function createRack(
       );
       lcdScreen.position.set(-unitWidth / 2 + 0.3, 0, 0.046);
       unitGroup.add(lcdScreen);
+
+      // Power button (right of LCD)
+      const btnRecess = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.018, 0.018, 0.006, 16),
+        matPort
+      );
+      btnRecess.rotation.x = Math.PI / 2;
+      btnRecess.position.set(-unitWidth / 2 + 0.6, 0.05, 0.044);
+      unitGroup.add(btnRecess);
+
+      const btnLED = new THREE.Mesh(
+        new THREE.CircleGeometry(0.008, 12),
+        new THREE.MeshStandardMaterial({
+          color: colors.accent,
+          emissive: colors.accent,
+          emissiveIntensity: 1.2,
+        })
+      );
+      btnLED.position.set(-unitWidth / 2 + 0.6, 0.05, 0.047);
+      unitGroup.add(btnLED);
+    }
+
+    /* Cable connectors (bottom units only) — desktop only */
+    if (detailed && !isMobile && (i === 2 || i === 3)) {
+      const cableMat = new THREE.MeshStandardMaterial({
+        color: 0x1a1a1a,
+        metalness: 0.2,
+        roughness: 0.9,
+      });
+
+      // Cable boot (rubber strain relief)
+      const boot = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.012, 0.015, 0.03, 8),
+        cableMat
+      );
+      boot.rotation.z = Math.PI / 2;
+      boot.position.set(unitWidth / 2 - 0.25, -unitHeight * 0.2, 0.048);
+      unitGroup.add(boot);
+
+      // Thin cable exiting (TubeGeometry would be better but BoxGeometry is simpler)
+      const cable = new THREE.Mesh(
+        new THREE.BoxGeometry(0.15, 0.008, 0.008),
+        cableMat
+      );
+      cable.position.set(unitWidth / 2 - 0.18, -unitHeight * 0.2, 0.048);
+      unitGroup.add(cable);
     }
 
     /* Mounting screws (4 corners) — desktop only */
