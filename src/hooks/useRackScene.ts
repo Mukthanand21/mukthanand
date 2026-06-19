@@ -292,16 +292,18 @@ function createRack(
       unitGroup.add(aoPlane);
     }
 
-    /* Depth layer: Recessed bezel behind grille with varied roughness */
+    /* Depth layer: Recessed bezel behind grille with varied roughness + dust accumulation */
     const grilleW = unitWidth * 0.82;
     const grilleH = (unitHeight - unitGap) * 0.7;
     
     if (detailed) {
       const bezelRoughness = 0.5 + (Math.random() - 0.5) * 0.1;
+      // Add subtle dust effect (darker on bottom edges)
+      const dustFactor = i > 2 ? 0.85 : 0.95; // Lower units darker
       const bezelMat = new THREE.MeshStandardMaterial({
-        color: shade(colors.bg, 0.8),
+        color: shade(colors.bg, 0.8 * dustFactor),
         metalness: 0.7,
-        roughness: bezelRoughness,
+        roughness: bezelRoughness + (i > 2 ? 0.05 : 0), // Bottom units slightly rougher
         envMap,
         envMapIntensity: 0.2,
       });
@@ -589,10 +591,37 @@ function createRack(
     }
   });
 
-  /* Cap — gold trim top */
+  /* Cap — gold trim top with badge lettering */
   const capMesh = new THREE.Mesh(new THREE.BoxGeometry(width + 0.03, 0.03, depth + 0.03), matAccentTrim);
   capMesh.position.set(0, height + 0.015, 0);
   group.add(capMesh);
+
+  /* Badge text "42U" on top cap — desktop only */
+  if (detailed && !isMobile) {
+    const badgeCanvas = document.createElement('canvas');
+    badgeCanvas.width = 64;
+    badgeCanvas.height = 32;
+    const badgeCtx = badgeCanvas.getContext('2d')!;
+    badgeCtx.fillStyle = toCss(colors.accent);
+    badgeCtx.font = 'bold 20px sans-serif';
+    badgeCtx.textAlign = 'center';
+    badgeCtx.textBaseline = 'middle';
+    badgeCtx.fillText('42U', 32, 16);
+
+    const badgeTex = new THREE.CanvasTexture(badgeCanvas);
+    const badgeMat = new THREE.MeshBasicMaterial({ 
+      map: badgeTex, 
+      transparent: true,
+      opacity: 0.8,
+    });
+    const badge = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.15, 0.08),
+      badgeMat
+    );
+    badge.rotation.x = -Math.PI / 2;
+    badge.position.set(0, height + 0.031, 0);
+    group.add(badge);
+  }
 
   /* Mounting ears (rack brackets) — left and right */
   if (detailed && !isMobile) {
@@ -894,6 +923,32 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     });
     const motes = new THREE.Points(moteGeo, moteMat);
     scene.add(motes);
+
+    /* ─── Heat distortion above top rack (desktop only) ─── */
+    if (!isMobile && !reduced) {
+      const heatCanvas = document.createElement('canvas');
+      heatCanvas.width = 128;
+      heatCanvas.height = 64;
+      const heatCtx = heatCanvas.getContext('2d')!;
+      const gradient = heatCtx.createLinearGradient(0, 0, 0, 64);
+      gradient.addColorStop(0, 'rgba(255,200,100,0.02)');
+      gradient.addColorStop(1, 'transparent');
+      heatCtx.fillStyle = gradient;
+      heatCtx.fillRect(0, 0, 128, 64);
+
+      const heatTex = new THREE.CanvasTexture(heatCanvas);
+      const heatSprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: heatTex,
+          transparent: true,
+          opacity: 0.15,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      heatSprite.scale.set(RACK_WIDTH * 0.8, RACK_HEIGHT * 0.3, 1);
+      heatSprite.position.set(0, RACK_HEIGHT + 0.4, 0);
+      scene.add(heatSprite);
+    }
 
     /* ─── Camera positions ───
        Elevated, centered (x=0), back far enough to show the full rack row.
