@@ -59,7 +59,7 @@ export function Status() {
 
       {/* ─── Dark gradient overlay — full-bleed behind text column for legibility over 3D rack ─── */}
       <div
-        className="pointer-events-none absolute inset-0 z-[7]"
+        className="pointer-events-none absolute inset-0 z-[7] hero-overlay"
         style={{
           background: 'linear-gradient(to right, rgba(15,15,13,0.85) 0%, rgba(15,15,13,0.7) 45%, rgba(15,15,13,0.3) 70%, transparent 100%)',
           opacity: 0,
@@ -181,7 +181,7 @@ export function Status() {
           to { opacity: 1; transform: translateY(0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .status-bar, .label, h1, h1 span, .sub, .actions {
+          .status-bar, .label, h1, h1 span, .sub, .actions, .hero-overlay {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
