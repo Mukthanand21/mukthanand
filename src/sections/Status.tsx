@@ -68,8 +68,17 @@ export function Status() {
         aria-hidden="true"
       />
 
+      {/* ─── Mobile-only: darker bottom gradient to separate ticker from text ─── */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[7] h-[35vh] md:hidden"
+        style={{
+          background: 'linear-gradient(to top, rgba(10,10,10,0.9) 0%, transparent 100%)',
+        }}
+        aria-hidden="true"
+      />
+
       {/* ─── Content overlay ─── */}
-      <div className="relative z-10 flex min-h-screen flex-col justify-center" style={{ pointerEvents: 'none', padding: '6vh 7vw' }}>
+      <div className="relative z-10 flex md:min-h-screen min-h-[0px] flex-col md:justify-center justify-start" style={{ pointerEvents: 'none', padding: '6vh 7vw' }}>
         <div>
             {/* ─── version tag ─── */}
             <p
@@ -91,6 +100,7 @@ export function Status() {
                   style={{
                     color: '#f5f3ee',
                     willChange: 'transform',
+                    textShadow: '0 4px 20px rgba(0,0,0,0.65)',
                     opacity: 0,
                     animation: 'statusFadeUp 1.1s 2.25s cubic-bezier(0.16,1,0.3,1) forwards',
                   }}
@@ -101,14 +111,18 @@ export function Status() {
                   ref={heroAccentRef}
                   className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0]"
                   style={{
-                    color: '#EF9F27',
+                    color: '#f5f3ee',
                     willChange: 'transform',
+                    textShadow: '0 4px 20px rgba(0,0,0,0.65)',
                     opacity: 0,
                     animation: 'statusFadeUp 1.1s 2.4s cubic-bezier(0.16,1,0.3,1) forwards',
                   }}
                 >
                   Reddy.
                 </h1>
+
+                {/* gold accent line below name */}
+                <div className="mt-1 mb-5 h-px w-12 bg-accent" />
 
                 {/* role line */}
                 <div className="mt-4">
@@ -129,9 +143,10 @@ export function Status() {
                 </div>
 
                 <p
-                  className="mt-6 max-w-[34ch] font-sans text-lg leading-relaxed"
+                  className="mt-4 max-w-[34ch] font-sans text-lg leading-relaxed"
                   style={{
-                    color: '#888780',
+                    color: '#B0A898',
+                    textShadow: '0 2px 12px rgba(0,0,0,0.5)',
                     opacity: 0,
                     animation: 'statusFadeUp 1s 2.65s cubic-bezier(0.16,1,0.3,1) forwards',
                   }}
@@ -161,7 +176,7 @@ export function Status() {
                   {/* secondary CTA — outline */}
                   <Link
                     to="/changelog"
-                    className="inline-flex items-center gap-2 rounded-lg border-thin border-border px-5 py-2.5 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent"
+                    className="inline-flex items-center gap-2 rounded-lg border-thin border-border px-5 py-2.5 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent md:bg-transparent bg-bg-elevated"
                   >
                     <span>read changelog</span>
                   </Link>
@@ -171,7 +186,7 @@ export function Status() {
       </div>
 
       {/* ─── ticker ─── */}
-      <div className="relative z-10 mt-20">
+      <div className="relative z-10 md:mt-20 mt-8 overflow-hidden">
         <Ticker />
       </div>
 
@@ -185,6 +200,16 @@ export function Status() {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
+          }
+        }
+        @media (max-width: 767px) {
+          .hero-overlay {
+            background: radial-gradient(
+              ellipse 140% 70% at 50% 25%,
+              rgba(15,15,13,0.65) 0%,
+              rgba(15,15,13,0.35) 55%,
+              transparent 100%
+            ) !important;
           }
         }
       `}</style>

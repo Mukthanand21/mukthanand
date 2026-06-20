@@ -719,14 +719,14 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
 
     /* ─── Scene ─── */
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(colors.bg, isMobile ? 0.06 : 0.04);
+    scene.fog = new THREE.FogExp2(colors.bg, isMobile ? 0.025 : 0.04);
 
     /* ─── Camera ─── */
     const camera = new THREE.PerspectiveCamera(
-      isMobile ? 35 : 40,
+      isMobile ? 30 : 40,
       containerRef.current.clientWidth / containerRef.current.clientHeight,
       0.1,
-      100,
+      isMobile ? 200 : 100,
     );
 
     /* ─── Post-processing — UnrealBloomPass ───
@@ -807,8 +807,8 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     scene.add(hero.group);
     const leds = hero.leds.slice();
 
-    /* Side racks (desktop only) — subtle inward tilt for focus */
-    if (!isMobile) {
+    /* Side racks — subtle inward tilt for focus */
+    {
       const sideUnitData = [
         { label: '/edge', sub: 'cdn', state: 'idle' as const },
         { label: '/queue', sub: 'jobs', state: 'live' as const },
@@ -818,13 +818,13 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
       ];
       [-1, 1].forEach(side => {
         const r = createRack(
-          { detailed: true, unitData: sideUnitData, width: RACK_WIDTH * 0.92, height: RACK_HEIGHT * 0.94, depth: RACK_DEPTH * 0.92 },
+          { detailed: !isMobile, unitData: sideUnitData, width: RACK_WIDTH * 0.92, height: RACK_HEIGHT * 0.94, depth: RACK_DEPTH * 0.92 },
           colors,
           isMobile,
           envMap,
         );
         r.group.position.set(side * (RACK_WIDTH + 0.5), 0, -1.0);
-        r.group.rotation.y = side * -0.22; // Increased tilt
+        r.group.rotation.y = side * -0.22;
         scene.add(r.group);
         leds.push(...r.leds);
       });
@@ -840,7 +840,7 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
       envMap,
       envMapIntensity: 0.4,
     });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), matFloor);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(isMobile ? 80 : 40, isMobile ? 80 : 40), matFloor);
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -0.12;
     floor.receiveShadow = true;
@@ -858,10 +858,8 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     });
     const glowPositions = [
       { x: 0, z: 0 },                          // hero rack
-      ...(isMobile ? [] : [                      // side racks (desktop only)
-        { x: -(RACK_WIDTH + 0.8), z: -1.5 },
-        { x: RACK_WIDTH + 0.8, z: -1.5 },
-      ]),
+      { x: -(RACK_WIDTH + 0.8), z: -1.5 },     // left side rack
+      { x: RACK_WIDTH + 0.8, z: -1.5 },        // right side rack
     ];
     glowPositions.forEach(pos => {
       const disc = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), glowMat);
@@ -870,18 +868,18 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
       scene.add(disc);
     });
 
-    const gridHelper = new THREE.GridHelper(40, isMobile ? 20 : 40, shade(colors.bgSubtle, 0.6), colors.bg);
+    const gridHelper = new THREE.GridHelper(isMobile ? 60 : 40, isMobile ? 40 : 40, shade(colors.bgSubtle, 0.6), colors.bg);
     gridHelper.position.y = -0.11;
     scene.add(gridHelper);
 
     /* ─── Ambient motes — gold dust ─── */
-    const MOTE_COUNT = isMobile ? 15 : 130;
+    const MOTE_COUNT = isMobile ? 60 : 130;
     const moteGeo = new THREE.BufferGeometry();
     const motePositions = new Float32Array(MOTE_COUNT * 3);
     for (let i = 0; i < MOTE_COUNT; i++) {
-      motePositions[i * 3] = (Math.random() - 0.5) * (isMobile ? 12 : 20);
+      motePositions[i * 3] = (Math.random() - 0.5) * (isMobile ? 30 : 20);
       motePositions[i * 3 + 1] = Math.random() * 7;
-      motePositions[i * 3 + 2] = (Math.random() - 0.5) * 18 - 2;
+      motePositions[i * 3 + 2] = (Math.random() - 0.5) * (isMobile ? 30 : 18) - 2;
     }
     moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
     const moteMat = new THREE.PointsMaterial({
@@ -921,10 +919,10 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
        Looking slightly downward to reveal the 3/4 depth of the rack.
        ─── */
     const camStart = isMobile
-      ? { pos: new THREE.Vector3(9, 4.5, 11), look: new THREE.Vector3(0, 2.5, 0) }
+      ? { pos: new THREE.Vector3(0, 28, 100), look: new THREE.Vector3(0, 3, 0) }
       : { pos: new THREE.Vector3(0, 7.5, 20), look: new THREE.Vector3(0, 2.8, -1.5) };
     const camEnd = isMobile
-      ? { pos: new THREE.Vector3(5.8, 1.3, 8.5), look: new THREE.Vector3(0, 1.6, 0) }
+      ? { pos: new THREE.Vector3(0, 5, 35), look: new THREE.Vector3(0, 1.5, 0) }
       : { pos: new THREE.Vector3(0, 1.9, 13), look: new THREE.Vector3(0, 1.9, -0.6) };
 
     camera.position.copy(camStart.pos);
@@ -955,7 +953,7 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     sceneRef.current = state;
 
     /* ─── Intro animation ─── */
-    const INTRO_DURATION = reduced ? 0 : 2.6;
+    const INTRO_DURATION = reduced ? 0 : (isMobile ? 4.0 : 2.6);
     let introStart: number | null = null;
 
     function easeOutExpo(t: number) { return t === 1 ? 1 : 1 - Math.pow(2, -10 * t); }
