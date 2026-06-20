@@ -1,10 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import gsap from 'gsap';
 import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 
@@ -136,27 +132,58 @@ function createRack(
   { detailed, unitData, width, height, depth }: RackConfig,
   colors: ReturnType<typeof readColors>,
   isMobile: boolean,
+  envMap: THREE.Texture | null,
 ) {
   const group = new THREE.Group();
-  const leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string }[] = [];
-  const fans: THREE.Group[] = [];
-  const labels: {
-    material: THREE.MeshBasicMaterial;
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D;
-    unit: { label: string; sub: string; state: string };
-  }[] = [];
+  const leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite?: THREE.Sprite }[] = [];
+  // Labels removed
 
-  /* ─── Three distinct chassis levels ─── */
-  // Chassis outer: bg (darkest) — the frame
-  // Chassis inner: bg-elevated — recessed unit panels
-  // Brushed panel: bg-subtle (lightest) — handles, fan blades
-  const matChassisOuter = new THREE.MeshStandardMaterial({ color: colors.bg, metalness: 0.9, roughness: 0.28 });
-  const matChassisInner = new THREE.MeshStandardMaterial({ color: shade(colors.bgSubtle, 1.7), metalness: 0.8, roughness: 0.4 });
-  const matBrushedPanel = new THREE.MeshStandardMaterial({ color: shade(colors.bgSubtle, 2.3), metalness: 0.75, roughness: 0.5 });
+  /* ─── Materials with varied roughness ─── */
+  const matChassisOuter = new THREE.MeshStandardMaterial({ 
+    color: colors.bg, 
+    metalness: 0.9, 
+    roughness: 0.28 + (Math.random() - 0.5) * 0.06,
+    envMap,
+    envMapIntensity: 0.35,
+  });
+  const matChassisInner = new THREE.MeshStandardMaterial({ 
+    color: shade(colors.bgSubtle, 1.7), 
+    metalness: 0.8, 
+    roughness: 0.4 + (Math.random() - 0.5) * 0.08,
+    envMap,
+    envMapIntensity: 0.25,
+  });
   const matAccentTrim = new THREE.MeshStandardMaterial({
-    color: colors.accent, metalness: 0.85, roughness: 0.22,
-    emissive: shade(colors.accent, 0.2), emissiveIntensity: 0.6,
+    color: colors.accent, 
+    metalness: 0.85, 
+    roughness: 0.22 + (Math.random() - 0.5) * 0.04,
+    emissive: shade(colors.accent, 0.2), 
+    emissiveIntensity: 0.6,
+    envMap,
+    envMapIntensity: 0.75,
+  });
+
+  /* ─── Beveled edge material (darker, catches light) ─── */
+  const matBevel = new THREE.MeshStandardMaterial({
+    color: shade(colors.accent, 0.6),
+    metalness: 0.9,
+    roughness: 0.2,
+    envMap,
+    envMapIntensity: 0.5,
+  });
+
+  /* ─── Port/connector materials ─── */
+  const matPort = new THREE.MeshStandardMaterial({
+    color: 0x0a0a0a,
+    metalness: 0.1,
+    roughness: 0.8,
+  });
+
+  const matPortLED = new THREE.MeshStandardMaterial({
+    color: 0x00ff88,
+    emissive: 0x00ff88,
+    emissiveIntensity: 0.8,
+    roughness: 0.3,
   });
 
   const grilleTexBase = makeGrilleTexture(colors.bgSubtle, colors.bg);
@@ -181,12 +208,39 @@ function createRack(
     group.add(railMesh);
   });
 
-  /* Edge trim — gold, creates the dimensional outline */
+  /* Edge trim — gold outline with bevels */
   [-1, 1].forEach(side => {
     const edgeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.018, height, 0.018), matAccentTrim);
     edgeMesh.position.set(side * width / 2, height / 2, depth / 2);
     group.add(edgeMesh);
+    
+    // Beveled edge piping (thin gold highlight)
+    if (detailed && !isMobile) {
+      const bevelEdge = new THREE.Mesh(new THREE.BoxGeometry(0.006, height, 0.006), matBevel);
+      bevelEdge.position.set(side * (width / 2 + 0.012), height / 2, depth / 2);
+      group.add(bevelEdge);
+    }
   });
+
+  /* Top edge trim — horizontal gold with bevel */
+  const topEdge = new THREE.Mesh(new THREE.BoxGeometry(width, 0.018, 0.018), matAccentTrim);
+  topEdge.position.set(0, height, depth / 2);
+  group.add(topEdge);
+  if (detailed && !isMobile) {
+    const topBevel = new THREE.Mesh(new THREE.BoxGeometry(width, 0.006, 0.006), matBevel);
+    topBevel.position.set(0, height + 0.012, depth / 2);
+    group.add(topBevel);
+  }
+
+  /* Bottom edge trim — horizontal gold with bevel */
+  const bottomEdge = new THREE.Mesh(new THREE.BoxGeometry(width, 0.018, 0.018), matAccentTrim);
+  bottomEdge.position.set(0, 0, depth / 2);
+  group.add(bottomEdge);
+  if (detailed && !isMobile) {
+    const bottomBevel = new THREE.Mesh(new THREE.BoxGeometry(width, 0.006, 0.006), matBevel);
+    bottomBevel.position.set(0, -0.012, depth / 2);
+    group.add(bottomBevel);
+  }
 
   /* Units */
   const railClearance = railW * 2 + 0.16;
@@ -200,33 +254,266 @@ function createRack(
     unitGroup.position.set(0, yPos, depth / 2 + 0.05);
     group.add(unitGroup);
 
-    /* Panel — inner chassis (recessed feel) */
-    const panelMesh = new THREE.Mesh(new THREE.BoxGeometry(unitWidth, unitHeight - unitGap, 0.06), matChassisInner);
+    /* Panel — inner chassis (recessed feel) with varied roughness */
+    const panelRoughness = 0.4 + (Math.random() - 0.5) * 0.08;
+    const panelMat = new THREE.MeshStandardMaterial({
+      color: shade(colors.bgSubtle, 1.7),
+      metalness: 0.8,
+      roughness: panelRoughness,
+      envMap,
+      envMapIntensity: 0.25,
+    });
+    const panelMesh = new THREE.Mesh(new THREE.BoxGeometry(unitWidth, unitHeight - unitGap, 0.06), panelMat);
     panelMesh.castShadow = detailed && !isMobile;
     panelMesh.receiveShadow = true;
     unitGroup.add(panelMesh);
 
-    /* Grille */
+    /* Ambient occlusion shadow — contact shadow beneath unit */
+    if (detailed && !isMobile) {
+      const aoMat = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.18,
+        depthWrite: false,
+      });
+      const aoPlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(unitWidth * 0.96, 0.008),
+        aoMat
+      );
+      aoPlane.position.set(0, -(unitHeight - unitGap) / 2 - 0.002, 0.032);
+      unitGroup.add(aoPlane);
+    }
+
+    /* Depth layer: Recessed bezel behind grille with varied roughness + dust accumulation */
     const grilleW = unitWidth * 0.82;
     const grilleH = (unitHeight - unitGap) * 0.7;
+    
+    if (detailed) {
+      const bezelRoughness = 0.5 + (Math.random() - 0.5) * 0.1;
+      // Add subtle dust effect (darker on bottom edges)
+      const dustFactor = i > 2 ? 0.85 : 0.95; // Lower units darker
+      const bezelMat = new THREE.MeshStandardMaterial({
+        color: shade(colors.bg, 0.8 * dustFactor),
+        metalness: 0.7,
+        roughness: bezelRoughness + (i > 2 ? 0.05 : 0), // Bottom units slightly rougher
+        envMap,
+        envMapIntensity: 0.2,
+      });
+      const bezelMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(grilleW + 0.08, grilleH + 0.08, 0.018),
+        bezelMat
+      );
+      bezelMesh.position.z = 0.025;
+      unitGroup.add(bezelMesh);
+    }
+
+    /* Grille — now appears inset */
     const grilleMat = new THREE.MeshStandardMaterial({
       map: tiled(grilleTexBase, Math.max(2, Math.round(grilleW * 4)), Math.max(2, Math.round(grilleH * 4))),
-      metalness: 0.3, roughness: 0.85,
+      metalness: 0.3, 
+      roughness: 0.85,
+      envMap,
+      envMapIntensity: 0.15,
     });
     const grilleMesh = new THREE.Mesh(new THREE.PlaneGeometry(grilleW, grilleH), grilleMat);
-    grilleMesh.position.set(detailed ? width * 0.07 : 0, 0, 0.034);
+    grilleMesh.position.set(detailed ? width * 0.07 : 0, 0, 0.038);
     unitGroup.add(grilleMesh);
 
-    /* Handle */
-    const handleMesh = new THREE.Mesh(new THREE.BoxGeometry(unitWidth * 0.92, 0.014, 0.018), matBrushedPanel);
+    /* Handle with grip texture */
+    const handleMat = new THREE.MeshStandardMaterial({
+      color: shade(colors.bgSubtle, 2.1),
+      metalness: 0.4, // Less metallic (rubber grip)
+      roughness: 0.7,
+      envMap,
+      envMapIntensity: 0.15,
+    });
+    const handleMesh = new THREE.Mesh(new THREE.BoxGeometry(unitWidth * 0.92, 0.014, 0.018), handleMat);
     handleMesh.position.set(0, -(unitHeight - unitGap) / 2 + 0.012, 0.045);
     unitGroup.add(handleMesh);
+
+    // Grip ridges (horizontal texture)
+    if (detailed && !isMobile) {
+      for (let r = 0; r < 12; r++) {
+        const ridge = new THREE.Mesh(
+          new THREE.BoxGeometry(0.01, 0.012, 0.002),
+          handleMat
+        );
+        ridge.position.set(
+          -unitWidth * 0.4 + r * 0.07,
+          -(unitHeight - unitGap) / 2 + 0.012,
+          0.047
+        );
+        unitGroup.add(ridge);
+      }
+    }
+
+    /* Ethernet ports (right side) — desktop only */
+    if (detailed && !isMobile) {
+      const portCount = 3;
+      const portStartY = unitHeight * 0.15;
+      for (let p = 0; p < portCount; p++) {
+        // Port recess
+        const portRecess = new THREE.Mesh(
+          new THREE.BoxGeometry(0.018, 0.012, 0.008),
+          matPort
+        );
+        portRecess.position.set(
+          unitWidth / 2 - 0.08,
+          portStartY - p * 0.04,
+          0.044
+        );
+        unitGroup.add(portRecess);
+
+        // Port activity LED (tiny, random blink) — placed slightly in front of portRecess front face (0.048)
+        const portLED = new THREE.Mesh(
+          new THREE.CircleGeometry(0.003, 8),
+          matPortLED.clone()
+        );
+        portLED.position.set(
+          unitWidth / 2 - 0.074,
+          portStartY - p * 0.04,
+          0.049
+        );
+        unitGroup.add(portLED);
+
+        // Store for animation
+        leds.push({
+          material: portLED.material as THREE.MeshStandardMaterial,
+          blinkSpeed: 2.5 + Math.random() * 1.5,
+          phase: Math.random() * Math.PI * 2,
+          state: 'live',
+          sprite: new THREE.Sprite(), // dummy sprite
+        });
+      }
+    }
+
+    /* LCD status display (top unit only) — desktop only */
+    if (detailed && !isMobile && i === 0) {
+      // LCD recess
+      const lcdRecess = new THREE.Mesh(
+        new THREE.BoxGeometry(0.35, 0.12, 0.008),
+        matPort
+      );
+      lcdRecess.position.set(-unitWidth / 2 + 0.3, 0, 0.044);
+      unitGroup.add(lcdRecess);
+
+      // LCD screen with text
+      const lcdCanvas = document.createElement('canvas');
+      lcdCanvas.width = 256;
+      lcdCanvas.height = 64;
+      const lcdCtx = lcdCanvas.getContext('2d')!;
+      
+      lcdCtx.fillStyle = '#001a0d';
+      lcdCtx.fillRect(0, 0, 256, 64);
+      lcdCtx.font = 'bold 18px monospace';
+      lcdCtx.fillStyle = '#00ff88';
+      lcdCtx.fillText('███ ONLINE', 8, 24);
+      lcdCtx.font = '14px monospace';
+      lcdCtx.fillText('CPU 42°C  RAM 67%', 8, 48);
+
+      const lcdTex = new THREE.CanvasTexture(lcdCanvas);
+      const lcdMat = new THREE.MeshBasicMaterial({
+        map: lcdTex,
+      });
+      const lcdScreen = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.34, 0.11),
+        lcdMat
+      );
+      lcdScreen.position.set(-unitWidth / 2 + 0.3, 0, 0.049); // Placed slightly in front of lcdRecess front face (0.048)
+      unitGroup.add(lcdScreen);
+
+      // Power button (right of LCD)
+      const btnRecess = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.018, 0.018, 0.006, 16),
+        matPort
+      );
+      btnRecess.rotation.x = Math.PI / 2;
+      btnRecess.position.set(-unitWidth / 2 + 0.6, 0.05, 0.044);
+      unitGroup.add(btnRecess);
+
+      const btnLED = new THREE.Mesh(
+        new THREE.CircleGeometry(0.008, 12),
+        new THREE.MeshStandardMaterial({
+          color: colors.accent,
+          emissive: colors.accent,
+          emissiveIntensity: 1.2,
+        })
+      );
+      btnLED.position.set(-unitWidth / 2 + 0.6, 0.05, 0.048); // Placed slightly in front of btnRecess front face (0.047)
+      unitGroup.add(btnLED);
+    }
+
+    /* Cable connectors (bottom units only) — desktop only */
+    if (detailed && !isMobile && (i === 2 || i === 3)) {
+      const cableMat = new THREE.MeshStandardMaterial({
+        color: 0x1a1a1a,
+        metalness: 0.2,
+        roughness: 0.9,
+      });
+
+      // Cable boot (rubber strain relief)
+      const boot = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.012, 0.015, 0.03, 8),
+        cableMat
+      );
+      boot.rotation.z = Math.PI / 2;
+      boot.position.set(unitWidth / 2 - 0.25, -unitHeight * 0.2, 0.048);
+      unitGroup.add(boot);
+
+      // Thin cable exiting (TubeGeometry would be better but BoxGeometry is simpler)
+      const cable = new THREE.Mesh(
+        new THREE.BoxGeometry(0.15, 0.008, 0.008),
+        cableMat
+      );
+      cable.position.set(unitWidth / 2 - 0.18, -unitHeight * 0.2, 0.048);
+      unitGroup.add(cable);
+    }
+
+    /* Mounting screws (4 corners) — desktop only */
+    if (detailed && !isMobile) {
+      const screwMat = new THREE.MeshStandardMaterial({
+        color: 0x1a1a1a,
+        metalness: 0.8,
+        roughness: 0.3,
+      });
+      const screwPositions = [
+        [-unitWidth / 2 + 0.04, unitHeight / 2 - 0.03],
+        [unitWidth / 2 - 0.04, unitHeight / 2 - 0.03],
+        [-unitWidth / 2 + 0.04, -unitHeight / 2 + 0.03],
+        [unitWidth / 2 - 0.04, -unitHeight / 2 + 0.03],
+      ];
+      screwPositions.forEach(([x, y]) => {
+        const screw = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.006, 0.006, 0.004, 8),
+          screwMat
+        );
+        screw.rotation.x = Math.PI / 2;
+        screw.position.set(x, y, 0.047);
+        unitGroup.add(screw);
+      });
+    }
+
+    /* Ventilation slits (horizontal lines on grille) — desktop only */
+    if (detailed && !isMobile) {
+      const slitCount = 8;
+      const slitSpacing = grilleH / (slitCount + 1);
+      const slitMat = new THREE.LineBasicMaterial({ color: 0x0a0a0a, linewidth: 1 });
+      
+      for (let s = 1; s <= slitCount; s++) {
+        const slitGeo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(-grilleW / 2 + 0.05, -grilleH / 2 + s * slitSpacing, 0),
+          new THREE.Vector3(grilleW / 2 - 0.05, -grilleH / 2 + s * slitSpacing, 0),
+        ]);
+        const slit = new THREE.Line(slitGeo, slitMat);
+        slit.position.set(detailed ? width * 0.07 : 0, 0, 0.039);
+        unitGroup.add(slit);
+      }
+    }
 
     /* LEDs — emissive glow */
     const ledCount = detailed ? (isMobile ? 1 : 3) : 1;
     for (let l = 0; l < ledCount; l++) {
       const state = (l === 0) ? unit.state : 'idle';
-      // Warn uses accentDim (muted gold), not accent (primary brand gold)
       const c = state === 'live' ? colors.success : (state === 'warn' ? colors.accentDim : colors.bgSubtle);
       const ledMat = new THREE.MeshStandardMaterial({
         color: c,
@@ -252,7 +539,7 @@ function createRack(
       glowSprite.position.set(
         unitWidth / 2 - 0.14 - l * 0.11,
         unitHeight * 0.18,
-        0.043, // slightly behind the LED mesh (z=0.046)
+        0.043,
       );
       unitGroup.add(glowSprite);
 
@@ -264,55 +551,6 @@ function createRack(
       });
     }
 
-    /* Fans */
-    if (detailed && !isMobile && (i === 1 || i === 2)) {
-      const fanGroup = new THREE.Group();
-      fanGroup.position.set(unitWidth / 2 - 0.55, 0, 0.045);
-      fanGroup.add(new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.011, 8, 20), matAccentTrim));
-      for (let b = 0; b < 6; b++) {
-        const bladeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.016, 0.007), matBrushedPanel);
-        bladeMesh.position.set(0.05, 0, 0);
-        const pivot = new THREE.Group();
-        pivot.rotation.z = (b / 6) * Math.PI * 2;
-        pivot.add(bladeMesh);
-        fanGroup.add(pivot);
-      }
-      unitGroup.add(fanGroup);
-      fans.push(fanGroup);
-    }
-
-    /* Labels */
-    if (detailed) {
-      const labelCanvas = document.createElement('canvas');
-      labelCanvas.width = 480; labelCanvas.height = 72;
-      const ctx = labelCanvas.getContext('2d')!;
-
-      function drawLabel(main: string, sub: string) {
-        ctx.clearRect(0, 0, 480, 72);
-        ctx.font = '600 27px Inter, sans-serif';
-        ctx.fillStyle = unit.state === 'live' ? toCss(colors.textPrimary) : toCss(colors.textMuted);
-        ctx.textBaseline = 'middle';
-        ctx.fillText(main, 4, 24);
-        ctx.font = '400 16px Inter, sans-serif';
-        ctx.fillStyle = toCss(colors.textSecondary);
-        ctx.fillText(sub, 4, 52);
-      }
-
-      drawLabel(unit.label, unit.sub);
-
-      const labelTex = new THREE.CanvasTexture(labelCanvas);
-      labelTex.minFilter = THREE.LinearFilter;
-      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true });
-      const labelMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(unitWidth * 0.42, unitHeight * 0.7),
-        labelMat,
-      );
-      labelMesh.position.set(-unitWidth / 2 + unitWidth * 0.42 / 2 + 0.14, 0, 0.046);
-      unitGroup.add(labelMesh);
-
-      labels.push({ material: labelMat, canvas: labelCanvas, ctx, unit: { label: unit.label, sub: unit.sub, state: unit.state } });
-    }
-
     /* Separator */
     if (i < unitData.length - 1) {
       const sepMesh = new THREE.Mesh(new THREE.BoxGeometry(unitWidth, 0.008, 0.07), matChassisInner);
@@ -321,10 +559,79 @@ function createRack(
     }
   });
 
-  /* Cap — gold trim top */
+  /* Cap — gold trim top with badge lettering */
   const capMesh = new THREE.Mesh(new THREE.BoxGeometry(width + 0.03, 0.03, depth + 0.03), matAccentTrim);
   capMesh.position.set(0, height + 0.015, 0);
   group.add(capMesh);
+
+  /* Badge text "42U" on top cap — desktop only */
+  if (detailed && !isMobile) {
+    const badgeCanvas = document.createElement('canvas');
+    badgeCanvas.width = 64;
+    badgeCanvas.height = 32;
+    const badgeCtx = badgeCanvas.getContext('2d')!;
+    badgeCtx.fillStyle = toCss(colors.accent);
+    badgeCtx.font = 'bold 20px sans-serif';
+    badgeCtx.textAlign = 'center';
+    badgeCtx.textBaseline = 'middle';
+    badgeCtx.fillText('42U', 32, 16);
+
+    const badgeTex = new THREE.CanvasTexture(badgeCanvas);
+    const badgeMat = new THREE.MeshBasicMaterial({ 
+      map: badgeTex, 
+      transparent: true,
+      opacity: 0.8,
+    });
+    const badge = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.15, 0.08),
+      badgeMat
+    );
+    badge.rotation.x = -Math.PI / 2;
+    badge.position.set(0, height + 0.031, 0);
+    group.add(badge);
+  }
+
+  /* Mounting ears (rack brackets) — left and right */
+  if (detailed && !isMobile) {
+    [-1, 1].forEach(side => {
+      // L-shaped bracket
+      const earMat = new THREE.MeshStandardMaterial({
+        color: shade(colors.bg, 0.7),
+        metalness: 0.85,
+        roughness: 0.4,
+        envMap,
+        envMapIntensity: 0.3,
+      });
+      
+      // Vertical part
+      const earVert = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, height * 0.95, 0.025),
+        earMat
+      );
+      earVert.position.set(side * (width / 2 + 0.04), height / 2, 0);
+      group.add(earVert);
+
+      // Horizontal flange (mounting surface)
+      const earHoriz = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 0.035, 0.08),
+        earMat
+      );
+      earHoriz.position.set(side * (width / 2 + 0.04), height * 0.8, -0.03);
+      group.add(earHoriz);
+
+      // Screw holes in flange
+      const holePositions = [height * 0.8 - 0.01, height * 0.8 + 0.01];
+      holePositions.forEach(y => {
+        const hole = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.005, 0.005, 0.01, 8),
+          new THREE.MeshStandardMaterial({ color: 0x0a0a0a })
+        );
+        hole.rotation.z = Math.PI / 2;
+        hole.position.set(side * (width / 2 + 0.04), y, -0.03);
+        group.add(hole);
+      });
+    });
+  }
 
   /* Base */
   const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(width + 0.25, 0.12, depth + 0.25), matChassisOuter);
@@ -332,7 +639,7 @@ function createRack(
   baseMesh.receiveShadow = true;
   group.add(baseMesh);
 
-  return { group, leds, fans, labels };
+  return { group, leds };
 }
 
 /* ─── Read colors from CSS at runtime ─── */
@@ -360,11 +667,8 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
-    composer: EffectComposer | null;
     heroGroup: THREE.Group;
-    leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string }[];
-    fans: THREE.Group[];
-    labels: { material: THREE.MeshBasicMaterial; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; unit: { label: string; sub: string; state: string } }[];
+    leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite?: THREE.Sprite }[];
     motes: THREE.Points;
     moteGeo: THREE.BufferGeometry;
     rimLight: THREE.SpotLight;
@@ -406,6 +710,13 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     renderer.toneMappingExposure = 1.0;
     containerRef.current.appendChild(renderer.domElement);
 
+    /* ─── Environment map for reflections ─── */
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+    const envScene = new RoomEnvironment();
+    const envMap = pmremGenerator.fromScene(envScene, 0.04).texture;
+    pmremGenerator.dispose();
+
     /* ─── Scene ─── */
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(colors.bg, isMobile ? 0.06 : 0.04);
@@ -423,7 +734,6 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
        Subtle bloom (strength 0.2) to make gold trim, LEDs,
        and floor glow pools pop against the dark background.
        ─── */
-    let composer: EffectComposer | null = null;
 
     function onResize() {
       if (!containerRef.current) return;
@@ -433,29 +743,9 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
       renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      if (composer) {
-        composer.setSize(w, h);
-      }
     }
     onResize();
     window.addEventListener('resize', onResize);
-
-    if (!isMobile && !reduced) {
-      composer = new EffectComposer(renderer);
-      composer.addPass(new RenderPass(scene, camera));
-
-      const bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(
-          containerRef.current.clientWidth,
-          containerRef.current.clientHeight,
-        ),
-        0.2,   // strength — subtle
-        0.5,   // radius   — moderate spread
-        0.1,   // threshold — only bloom bright areas
-      );
-      composer.addPass(bloomPass);
-      composer.addPass(new OutputPass());
-    }
 
     /* ─── Lighting ───
        Design spec: no violet, no cyan. Warm palette only.
@@ -512,13 +802,12 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
       { detailed: !isMobile, unitData: heroUnitData, width: RACK_WIDTH, height: RACK_HEIGHT, depth: RACK_DEPTH },
       colors,
       isMobile,
+      envMap,
     );
     scene.add(hero.group);
     const leds = hero.leds.slice();
-    const fans = hero.fans.slice();
-    const labels = hero.labels.slice();
 
-    /* Side racks (desktop only) */
+    /* Side racks (desktop only) — subtle inward tilt for focus */
     if (!isMobile) {
       const sideUnitData = [
         { label: '/edge', sub: 'cdn', state: 'idle' as const },
@@ -532,48 +821,40 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
           { detailed: true, unitData: sideUnitData, width: RACK_WIDTH * 0.92, height: RACK_HEIGHT * 0.94, depth: RACK_DEPTH * 0.92 },
           colors,
           isMobile,
+          envMap,
         );
         r.group.position.set(side * (RACK_WIDTH + 0.5), 0, -1.0);
-        r.group.rotation.y = side * -0.2;
+        r.group.rotation.y = side * -0.22; // Increased tilt
         scene.add(r.group);
         leds.push(...r.leds);
       });
     }
 
-    /* ─── Floor — reflective on desktop, simple solid on mobile ───
-       Uses Reflector (real-time mirror) on desktop for a subtle reflection
-       of the racks above. Tinted dark with low opacity so it reads as a
-       polished dark surface rather than a literal mirror.
+    /* ─── Floor — simple dark metallic surface ───
+       Reflector removed (was for bloom glow). Now just dark polished metal.
        ─── */
-    if (!isMobile && !reduced) {
-      const reflector = new Reflector(
-        new THREE.PlaneGeometry(40, 40),
-        {
-          clipBias: 0.003,
-          textureWidth: 1024,
-          textureHeight: 1024,
-          color: new THREE.Color(shade(colors.bgElevated, 0.7)),
-        },
-      );
-      reflector.rotation.x = -Math.PI / 2;
-      reflector.position.y = -0.12;
-      scene.add(reflector);
-    } else {
-      const matFloor = new THREE.MeshStandardMaterial({ color: colors.bg, metalness: 0.55, roughness: 0.35 });
-      const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), matFloor);
-      floor.rotation.x = -Math.PI / 2;
-      floor.position.y = -0.12;
-      floor.receiveShadow = true;
-      scene.add(floor);
-    }
+    const matFloor = new THREE.MeshStandardMaterial({ 
+      color: colors.bg, 
+      metalness: 0.6, 
+      roughness: 0.3,
+      envMap,
+      envMapIntensity: 0.4,
+    });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), matFloor);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -0.12;
+    floor.receiveShadow = true;
+    scene.add(floor);
 
-    /* Warm glow pools beneath each rack — radial gradient discs */
+    /* Warm glow pools beneath each rack — gold tinted shadows */
     const glowTex = makeFloorGlow(colors.accent);
     const glowMat = new THREE.MeshBasicMaterial({
       map: glowTex,
       transparent: true,
-      opacity: 0.1,
+      opacity: 0.15,
       depthWrite: false,
+      color: colors.accent,
+      blending: THREE.MultiplyBlending, // Darken blend for shadow effect
     });
     const glowPositions = [
       { x: 0, z: 0 },                          // hero rack
@@ -609,6 +890,32 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     const motes = new THREE.Points(moteGeo, moteMat);
     scene.add(motes);
 
+    /* ─── Heat distortion above top rack (desktop only) ─── */
+    if (!isMobile && !reduced) {
+      const heatCanvas = document.createElement('canvas');
+      heatCanvas.width = 128;
+      heatCanvas.height = 64;
+      const heatCtx = heatCanvas.getContext('2d')!;
+      const gradient = heatCtx.createLinearGradient(0, 0, 0, 64);
+      gradient.addColorStop(0, 'rgba(255,200,100,0.02)');
+      gradient.addColorStop(1, 'transparent');
+      heatCtx.fillStyle = gradient;
+      heatCtx.fillRect(0, 0, 128, 64);
+
+      const heatTex = new THREE.CanvasTexture(heatCanvas);
+      const heatSprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: heatTex,
+          transparent: true,
+          opacity: 0.15,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      heatSprite.scale.set(RACK_WIDTH * 0.8, RACK_HEIGHT * 0.3, 1);
+      heatSprite.position.set(0, RACK_HEIGHT + 0.4, 0);
+      scene.add(heatSprite);
+    }
+
     /* ─── Camera positions ───
        Elevated, centered (x=0), back far enough to show the full rack row.
        Looking slightly downward to reveal the 3/4 depth of the rack.
@@ -633,9 +940,9 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
 
     /* ─── State ─── */
     const state = {
-      scene, camera, renderer, composer,
+      scene, camera, renderer,
       heroGroup: hero.group,
-      leds, fans, labels, motes, moteGeo,
+      leds, motes, moteGeo,
       rimLight, topAccent,
       glowMat,
       clock: new THREE.Clock(),
@@ -704,40 +1011,8 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
           intensity = 0.15 + Math.sin(elapsed * led.blinkSpeed + led.phase) * 0.08;
         }
         led.material.emissiveIntensity = Math.max(0.08, intensity);
+        
       });
-
-      /* Fans (desktop only) — no-op on mobile since fans don't exist */
-      if (!reduced && !isMobile) {
-        fans.forEach((fan, i) => { fan.rotation.z += dt * (2.2 + i * 0.4); });
-      }
-
-      /* Animated unit labels — cycle sub-text data every ~4s (desktop only) */
-      if (!reduced && !isMobile && labels.length > 0) {
-        const labelPhase = Math.floor(elapsed / 4) % 3;
-        labels.forEach(l => {
-          if (l.unit.state === 'idle') return; // only animate live/warn labels
-          const subData: Record<string, string[]> = {
-            '/retrieve': ['pgvector rag', '12.4k queries', '86ms avg'],
-            '/chat': ['scheme saathi', '142 sessions', '97% uptime'],
-            '/cache': ['redis', 'hit rate 87%', 'latency 4ms'],
-          };
-          const subs = subData[l.unit.label] || [l.unit.sub];
-          const newSub = subs[labelPhase % subs.length];
-          if (l.unit.sub !== newSub) {
-            l.unit.sub = newSub;
-            const ctx = l.ctx;
-            ctx.clearRect(0, 0, 480, 72);
-            ctx.font = '600 27px Inter, sans-serif';
-            ctx.fillStyle = l.unit.state === 'live' ? toCss(colors.textPrimary) : toCss(colors.textMuted);
-            ctx.textBaseline = 'middle';
-            ctx.fillText(l.unit.label, 4, 24);
-            ctx.font = '400 16px Inter, sans-serif';
-            ctx.fillStyle = toCss(colors.textSecondary);
-            ctx.fillText(newSub, 4, 52);
-            l.material.map!.needsUpdate = true;
-          }
-        });
-      }
 
       /* Motes — slow drift (static on mobile) */
       if (!reduced && !isMobile) {
@@ -753,14 +1028,10 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
       rimLight.intensity = (reduced || isMobile) ? 10 : 10 + Math.sin(elapsed * 0.6) * 1.5;
       topAccent.intensity = (reduced || isMobile) ? 1.2 : 1.2 + Math.sin(elapsed * 0.4 + 1) * 0.25;
 
-      /* Floor glow — subtle ambient pulse */
-      state.glowMat.opacity = (reduced || isMobile) ? 0.1 : 0.07 + Math.sin(elapsed * 0.5 + 0.3) * 0.03;
+      /* Floor glow — subtle gold-tinted shadow pulse */
+      state.glowMat.opacity = (reduced || isMobile) ? 0.15 : 0.12 + Math.sin(elapsed * 0.5 + 0.3) * 0.03;
 
-      if (state.composer && !state.isMobile && !reduced) {
-        state.composer.render();
-      } else {
-        renderer.render(scene, camera);
-      }
+      renderer.render(scene, camera);
     }
 
     /* Sync to gsap.ticker instead of own rAF */
@@ -784,9 +1055,6 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
           }
         }
       });
-      if (composer) {
-        composer.dispose();
-      }
       renderer.dispose();
       if (containerRef.current?.contains(renderer.domElement)) {
         containerRef.current.removeChild(renderer.domElement);
