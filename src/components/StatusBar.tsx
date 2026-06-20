@@ -13,6 +13,8 @@ function StatusBarInner() {
         zIndex: 1,
         width: '100%',
         borderBottom: '0.5px solid #2c2c2a',
+        backdropFilter: 'blur(8px)',
+        background: 'linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.65) 100%)',
         opacity: 0,
         animation: 'statusFadeDown 0.9s 1.8s cubic-bezier(0.16,1,0.3,1) forwards',
       }}
@@ -31,7 +33,7 @@ function StatusBarInner() {
             className="block rounded-full"
             style={{ width: 5, height: 5, background: '#EF9F27', animation: 'amberPulse 2.5s ease-in-out infinite' }}
           />
-          <span style={{ color: '#5DCAA5' }}>online</span>
+          <span style={{ color: '#6FD9B6', fontWeight: 500 }}>online</span>
         </div>
 
         {/* ─── divider ─── */}
@@ -39,8 +41,8 @@ function StatusBarInner() {
 
         {/* build */}
         <div className="flex items-center gap-1 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ padding: '0 16px' }}>
-          <span style={{ color: '#4a4a48' }}>build:</span>
-          <span style={{ color: '#5F5E5A' }}>v3.0.0</span>
+          <span style={{ color: '#5a5a58' }}>build:</span>
+          <span style={{ color: '#7a7974', fontWeight: 500 }}>v3.0.0</span>
         </div>
 
         {/* ─── divider ─── */}
@@ -48,8 +50,8 @@ function StatusBarInner() {
 
         {/* uptime */}
         <div className="flex items-center gap-1 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ padding: '0 16px' }}>
-          <span style={{ color: '#4a4a48' }}>uptime:</span>
-          <span style={{ color: '#5F5E5A' }}>142d 06:21:14</span>
+          <span style={{ color: '#5a5a58' }}>uptime:</span>
+          <span style={{ color: '#7a7974', fontWeight: 500 }}>142d 06:21:14</span>
         </div>
 
         {/* ─── divider ─── */}
@@ -57,8 +59,8 @@ function StatusBarInner() {
 
         {/* region */}
         <div className="flex items-center gap-1 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ padding: '0 16px' }}>
-          <span style={{ color: '#4a4a48' }}>region:</span>
-          <span style={{ color: '#5F5E5A' }}>blr-1</span>
+          <span style={{ color: '#5a5a58' }}>region:</span>
+          <span style={{ color: '#7a7974', fontWeight: 500 }}>blr-1</span>
         </div>
 
         {/* ─── divider ─── */}
@@ -66,8 +68,8 @@ function StatusBarInner() {
 
         {/* load */}
         <div className="flex items-center gap-1 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ padding: '0 16px' }}>
-          <span style={{ color: '#4a4a48' }}>load:</span>
-          <span id="load-readout" style={{ color: '#5F5E5A' }}>0.42</span>
+          <span style={{ color: '#5a5a58' }}>load:</span>
+          <span id="load-readout" style={{ color: '#7a7974', fontWeight: 500 }}>0.42</span>
         </div>
       </div>
     </div>

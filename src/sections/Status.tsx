@@ -57,104 +57,117 @@ export function Status() {
         aria-hidden="true"
       />
 
+      {/* ─── Dark gradient overlay — full-bleed behind text column for legibility over 3D rack ─── */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[7] hero-overlay"
+        style={{
+          background: 'linear-gradient(to right, rgba(15,15,13,0.85) 0%, rgba(15,15,13,0.7) 45%, rgba(15,15,13,0.3) 70%, transparent 100%)',
+          opacity: 0,
+          animation: 'statusFadeUp 1s 2.1s cubic-bezier(0.16,1,0.3,1) forwards',
+        }}
+        aria-hidden="true"
+      />
+
       {/* ─── Content overlay ─── */}
       <div className="relative z-10 flex min-h-screen flex-col justify-center" style={{ pointerEvents: 'none', padding: '6vh 7vw' }}>
-          {/* ─── version tag ─── */}
-          <p
-            className="mb-5 font-sans text-xs tracking-[0.1em]"
-            style={{
-              color: '#444441',
-              opacity: 0,
-              animation: 'statusFadeUp 1s 2.1s cubic-bezier(0.16,1,0.3,1) forwards',
-            }}
-          >
-            v3.0.0 &mdash; final year build
-          </p>
+        <div>
+            {/* ─── version tag ─── */}
+            <p
+              className="mb-5 font-sans text-xs tracking-[0.1em]"
+              style={{
+                color: '#444441',
+                opacity: 0,
+                animation: 'statusFadeUp 1s 2.1s cubic-bezier(0.16,1,0.3,1) forwards',
+              }}
+            >
+              v3.0.0 &mdash; final year build
+            </p>
 
-          {/* ─── identity block ─── */}
-          <div>
-              <h1
-                ref={heroRef}
-                className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0]"
-                style={{
-                  color: '#f5f3ee',
-                  willChange: 'transform',
-                  opacity: 0,
-                  animation: 'statusFadeUp 1.1s 2.25s cubic-bezier(0.16,1,0.3,1) forwards',
-                }}
-              >
-                Mukthanand
-              </h1>
-              <h1
-                ref={heroAccentRef}
-                className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0]"
-                style={{
-                  color: '#EF9F27',
-                  willChange: 'transform',
-                  opacity: 0,
-                  animation: 'statusFadeUp 1.1s 2.4s cubic-bezier(0.16,1,0.3,1) forwards',
-                }}
-              >
-                Reddy.
-              </h1>
-
-              {/* role line */}
-              <div className="mt-4">
-                <KineticSwapper
-                  prefix="Open to"
-                  words={[
-                    'AI roles',
-                    'Backend roles',
-                    'Full Stack roles',
-                    'Applied AI roles',
-                  ]}
-                  className="font-sans text-base leading-relaxed"
-                  wordStyle={{ color: '#D3D1C7' }}
-                  interval={2500}
-                  as="p"
-                  style={{ color: '#888780' }}
-                />
-              </div>
-
-              <p
-                className="mt-6 max-w-[34ch] font-sans text-lg leading-relaxed"
-                style={{
-                  color: '#888780',
-                  opacity: 0,
-                  animation: 'statusFadeUp 1s 2.65s cubic-bezier(0.16,1,0.3,1) forwards',
-                }}
-              >
-                Backend & full-stack engineer. Builds retrieval systems,
-                agentic tooling, and tools for underserved communities.
-              </p>
-
-              {/* CTA buttons */}
-              <div
-                className="mt-8 flex flex-wrap items-center gap-4"
-                style={{
-                  pointerEvents: 'auto',
-                  opacity: 0,
-                  animation: 'statusFadeUp 0.9s 2.85s cubic-bezier(0.16,1,0.3,1) forwards',
-                }}
-              >
-                {/* primary CTA — gold filled */}
-                <Link
-                  to="/services"
-                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 font-sans text-sm font-semibold text-[#0A0A0A] transition-all duration-[120ms] hover:bg-accent-dim hover:-translate-y-px"
+            {/* ─── identity block ─── */}
+            <div>
+                <h1
+                  ref={heroRef}
+                  className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0]"
+                  style={{
+                    color: '#f5f3ee',
+                    willChange: 'transform',
+                    opacity: 0,
+                    animation: 'statusFadeUp 1.1s 2.25s cubic-bezier(0.16,1,0.3,1) forwards',
+                  }}
                 >
-                  <span>view services</span>
-                  <span className="text-xs">&rarr;</span>
-                </Link>
-
-                {/* secondary CTA — outline */}
-                <Link
-                  to="/changelog"
-                  className="inline-flex items-center gap-2 rounded-lg border-thin border-border px-5 py-2.5 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent"
+                  Mukthanand
+                </h1>
+                <h1
+                  ref={heroAccentRef}
+                  className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0]"
+                  style={{
+                    color: '#EF9F27',
+                    willChange: 'transform',
+                    opacity: 0,
+                    animation: 'statusFadeUp 1.1s 2.4s cubic-bezier(0.16,1,0.3,1) forwards',
+                  }}
                 >
-                  <span>read changelog</span>
-                </Link>
+                  Reddy.
+                </h1>
+
+                {/* role line */}
+                <div className="mt-4">
+                  <KineticSwapper
+                    prefix="Open to"
+                    words={[
+                      'AI roles',
+                      'Backend roles',
+                      'Full Stack roles',
+                      'Applied AI roles',
+                    ]}
+                    className="font-sans text-base leading-relaxed"
+                    wordStyle={{ color: '#D3D1C7' }}
+                    interval={2500}
+                    as="p"
+                    style={{ color: '#888780' }}
+                  />
+                </div>
+
+                <p
+                  className="mt-6 max-w-[34ch] font-sans text-lg leading-relaxed"
+                  style={{
+                    color: '#888780',
+                    opacity: 0,
+                    animation: 'statusFadeUp 1s 2.65s cubic-bezier(0.16,1,0.3,1) forwards',
+                  }}
+                >
+                  Backend & full-stack engineer. Builds retrieval systems,
+                  agentic tooling, and tools for underserved communities.
+                </p>
+
+                {/* CTA buttons */}
+                <div
+                  className="mt-8 flex flex-wrap items-center gap-4"
+                  style={{
+                    pointerEvents: 'auto',
+                    opacity: 0,
+                    animation: 'statusFadeUp 0.9s 2.85s cubic-bezier(0.16,1,0.3,1) forwards',
+                  }}
+                >
+                  {/* primary CTA — gold filled */}
+                  <Link
+                    to="/services"
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 font-sans text-sm font-semibold text-[#0A0A0A] transition-all duration-[120ms] hover:bg-accent-dim hover:-translate-y-px"
+                  >
+                    <span>view services</span>
+                    <span className="text-xs">&rarr;</span>
+                  </Link>
+
+                  {/* secondary CTA — outline */}
+                  <Link
+                    to="/changelog"
+                    className="inline-flex items-center gap-2 rounded-lg border-thin border-border px-5 py-2.5 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent"
+                  >
+                    <span>read changelog</span>
+                  </Link>
+                </div>
               </div>
-            </div>
+        </div>
       </div>
 
       {/* ─── ticker ─── */}
@@ -168,7 +181,7 @@ export function Status() {
           to { opacity: 1; transform: translateY(0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .status-bar, .label, h1, h1 span, .sub, .actions {
+          .status-bar, .label, h1, h1 span, .sub, .actions, .hero-overlay {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
