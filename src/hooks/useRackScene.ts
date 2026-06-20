@@ -135,7 +135,7 @@ function createRack(
   envMap: THREE.Texture | null,
 ) {
   const group = new THREE.Group();
-  const leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite: THREE.Sprite }[] = [];
+  const leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite?: THREE.Sprite }[] = [];
   // Labels removed
 
   /* ─── Materials with varied roughness ─── */
@@ -364,7 +364,7 @@ function createRack(
         );
         unitGroup.add(portRecess);
 
-        // Port activity LED (tiny, random blink)
+        // Port activity LED (tiny, random blink) — placed slightly in front of portRecess front face (0.048)
         const portLED = new THREE.Mesh(
           new THREE.CircleGeometry(0.003, 8),
           matPortLED.clone()
@@ -372,7 +372,7 @@ function createRack(
         portLED.position.set(
           unitWidth / 2 - 0.074,
           portStartY - p * 0.04,
-          0.046
+          0.049
         );
         unitGroup.add(portLED);
 
@@ -414,13 +414,12 @@ function createRack(
       const lcdTex = new THREE.CanvasTexture(lcdCanvas);
       const lcdMat = new THREE.MeshBasicMaterial({
         map: lcdTex,
-        color: 0x00ff88,
       });
       const lcdScreen = new THREE.Mesh(
         new THREE.PlaneGeometry(0.34, 0.11),
         lcdMat
       );
-      lcdScreen.position.set(-unitWidth / 2 + 0.3, 0, 0.046);
+      lcdScreen.position.set(-unitWidth / 2 + 0.3, 0, 0.049); // Placed slightly in front of lcdRecess front face (0.048)
       unitGroup.add(lcdScreen);
 
       // Power button (right of LCD)
@@ -440,7 +439,7 @@ function createRack(
           emissiveIntensity: 1.2,
         })
       );
-      btnLED.position.set(-unitWidth / 2 + 0.6, 0.05, 0.047);
+      btnLED.position.set(-unitWidth / 2 + 0.6, 0.05, 0.048); // Placed slightly in front of btnRecess front face (0.047)
       unitGroup.add(btnLED);
     }
 
@@ -511,39 +510,34 @@ function createRack(
       }
     }
 
-    /* LEDs — emissive glow with varied sizes + realistic LED bar */
-    const ledCount = detailed ? (isMobile ? 1 : 5) : 1;
+    /* LEDs — emissive glow */
+    const ledCount = detailed ? (isMobile ? 1 : 3) : 1;
     for (let l = 0; l < ledCount; l++) {
-      const state = (l === 0) ? unit.state : (l === 1 ? 'warn' : 'idle');
-      const isPrimary = l === 0;
-      const ledSize = isPrimary ? 0.012 : 0.008; // Smaller, more realistic
-      
+      const state = (l === 0) ? unit.state : 'idle';
       const c = state === 'live' ? colors.success : (state === 'warn' ? colors.accentDim : colors.bgSubtle);
       const ledMat = new THREE.MeshStandardMaterial({
         color: c,
         emissive: c,
-        emissiveIntensity: isPrimary ? 1.4 : 1.0,
-        roughness: 0.25,
-        metalness: 0.1,
+        emissiveIntensity: 1.0,
+        roughness: 0.3,
       });
-      const ledMesh = new THREE.Mesh(new THREE.CircleGeometry(ledSize, 12), ledMat);
-      ledMesh.position.set(unitWidth / 2 - 0.14 - l * 0.025, unitHeight * 0.18, 0.046);
+      const ledMesh = new THREE.Mesh(new THREE.CircleGeometry(0.035, 14), ledMat);
+      ledMesh.position.set(unitWidth / 2 - 0.14 - l * 0.11, unitHeight * 0.18, 0.045);
       unitGroup.add(ledMesh);
 
-      /* Glow sprite behind LED — synced with emissive pulse */
+      /* Glow sprite behind LED — soft halo */
       const glowTex = makeLedGlowTexture(c);
       const glowSpriteMat = new THREE.SpriteMaterial({
         map: glowTex,
         transparent: true,
-        opacity: isPrimary ? 0.35 : 0.28,
+        opacity: 0.45,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       });
       const glowSprite = new THREE.Sprite(glowSpriteMat);
-      const glowScale = isPrimary ? 0.05 : 0.04;
-      glowSprite.scale.set(glowScale, glowScale, 1);
+      glowSprite.scale.set(0.14, 0.14, 1);
       glowSprite.position.set(
-        unitWidth / 2 - 0.14 - l * 0.025,
+        unitWidth / 2 - 0.14 - l * 0.11,
         unitHeight * 0.18,
         0.043,
       );
@@ -554,7 +548,6 @@ function createRack(
         blinkSpeed: state === 'live' ? 1.1 : (state === 'warn' ? 1.6 : 0.35),
         phase: i * 0.65 + l * 0.3,
         state,
-        sprite: glowSprite,
       });
     }
 
@@ -675,7 +668,7 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
     heroGroup: THREE.Group;
-    leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite: THREE.Sprite }[];
+    leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite?: THREE.Sprite }[];
     motes: THREE.Points;
     moteGeo: THREE.BufferGeometry;
     rimLight: THREE.SpotLight;
@@ -1005,7 +998,7 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
         hero.group.rotation.y += (targetRotation - hero.group.rotation.y) * 0.025;
       }
 
-      /* LEDs — pulsing emissive glow synced with sprite halo */
+      /* LEDs — pulsing emissive glow (static on mobile) */
       leds.forEach(led => {
         let intensity: number;
         if (reduced || isMobile) {
@@ -1019,11 +1012,6 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
         }
         led.material.emissiveIntensity = Math.max(0.08, intensity);
         
-        // Sync sprite glow with LED pulse
-        if (led.sprite && !reduced && !isMobile) {
-          const spriteOpacity = led.state === 'live' ? 0.38 : 0.32;
-          led.sprite.material.opacity = spriteOpacity * (0.65 + intensity * 0.35);
-        }
       });
 
       /* Motes — slow drift (static on mobile) */
