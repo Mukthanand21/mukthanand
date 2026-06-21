@@ -95,19 +95,21 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         iteration++;
         T(step, 50);
       } else {
-        // LOCK to English — gold flash + scale pop
-        span.style.transition = 'color 0.15s, font-family 0.08s, transform 0.15s';
+        // LOCK to English — gold flash + scale pop + glow
+        span.style.transition = 'color 0.15s, font-family 0.08s, transform 0.15s, filter 0.2s';
         span.style.fontFamily = "'Syne', sans-serif";
         span.style.color = '#E8B65A';
         span.style.transform = 'scale(1.15)';
+        span.style.filter = 'drop-shadow(0 0 10px rgba(232,182,90,0.45))';
         span.textContent = letter;
 
-        // Settle to warm white
+        // Settle to warm white — glow fades as letter dims
         T(() => {
           if (skipRef.current) return;
           if (span) {
             span.style.color = 'var(--color-text-primary)';
             span.style.transform = 'scale(1)';
+            span.style.filter = 'drop-shadow(0 0 6px rgba(232,182,90,0.15))';
           }
           onLock();
         }, 180);
