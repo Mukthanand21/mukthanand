@@ -52,6 +52,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   const [systemReady, setSystemReady] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
   const [glowIntensity, setGlowIntensity] = useState<'faint' | 'bloom' | 'fading'>('faint');
+  const [bootStatus, setBootStatus] = useState<'booting' | 'ready'>('booting');
 
   /* ─── Refs ─── */
   const containerRef = useRef<HTMLDivElement>(null);
@@ -145,10 +146,11 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                 setGlowIntensity('bloom');
               }, 120);
 
-              // After glow blooms, fade in SYSTEM READY
+              // After glow blooms, fade in SYSTEM READY + switch status to ready
               T(() => {
                 if (skipRef.current) return;
                 setSystemReady(true);
+                setBootStatus('ready');
 
                 // Hold the glow + SYSTEM READY for 600ms, then reveal
                 T(() => {
@@ -339,6 +341,56 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           </div>
         </div>
       )}
+
+      {/* ─── System status bar — amber dot + boot status + version ─── */
+      /*    Connective tissue to the site's dashbord theme. Disappears      */
+      /*    when the clip-path reveal starts.                                */
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between"
+        style={{
+          opacity: isRevealing ? 0 : 1,
+          transition: 'opacity 0.4s ease-out',
+          padding: '20px 24px',
+        }}
+      >
+        {/* Left: amber dot + status label */}
+        <div className="flex items-center gap-2">
+          <span
+            className="block rounded-full"
+            style={{
+              width: 5,
+              height: 5,
+              background: bootStatus === 'booting' ? '#EF9F27' : '#5DCAA5',
+              animation: bootStatus === 'booting' ? 'bootAmberPulse 2.5s ease-in-out infinite' : 'none',
+              transition: 'background 0.4s ease-out',
+            }}
+          />
+          <span
+            style={{
+              fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+              fontSize: 10,
+              color: bootStatus === 'booting' ? '#5a5a58' : '#6FD9B6',
+              fontWeight: 500,
+              letterSpacing: '0.04em',
+              transition: 'color 0.4s ease-out',
+            }}
+          >
+            {bootStatus === 'booting' ? 'booting...' : 'online'}
+          </span>
+        </div>
+
+        {/* Right: version tag */}
+        <span
+          style={{
+            fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+            fontSize: 10,
+            color: '#444441',
+            fontWeight: 500,
+          }}
+        >
+          v3.0.0
+        </span>
+      </div>
     </div>
   );
 }
