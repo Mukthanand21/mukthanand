@@ -51,6 +51,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   const [showGoldLine, setShowGoldLine] = useState(false);
   const [systemReady, setSystemReady] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [glowIntensity, setGlowIntensity] = useState<'faint' | 'bloom' | 'fading'>('faint');
 
   /* ─── Refs ─── */
   const containerRef = useRef<HTMLDivElement>(null);
@@ -136,7 +137,13 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
               if (skipRef.current) return;
               setShowGoldLine(true);
 
-              // After gold line starts sweeping, fade in SYSTEM READY
+              // After gold line starts sweeping — bloom the glow
+              T(() => {
+                if (skipRef.current) return;
+                setGlowIntensity('bloom');
+              }, 120);
+
+              // After glow blooms, fade in SYSTEM READY
               T(() => {
                 if (skipRef.current) return;
                 setSystemReady(true);
@@ -144,12 +151,16 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                 // Hold the glow + SYSTEM READY for 600ms, then reveal
                 T(() => {
                   if (skipRef.current) return;
-                  onCompleteRef.current?.();
-                  setIsRevealing(true);
+                  setGlowIntensity('fading');
                   T(() => {
                     if (skipRef.current) return;
-                    setPhase('complete');
-                  }, 1200);
+                    onCompleteRef.current?.();
+                    setIsRevealing(true);
+                    T(() => {
+                      if (skipRef.current) return;
+                      setPhase('complete');
+                    }, 1200);
+                  }, 200);
                 }, 600);
               }, 400);
             }, 36);
@@ -243,6 +254,28 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         }}
         aria-hidden="true"
       />
+
+      {/* ─── Radial glow — gold/amber bloom behind the name ─── */}
+      {(phase === 'active' || phase === 'boot') && (
+        <div
+          className="pointer-events-none absolute z-[2]"
+          style={{
+            top: '50%',
+            left: '50%',
+            width: 'min(70vw, 600px)',
+            height: 'min(70vw, 600px)',
+            transform: 'translate(-50%, -50%)',
+            background: 'radial-gradient(circle, rgba(232,182,90,0.30) 0%, rgba(232,182,90,0.08) 40%, transparent 70%)',
+            opacity:
+              glowIntensity === 'bloom' ? 1 :
+              glowIntensity === 'fading' ? 0 :
+              0.5,
+            transition: 'opacity 0.8s cubic-bezier(0.16,1,0.3,1)',
+            willChange: 'opacity',
+          }}
+          aria-hidden="true"
+        />
+      )}
 
       {phase === 'active' && (
         <div
