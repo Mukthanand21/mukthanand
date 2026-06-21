@@ -342,9 +342,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         </div>
       )}
 
-      {/* ─── System status bar — amber dot + boot status + version ─── */
-      /*    Connective tissue to the site's dashbord theme. Disappears      */
-      /*    when the clip-path reveal starts.                                */
+      {/* ─── System status bar — amber dot + boot status + version ─── */}
       <div
         className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between"
         style={{
@@ -391,6 +389,14 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           v3.0.0
         </span>
       </div>
+
+      {/* ─── Keyframe for the amber pulse ─── */}
+      <style>{`
+        @keyframes bootAmberPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.35; }
+        }
+      `}</style>
     </div>
   );
 }
