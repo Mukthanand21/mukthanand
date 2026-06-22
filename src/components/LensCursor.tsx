@@ -102,7 +102,7 @@ export function LensCursor() {
         height: '30px',
         borderColor: 'transparent',
         mixBlendMode: 'exclusion',
-        background: 'rgba(232, 182, 90, 0.08)',
+        background: 'rgba(245, 208, 112, 0.08)',
         backdropFilter: 'blur(1px)',
         willChange: 'transform',
         transform: 'translate(-15px, -15px)',
