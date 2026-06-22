@@ -72,8 +72,8 @@ export function Footer() {
       }}
     >
       {/* ─── 3-column grid — system | navigate | connect ─── */}
-      <div className="mx-auto max-w-content px-gutter py-10">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-[auto_1fr_auto] sm:gap-12">
+      <div className="mx-auto max-w-content px-gutter py-8 sm:py-10">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-[auto_1fr_auto] sm:gap-12">
 
           {/* ─── SYSTEM ─── */}
           <div>
@@ -98,7 +98,7 @@ export function Footer() {
           </div>
 
           {/* ─── NAVIGATE — centered ─── */}
-          <div className="sm:flex sm:flex-col sm:items-center">
+          <div className="sm:flex sm:flex-col sm:items-center md:text-center">
             <p className="col-label">NAVIGATE</p>
             <div className="nav-links">
               {NAV_LINKS.map((link) => {
@@ -116,8 +116,8 @@ export function Footer() {
             </div>
           </div>
 
-          {/* ─── CONNECT — offset left ─── */}
-          <div className="sm:mr-12">
+          {/* ─── CONNECT ─── */}
+          <div className="sm:mr-12 md:text-right">
             <p className="col-label">CONNECT</p>
             <div className="social-links">
               {SOCIALS.map((s) => (
@@ -162,6 +162,21 @@ export function Footer() {
           letter-spacing: 0.08em;
           text-transform: uppercase;
           margin-bottom: 12px;
+        }
+        @media (max-width: 639px) {
+          .col-label { font-size: 8px; margin-bottom: 6px; letter-spacing: 0.06em; }
+          .status-text { font-size: 9px; }
+          .build-key { font-size: 8px; }
+          .build-val { font-size: 8px; }
+          .copy { font-size: 8px; }
+          .status-dot { width: 4px; height: 4px; }
+          .status-row { gap: 4px; margin-bottom: 3px; }
+          .build-row { gap: 3px; margin-top: 3px; }
+          .nav-link { font-size: 9px; }
+          .nav-links { gap: 4px; }
+          .social-link { font-size: 9px; gap: 4px; }
+          .social-icon { width: 10px; height: 10px; }
+          .social-links { gap: 4px; }
         }
         .status-row {
           display: flex;

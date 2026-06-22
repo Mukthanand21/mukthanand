@@ -32,7 +32,7 @@ export function Status() {
   return (
     <section
       id="status"
-      className="relative min-h-screen overflow-hidden pt-6 -mx-gutter"
+      className="relative md:min-h-screen overflow-hidden pt-6 -mx-gutter"
       style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
     >
       {/* ─── 3D rack background ─── */}
@@ -177,12 +177,15 @@ export function Status() {
                   </Link>
 
                   {/* secondary CTA — outline */}
-                  <Link
-                    to="/changelog"
+                  <a
+                    href="https://drive.google.com/file/d/1x4HWdyhLU385gdNF4N_C3SwK1_5hhEGI/view?usp=sharing"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-lg border-thin border-border px-5 py-2.5 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent md:bg-transparent bg-bg-elevated"
                   >
-                    <span>read changelog</span>
-                  </Link>
+                    <span>download resume</span>
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                  </a>
                 </div>
               </div>
         </div>

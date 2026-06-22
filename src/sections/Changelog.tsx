@@ -16,7 +16,7 @@ const entries: Entry[] = [
     date: 'JUN 2026',
     title: 'Graduation Release',
     description:
-      'Completed B.Tech in Computer Science & Engineering at ICFAI Tech Hyderabad. CGPA 7.85. Ready to ship full-time across backend, full-stack, and AI engineering roles.',
+      'Completed B.Tech in Computer Science & Engineering at ICFAI Tech Hyderabad. CGPA 8.05. Ready to ship full-time across backend, full-stack, and AI engineering roles.',
     tags: ['Education', 'B.Tech CSE', 'ICFAI Tech Hyderabad'],
   },
   {
