@@ -1,10 +1,164 @@
 /* ═══════════════════════════════════════════════════════
    StatusBar — system-style status bar
-   Rendered globally in Layout.tsx, outside <main>,
-   sharing the same container class as the navbar
-   for pixel-perfect horizontal alignment.
+   On desktop: static horizontal bar with spread items.
+   On mobile: auto-scrolling ticker-like animation.
    ═══════════════════════════════════════════════════════ */
 
+import { useEffect, useRef } from 'react';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
+
+/* ─── Render the status items as flat JSX ─── */
+function StatusItems({ id }: { id?: string }) {
+  return (
+    <>
+      {/* status — amber dot + teal text */}
+      <span className="inline-flex items-center gap-2 shrink-0" style={{ paddingRight: 16 }}>
+        <span
+          className="block rounded-full"
+          style={{ width: 5, height: 5, background: '#EF9F27', animation: 'amberPulse 2.5s ease-in-out infinite' }}
+        />
+        <span style={{ color: '#6FD9B6', fontWeight: 500 }}>online</span>
+      </span>
+
+      {/* divider */}
+      <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0, marginRight: 16 }} />
+
+      {/* build */}
+      <span className="inline-flex items-center gap-1 shrink-0" style={{ paddingRight: 16 }}>
+        <span style={{ color: '#5a5a58' }}>build:</span>
+        <span style={{ color: '#7a7974', fontWeight: 500 }}>v3.0.0</span>
+      </span>
+
+      {/* divider */}
+      <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0, marginRight: 16 }} />
+
+      {/* uptime */}
+      <span className="inline-flex items-center gap-1 shrink-0" style={{ paddingRight: 16 }}>
+        <span style={{ color: '#5a5a58' }}>uptime:</span>
+        <span id={id ? `${id}-uptime` : undefined} style={{ color: '#7a7974', fontWeight: 500 }}>142d 06:21:14</span>
+      </span>
+
+      {/* divider */}
+      <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0, marginRight: 16 }} />
+
+      {/* region */}
+      <span className="inline-flex items-center gap-1 shrink-0" style={{ paddingRight: 16 }}>
+        <span style={{ color: '#5a5a58' }}>region:</span>
+        <span style={{ color: '#7a7974', fontWeight: 500 }}>IND Hyd</span>
+      </span>
+
+      {/* divider */}
+      <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0, marginRight: 16 }} />
+
+      {/* load */}
+      <span className="inline-flex items-center gap-1 shrink-0">
+        <span style={{ color: '#5a5a58' }}>load:</span>
+        <span id={id ? `${id}-load` : 'load-readout'} style={{ color: '#7a7974', fontWeight: 500 }}>0.42</span>
+      </span>
+    </>
+  );
+}
+
+/* ─── Desktop: static bar ─── */
+function StatusBarDesktop() {
+  return (
+    <div
+      className="mx-auto flex max-w-content items-center justify-between px-gutter"
+      style={{
+        height: 36,
+        fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+        fontSize: 10,
+      }}
+    >
+      <StatusItems />
+    </div>
+  );
+}
+
+/* ─── Mobile: auto-scrolling ticker-like bar ─── */
+function StatusBarMobile() {
+  const reduced = usePrefersReducedMotion();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (reduced || !scrollRef.current) return;
+
+    const el = scrollRef.current;
+    let pos = 0;
+    let raf: number;
+
+    const animate = () => {
+      pos -= 0.2;
+      const half = el.scrollWidth / 2;
+      if (Math.abs(pos) >= half) pos = 0;
+      el.style.transform = `translateX(${pos}px)`;
+      raf = requestAnimationFrame(animate);
+    };
+
+    raf = requestAnimationFrame(animate);
+
+    const pause = () => cancelAnimationFrame(raf);
+    const resume = () => { raf = requestAnimationFrame(animate); };
+
+    el.addEventListener('mouseenter', pause);
+    el.addEventListener('mouseleave', resume);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener('mouseenter', pause);
+      el.removeEventListener('mouseleave', resume);
+    };
+  }, [reduced]);
+
+  /* reduced-motion fallback: static row without mask */
+  if (reduced) {
+    return (
+      <div
+        className="mx-auto max-w-content overflow-hidden px-gutter"
+        style={{ height: 36 }}
+      >
+        <div
+          className="inline-flex items-center whitespace-nowrap"
+          style={{
+            height: 36,
+            fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+            fontSize: 10,
+          }}
+        >
+          <StatusItems id="mobile" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="mx-auto max-w-content overflow-hidden px-gutter"
+      style={{
+        height: 36,
+        maskImage: 'linear-gradient(to right, transparent 0%, rgb(0,0,0) 5%, rgb(0,0,0) 95%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgb(0,0,0) 5%, rgb(0,0,0) 95%, transparent 100%)',
+      }}
+    >
+      <div
+        ref={scrollRef}
+        className="inline-flex items-center whitespace-nowrap will-change-transform"
+        style={{
+          height: 36,
+          fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+          fontSize: 10,
+        }}
+      >
+        <StatusItems id="mobile" />
+        <StatusItems id="mobile-dup" />
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   StatusBar wrapper — switches between desktop and mobile
+   ═══════════════════════════════════════════════════════ */
 function StatusBarInner() {
   return (
     <div
@@ -19,58 +173,14 @@ function StatusBarInner() {
         animation: 'statusFadeDown 0.9s 1.8s cubic-bezier(0.16,1,0.3,1) forwards',
       }}
     >
-      <div
-        className="mx-auto flex max-w-content items-center overflow-x-auto px-gutter justify-between"
-        style={{
-          height: 36,
-          fontFamily: 'JetBrains Mono, ui-monospace, monospace',
-          fontSize: 10,
-        }}
-      >
-        {/* status — amber dot + teal text */}
-        <div className="flex items-center gap-2 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ paddingRight: 16 }}>
-          <span
-            className="block rounded-full"
-            style={{ width: 5, height: 5, background: '#EF9F27', animation: 'amberPulse 2.5s ease-in-out infinite' }}
-          />
-          <span style={{ color: '#6FD9B6', fontWeight: 500 }}>online</span>
-        </div>
+      {/* Desktop: visible at md+ */}
+      <div className="hidden md:block">
+        <StatusBarDesktop />
+      </div>
 
-        {/* ─── divider ─── */}
-        <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0 }} />
-
-        {/* build */}
-        <div className="flex items-center gap-1 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ padding: '0 16px' }}>
-          <span style={{ color: '#5a5a58' }}>build:</span>
-          <span style={{ color: '#7a7974', fontWeight: 500 }}>v3.0.0</span>
-        </div>
-
-        {/* ─── divider ─── */}
-        <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0 }} />
-
-        {/* uptime */}
-        <div className="flex items-center gap-1 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ padding: '0 16px' }}>
-          <span style={{ color: '#5a5a58' }}>uptime:</span>
-          <span style={{ color: '#7a7974', fontWeight: 500 }}>142d 06:21:14</span>
-        </div>
-
-        {/* ─── divider ─── */}
-        <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0 }} />
-
-        {/* region */}
-        <div className="flex items-center gap-1 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ padding: '0 16px' }}>
-          <span style={{ color: '#5a5a58' }}>region:</span>
-          <span style={{ color: '#7a7974', fontWeight: 500 }}>IND Hyd</span>
-        </div>
-
-        {/* ─── divider ─── */}
-        <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0 }} />
-
-        {/* load */}
-        <div className="flex items-center gap-1 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ padding: '0 16px' }}>
-          <span style={{ color: '#5a5a58' }}>load:</span>
-          <span id="load-readout" style={{ color: '#7a7974', fontWeight: 500 }}>0.42</span>
-        </div>
+      {/* Mobile: visible below md */}
+      <div className="md:hidden">
+        <StatusBarMobile />
       </div>
     </div>
   );
