@@ -60,7 +60,7 @@ function StatusBarInner() {
         {/* region */}
         <div className="flex items-center gap-1 transition-colors duration-150 hover:bg-[#1a1a17] rounded cursor-default" style={{ padding: '0 16px' }}>
           <span style={{ color: '#5a5a58' }}>region:</span>
-          <span style={{ color: '#7a7974', fontWeight: 500 }}>blr-1</span>
+          <span style={{ color: '#7a7974', fontWeight: 500 }}>IND Hyd</span>
         </div>
 
         {/* ─── divider ─── */}

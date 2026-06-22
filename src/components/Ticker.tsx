@@ -3,13 +3,15 @@ import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 /* ─── ticker items ─── */
 const ITEMS = [
-  '7 Projects Contributed',
-  '17 MRs Merged',
-  '40+ Issues Created',
-  '350+ Total Commits',
-  '10k+ Platform Users (corpus.swecha.org)',
-  'Backend Engineer',
-  'Full-Stack Developer',
+  'Ask Your Corpus',
+  'EHRS',
+  'Viswam AI',
+  '17+ MRs Merged',
+  '7+ Repositories Contributed',
+  'Backend Engineering',
+  'Full-Stack Development',
+  'AI Products',
+  'Open Source Contributor',
 ];
 
 const SEPARATOR = '  \u2022  ';

@@ -127,15 +127,15 @@ export function Status() {
                 {/* role line */}
                 <div className="mt-4">
                   <KineticSwapper
-                    prefix="Open to"
+                    prefix="Focused on"
                     words={[
-                      'AI roles',
-                      'Backend roles',
-                      'Full Stack roles',
-                      'Applied AI roles',
+                      'Backend Systems',
+                      'Full-Stack Applications',
+                      'AI Products',
+                      'Open Source',
                     ]}
                     className="font-sans text-base leading-relaxed"
-                    wordStyle={{ color: '#D3D1C7' }}
+                    wordStyle={{ color: '#E8B65A' }}
                     interval={2500}
                     as="p"
                     style={{ color: '#888780' }}
@@ -143,7 +143,7 @@ export function Status() {
                 </div>
 
                 <p
-                  className="mt-4 max-w-[34ch] font-sans text-lg leading-relaxed"
+                  className="mt-4 max-w-[40ch] font-sans text-sm md:text-lg leading-relaxed"
                   style={{
                     color: '#B0A898',
                     textShadow: '0 2px 12px rgba(0,0,0,0.5)',
@@ -151,8 +151,11 @@ export function Status() {
                     animation: 'statusFadeUp 1s 2.65s cubic-bezier(0.16,1,0.3,1) forwards',
                   }}
                 >
-                  Backend & full-stack engineer. Builds retrieval systems,
-                  agentic tooling, and tools for underserved communities.
+                  Software engineer focused on backend systems,{' '}
+                  <span className="text-nowrap">full-stack</span>{' '}
+                  applications, and AI-powered products.
+                  Built and contributed to Ask Your Corpus, EHRS, and
+                  open-source AI infrastructure at Viswam AI.
                 </p>
 
                 {/* CTA buttons */}
@@ -169,7 +172,7 @@ export function Status() {
                     to="/services"
                     className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 font-sans text-sm font-semibold text-[#0A0A0A] transition-all duration-[120ms] hover:bg-accent-dim hover:-translate-y-px"
                   >
-                    <span>view services</span>
+                    <span>view projects</span>
                     <span className="text-xs">&rarr;</span>
                   </Link>
 
