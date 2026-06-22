@@ -111,7 +111,7 @@ export function Status() {
                   ref={heroAccentRef}
                   className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0]"
                   style={{
-                    color: '#E8B65A',
+                    color: 'var(--color-accent)',
                     willChange: 'transform',
                     textShadow: '0 4px 20px rgba(0,0,0,0.65)',
                     opacity: 0,
@@ -135,7 +135,7 @@ export function Status() {
                       'Open Source',
                     ]}
                     className="font-sans text-base leading-relaxed"
-                    wordStyle={{ color: '#E8B65A' }}
+                    wordStyle={{ color: 'var(--color-accent)' }}
                     interval={2500}
                     as="p"
                     style={{ color: '#888780' }}

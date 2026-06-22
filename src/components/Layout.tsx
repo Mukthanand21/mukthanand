@@ -1,11 +1,13 @@
-import { useState, createContext, useContext } from 'react';
+import { useState, createContext, useContext, useEffect, useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Nav } from './Nav';
 import { StatusBar } from './StatusBar';
 import { Footer } from './Footer';
 import { BootLoader } from './BootLoader';
 import { LensCursor } from './LensCursor';
 import { ScrollProvider } from '../motion/ScrollProvider';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 // Context to share bootComplete state with child components
 const BootContext = createContext(false);
@@ -16,6 +18,17 @@ export const useBootComplete = () => useContext(BootContext);
 export function Layout() {
   const [bootComplete, setBootComplete] = useState(false);
   const { pathname } = useLocation();
+  const reduced = usePrefersReducedMotion();
+
+  /* scroll to top after route transition completes */
+  const onRouteEntered = useCallback(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  /* scroll-to-top for reduced-motion users (AnimatePresence is disabled) */
+  useEffect(() => {
+    if (reduced) window.scrollTo(0, 0);
+  }, [pathname, reduced]);
 
   return (
     <div className="min-h-screen bg-bg text-fg">
@@ -36,7 +49,19 @@ export function Layout() {
             <Nav />
             {pathname !== '/404' && <StatusBar />}
             <main id="main-content" className="mx-auto max-w-content px-gutter" tabIndex={-1}>
-              <Outlet />
+              {reduced ? (
+                <Outlet />
+              ) : (
+                <motion.div
+                  key={pathname}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  onAnimationComplete={onRouteEntered}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <Outlet />
+                </motion.div>
+              )}
             </main>
             <Footer />
           </ScrollProvider>

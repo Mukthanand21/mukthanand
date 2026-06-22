@@ -205,9 +205,14 @@ export function Stack() {
 
   return (
     <Section id="stack" label="/stack">
-      <p className="mb-6 max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
-        Skills grouped by discipline. Depth signaled honestly — no filler, no charts.
-      </p>
+      <div className="mb-6">
+        <p className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
+          Skills grouped by discipline. Depth signaled honestly — no filler, no charts.
+        </p>
+        <p className="mt-2 font-mono text-xs text-fg-muted">
+          {groups.reduce((sum, g) => sum + g.items.length, 0)} packages installed &middot; {groups.length} categories
+        </p>
+      </div>
 
       {/* tab navigation */}
       <LayoutGroup>

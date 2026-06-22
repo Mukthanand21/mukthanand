@@ -11,8 +11,9 @@ type Service = {
   name: string;
   description: string;
   tech: string[];
-  link: LinkLabel | null; // null for archived services with no link
+  link: LinkLabel | null;
   status: ServiceStatus;
+  responseMs: number; // stable value for the decorative metrics footer
 };
 
 const services: Service[] = [
@@ -25,6 +26,7 @@ const services: Service[] = [
     tech: ['PostgreSQL', 'pg_trgm', 'FastAPI', 'Python', 'React', 'TypeScript'],
     link: { href: 'https://corpus.swecha.org', label: 'corpus.swecha.org' },
     status: 'live',
+    responseMs: 87,
   },
   {
     method: 'POST',
@@ -35,6 +37,7 @@ const services: Service[] = [
     tech: ['Python', 'Telegram Bot API', 'Groq', 'STT', 'TTS', 'Telugu NLP'],
     link: { href: 'https://t.me/scheme_saathi_bot', label: '@scheme_saathi_bot' },
     status: 'live',
+    responseMs: 142,
   },
   {
     method: 'GET',
@@ -48,6 +51,7 @@ const services: Service[] = [
       label: 'faqsense.streamlit.app',
     },
     status: 'live',
+    responseMs: 205,
   },
   {
     method: 'GET',
@@ -58,15 +62,14 @@ const services: Service[] = [
     tech: ['Python', 'Flask', 'PostgreSQL', 'Tailwind CSS', 'Machine Learning', 'Linear Regression'],
     link: { href: 'https://github.com/Mukthanand21/MediFlow.ai', label: 'github.com/Mukthanand21/MediFlow.ai' },
     status: 'archived',
+    responseMs: 0,
   },
 ];
 
 /* ─── status dot + label ─── */
 function StatusBadge({ status }: { status: ServiceStatus }) {
-  const color =
-    status === 'live'
-      ? 'text-success'
-      : 'text-fg-muted';
+  const isLive = status === 'live';
+  const color = isLive ? 'text-success' : 'text-fg-muted';
 
   return (
     <span
@@ -74,7 +77,7 @@ function StatusBadge({ status }: { status: ServiceStatus }) {
     >
       <span
         className={`inline-block h-1.5 w-1.5 rounded-full ${
-          status === 'live' ? 'bg-success' : 'bg-fg-muted'
+          isLive ? 'bg-success animate-dot-pulse-service' : 'bg-fg-muted'
         }`}
       />
       <span className="uppercase tracking-wider">{status}</span>
@@ -101,7 +104,7 @@ function ServiceCard({ service, index }: { service: Service; index: number }) {
         className={`group rounded-card border border-border border-l-[3px] bg-bg-elevated p-6 transition-all duration-150 sm:p-8 ${
           isArchived
             ? 'border-dashed border-l-border opacity-60'
-            : 'border-l-transparent hover:border-l-accent hover:bg-accent/[0.03]'
+            : 'border-l-transparent hover:-translate-y-1 hover:border-l-accent hover:bg-accent/[0.03] hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]'
         }`}
       >
         {/* header row: method + path + status (left) · link (right) */}
@@ -123,7 +126,12 @@ function ServiceCard({ service, index }: { service: Service; index: number }) {
               className="shrink-0 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-accent"
               aria-label={service.link.label}
             >
-              {service.link.label} &rarr;
+              <span className="inline-flex items-center gap-1">
+                {service.link.label}
+                <span className="inline-block transition-transform duration-150 group-hover:translate-x-0.5">
+                  &rarr;
+                </span>
+              </span>
             </a>
           ) : (
             <span className="shrink-0 font-mono text-xs text-fg-muted">
@@ -133,12 +141,12 @@ function ServiceCard({ service, index }: { service: Service; index: number }) {
         </div>
 
         {/* service name */}
-        <h3 className="text-xl font-semibold text-fg transition-colors duration-150 group-hover:text-accent">
+        <h3 className="text-lg font-semibold text-fg transition-colors duration-150 group-hover:text-accent md:text-xl">
           {service.name}
         </h3>
 
         {/* description */}
-        <p className="mt-3 max-w-prose text-md leading-relaxed text-fg-secondary">
+        <p className="mt-3 max-w-prose text-sm leading-relaxed text-fg-secondary md:text-md">
           {service.description}
         </p>
 
@@ -155,6 +163,47 @@ function ServiceCard({ service, index }: { service: Service; index: number }) {
             ))}
           </div>
         )}
+
+        {/* system metrics footer — staggered fade-in */}
+        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-3 font-mono text-xs text-fg-muted/60">
+          <span
+            className="inline-flex items-center gap-1"
+            style={{
+              animation: isArchived ? 'none' : 'metricFadeIn 0.5s ease-out forwards',
+              animationDelay: '0.45s',
+              opacity: isArchived ? undefined : 0,
+            }}
+          >
+            <span className="text-fg-muted/40">status:</span>
+            <span className={isArchived ? 'text-fg-muted/40' : 'text-success/70'}>
+              {isArchived ? '410 Gone' : '200 OK'}
+            </span>
+          </span>
+          <span
+            className="inline-flex items-center gap-1"
+            style={{
+              animation: isArchived ? 'none' : 'metricFadeIn 0.5s ease-out forwards',
+              animationDelay: '0.55s',
+              opacity: isArchived ? undefined : 0,
+            }}
+          >
+            <span className="text-fg-muted/40">response:</span>
+            <span>
+              {isArchived ? '—' : `${service.responseMs}ms`}
+            </span>
+          </span>
+          <span
+            className="inline-flex items-center gap-1"
+            style={{
+              animation: isArchived ? 'none' : 'metricFadeIn 0.5s ease-out forwards',
+              animationDelay: '0.65s',
+              opacity: isArchived ? undefined : 0,
+            }}
+          >
+            <span className="text-fg-muted/40">uptime:</span>
+            <span>{isArchived ? '0d' : '142d'}</span>
+          </span>
+        </div>
       </article>
     </Reveal>
   );
@@ -169,7 +218,26 @@ export function Services() {
   const archivedCount = services.filter((s) => s.status === 'archived').length;
 
   return (
-    <Section id="services" label="/services">
+    <>
+      <style>{`
+        .animate-dot-pulse-service {
+          animation: serviceDotPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes serviceDotPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.35; }
+        }
+        @keyframes metricFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-dot-pulse-service {
+            animation: none !important;
+          }
+        }
+      `}</style>
+      <Section id="services" label="/services">
       <div className="mb-10">
         <p className="max-w-prose text-base leading-relaxed text-fg-secondary">
           Services I&rsquo;ve shipped or contributed to.
@@ -185,5 +253,6 @@ export function Services() {
         ))}
       </div>
     </Section>
+    </>
   );
 }

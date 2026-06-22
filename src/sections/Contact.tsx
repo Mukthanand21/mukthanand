@@ -70,9 +70,21 @@ export function Contact() {
 
   return (
     <Section id="contact" label="POST /hire">
-      <p className="mb-10 max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
-        Send a request directly, or reach out through any channel below.
-      </p>
+      <div className="mb-10">
+        <p className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
+          Send a request directly, or reach out through any channel below.
+        </p>
+        <p className="mt-2 flex items-center gap-3 font-mono text-xs text-fg-muted">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+            <span>latency: 24ms</span>
+          </span>
+          <span className="text-fg-muted/30">|</span>
+          <span>signal: strong</span>
+          <span className="text-fg-muted/30">|</span>
+          <span>uptime: 142d</span>
+        </p>
+      </div>
 
       <div className="relative grid gap-12 lg:grid-cols-[1fr_auto] overflow-hidden">
         {/* ─── soft radial gold glow behind form ─── */}

@@ -98,9 +98,14 @@ export function Changelog() {
           }
         }
       `}</style>
-      <p className="mb-12 max-w-prose text-base leading-relaxed text-fg-secondary">
-        A record of builds, shipped features, and lessons learned.
-      </p>
+      <div className="mb-12">
+        <p className="max-w-prose text-base leading-relaxed text-fg-secondary">
+          A record of builds, shipped features, and lessons learned.
+        </p>
+        <p className="mt-2 font-mono text-xs text-fg-muted">
+          {entries.length} releases &middot; latest {entries[0].version} &middot; {entries.filter(e => isMajor(e.version)).length} major
+        </p>
+      </div>
 
       <div className="max-w-2xl">
         {entries.map((entry, i) => {

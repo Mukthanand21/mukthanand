@@ -7,10 +7,10 @@ export function NotFound() {
   return (
     <section className="flex min-h-[70vh] flex-col items-center justify-center text-center">
       {/* error code */}
-      <p className="font-mono text-sm text-warning">404 &mdash; not found</p>
+      <p className="font-mono text-sm text-accent">404 &mdash; not found</p>
 
       {/* oversized heading */}
-      <h1 className="mt-6 font-display text-display-2 text-fg-strong">
+      <h1 className="mt-6 font-display text-hero text-fg">
         Route not mapped
       </h1>
 
@@ -20,10 +20,10 @@ export function NotFound() {
         server. Check the URL or return to the status page.
       </p>
 
-      {/* back link with cyan accent */}
+      {/* back link */}
       <Link
         to="/status"
-        className="group mt-10 inline-flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-6 py-3 font-mono text-sm text-accent transition-all duration-300 hover:bg-accent/10 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]"
+        className="group mt-10 inline-flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-6 py-3 font-mono text-sm text-accent transition-all duration-300 hover:bg-accent/10 hover:shadow-[0_0_20px_-4px_rgba(245,208,112,0.15)]"
       >
         <span className="inline-block transition-transform duration-300 group-hover:-translate-x-1">
           &larr;
