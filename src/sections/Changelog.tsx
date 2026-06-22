@@ -83,6 +83,21 @@ function EntryTag({ label }: { label: string }) {
 export function Changelog() {
   return (
     <Section id="changelog" label="/changelog">
+      <style>{`
+        .animate-dot-pulse {
+          animation: dot-pulse 2.5s ease-in-out infinite;
+        }
+        @keyframes dot-pulse {
+          0%, 100% { transform: scale(1); opacity: 0.25; }
+          50% { transform: scale(1.6); opacity: 0.08; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-dot-pulse {
+            animation: none !important;
+            opacity: 0.15 !important;
+          }
+        }
+      `}</style>
       <p className="mb-12 max-w-prose text-base leading-relaxed text-fg-secondary">
         A record of builds, shipped features, and lessons learned.
       </p>
@@ -98,15 +113,30 @@ export function Changelog() {
                 <div className="group flex items-start gap-5">
                   {/* ─── dot column ─── */}
                   <div className="flex shrink-0 flex-col items-center w-[20px]">
-                    {/* dot */}
-                    <div
-                      className={`shrink-0 rounded-full bg-accent mt-[4px] ${
-                        major ? 'h-3 w-3' : 'h-[10px] w-[10px]'
-                      }`}
-                    />
-                    {/* connecting line — hidden on last entry */}
+                    {/* dot with pulsing glow ring */}
+                    <div className="relative flex items-center justify-center mt-[4px] shrink-0">
+                      {/* glow ring */}
+                      <div
+                        className={`absolute rounded-full bg-accent/25 animate-dot-pulse ${
+                          major ? 'h-[18px] w-[18px]' : 'h-[15px] w-[15px]'
+                        }`}
+                      />
+                      {/* dot */}
+                      <div
+                        className={`rounded-full bg-accent ${
+                          major ? 'h-3 w-3' : 'h-[10px] w-[10px]'
+                        }`}
+                      />
+                    </div>
+                    {/* connecting line — gradient from gold to border, hidden on last entry */}
                     {!isLast && (
-                      <div className="w-px flex-1 bg-border mt-[8px] min-h-[60px]" />
+                      <div
+                        className="w-px flex-1 mt-[8px] min-h-[60px]"
+                        style={{
+                          background: 'linear-gradient(to bottom, var(--color-accent) 0%, var(--color-border) 100%)',
+                          opacity: 0.5,
+                        }}
+                      />
                     )}
                   </div>
 

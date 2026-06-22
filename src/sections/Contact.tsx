@@ -74,9 +74,18 @@ export function Contact() {
         Send a request directly, or reach out through any channel below.
       </p>
 
-      <div className="grid gap-12 lg:grid-cols-[1fr_auto]">
+      <div className="relative grid gap-12 lg:grid-cols-[1fr_auto] overflow-hidden">
+        {/* ─── soft radial gold glow behind form ─── */}
+        <div
+          className="pointer-events-none absolute -left-20 -top-20 -bottom-20 w-[500px] z-0"
+          style={{
+            background: 'radial-gradient(ellipse 60% 50% at 40% 50%, rgba(245, 208, 112, 0.08) 0%, transparent 70%)',
+          }}
+          aria-hidden="true"
+        />
+
         {/* ─── form column ─── */}
-        <Reveal direction="left" delay={0} className="min-w-0">
+        <Reveal direction="left" delay={0} className="min-w-0 relative z-[1]">
           {state === 'success' ? (
             /* success — replace form entirely */
             <div className="flex min-h-[280px] items-center justify-center rounded-card border-thin border-success/20 bg-bg-subtle p-8">

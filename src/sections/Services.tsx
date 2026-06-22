@@ -93,11 +93,15 @@ function MethodBadge({ method }: { method: string }) {
 
 /* ─── individual service card ─── */
 function ServiceCard({ service, index }: { service: Service; index: number }) {
+  const isArchived = service.status === 'archived';
+
   return (
     <Reveal delay={index * 0.08}>
       <article
-        className={`group rounded-card border border-border bg-bg-elevated p-6 transition-all duration-150 hover:border-bg-subtle hover:bg-[#453050] sm:p-8 ${
-          service.status === 'archived' ? 'opacity-70' : ''
+        className={`group rounded-card border border-border border-l-[3px] bg-bg-elevated p-6 transition-all duration-150 sm:p-8 ${
+          isArchived
+            ? 'border-dashed border-l-border opacity-60'
+            : 'border-l-transparent hover:border-l-accent hover:bg-accent/[0.03]'
         }`}
       >
         {/* header row: method + path + status (left) · link (right) */}
@@ -161,11 +165,19 @@ function ServiceCard({ service, index }: { service: Service; index: number }) {
    Full-width cards, vertical list, projects as API services
    ============================================================ */
 export function Services() {
+  const liveCount = services.filter((s) => s.status === 'live').length;
+  const archivedCount = services.filter((s) => s.status === 'archived').length;
+
   return (
     <Section id="services" label="/services">
-      <p className="mb-10 max-w-prose text-base leading-relaxed text-fg-secondary">
-        Services I&rsquo;ve shipped or contributed to.
-      </p>
+      <div className="mb-10">
+        <p className="max-w-prose text-base leading-relaxed text-fg-secondary">
+          Services I&rsquo;ve shipped or contributed to.
+        </p>
+        <p className="mt-2 font-mono text-xs text-fg-muted">
+          {services.length} services &middot; {liveCount} live &middot; {archivedCount} archived
+        </p>
+      </div>
 
       <div className="flex flex-col gap-5">
         {services.map((service, i) => (
