@@ -111,7 +111,7 @@ export function Status() {
                   ref={heroAccentRef}
                   className="text-[clamp(52px,8vw,88px)] font-bold leading-[1.0]"
                   style={{
-                    color: '#f5f3ee',
+                    color: '#E8B65A',
                     willChange: 'transform',
                     textShadow: '0 4px 20px rgba(0,0,0,0.65)',
                     opacity: 0,
