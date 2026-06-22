@@ -68,17 +68,10 @@ export function Status() {
         aria-hidden="true"
       />
 
-      {/* ─── Mobile-only: darker bottom gradient to separate ticker from text ─── */}
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[7] h-[35vh] md:hidden"
-        style={{
-          background: 'linear-gradient(to top, rgba(10,10,10,0.9) 0%, transparent 100%)',
-        }}
-        aria-hidden="true"
-      />
+
 
       {/* ─── Content overlay ─── */}
-      <div className="relative z-10 flex md:min-h-screen min-h-[0px] flex-col md:justify-center justify-start" style={{ pointerEvents: 'none', padding: '6vh 7vw' }}>
+      <div className="relative z-10 flex md:min-h-screen min-h-[0px] flex-col md:justify-center justify-start" style={{ pointerEvents: 'none', padding: '10vh 7vw' }}>
         <div>
             {/* ─── version tag ─── */}
             <p
@@ -160,7 +153,7 @@ export function Status() {
 
                 {/* CTA buttons */}
                 <div
-                  className="mt-8 flex flex-wrap items-center gap-4"
+                  className="mt-12 flex flex-wrap items-center gap-4"
                   style={{
                     pointerEvents: 'auto',
                     opacity: 0,
@@ -192,7 +185,7 @@ export function Status() {
       </div>
 
       {/* ─── ticker ─── */}
-      <div className="relative z-10 md:mt-20 mt-8 overflow-hidden">
+      <div className="relative z-10 md:mt-20 mt-16 overflow-hidden">
         <Ticker />
       </div>
 
