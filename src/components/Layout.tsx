@@ -1,34 +1,28 @@
-import { useState, createContext, useContext, useEffect, useCallback } from 'react';
+import { useState, createContext, useContext } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Nav } from './Nav';
 import { StatusBar } from './StatusBar';
 import { Footer } from './Footer';
 import { BootLoader } from './BootLoader';
 import { LensCursor } from './LensCursor';
 import { ScrollProvider } from '../motion/ScrollProvider';
-import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 // Context to share bootComplete state with child components
 const BootContext = createContext(false);
 export const useBootComplete = () => useContext(BootContext);
 
-// Shared app shell: nav, routed section content, footer.
-// GSAP + Lenis via ScrollProvider wraps the entire app for smooth scroll.
+/* ═══════════════════════════════════════════════════════
+   Layout — Shared app shell
+
+   The IndexPage (all sections stacked) is rendered via Outlet.
+   On the 404 page, StatusBar is hidden. The scroll-based
+   architecture means no route transitions — sections reveal
+   via GSAP ScrollTrigger as the user scrolls.
+   ═══════════════════════════════════════════════════════ */
 export function Layout() {
   const [bootComplete, setBootComplete] = useState(false);
   const { pathname } = useLocation();
-  const reduced = usePrefersReducedMotion();
-
-  /* scroll to top after route transition completes */
-  const onRouteEntered = useCallback(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  /* scroll-to-top for reduced-motion users (AnimatePresence is disabled) */
-  useEffect(() => {
-    if (reduced) window.scrollTo(0, 0);
-  }, [pathname, reduced]);
+  const is404 = pathname === '/404';
 
   return (
     <div className="min-h-screen bg-bg text-fg">
@@ -47,23 +41,12 @@ export function Layout() {
               Skip to main content
             </a>
             <Nav />
-            {pathname !== '/404' && <StatusBar />}
-            <main id="main-content" className="mx-auto max-w-content px-gutter" tabIndex={-1}>
-              {reduced ? (
-                <Outlet />
-              ) : (
-                <motion.div
-                  key={pathname}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  onAnimationComplete={onRouteEntered}
-                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <Outlet />
-                </motion.div>
-              )}
+            {!is404 && <StatusBar />}
+            {/* A — main is full-width; each section handles its own width + content max-width via <Section> */}
+            <main id="main-content" tabIndex={-1}>
+              <Outlet />
             </main>
-            <Footer />
+            {!is404 && <Footer />}
           </ScrollProvider>
         </BootContext.Provider>
       </div>

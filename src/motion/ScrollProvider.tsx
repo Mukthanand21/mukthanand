@@ -3,40 +3,58 @@ import { ReactLenis } from '@studio-freight/react-lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-/* ─── Register GSAP plugins ─── */
 gsap.registerPlugin(ScrollTrigger);
 
-/* ============================================================
-   ScrollProvider — syncs GSAP with Lenis for jitter-free
-   scroll-linked animations. Wraps the entire app.
-
-   Per the creative director's spec:
-   "If you run Lenis and GSAP independently, your scroll-triggered
-    animations will jitter because their requestAnimationFrame loops
-    will fire out of sync. You must sync the GSAP ticker to Lenis."
-
-   Usage: wrap <Layout /> (or the app root) with this component.
-   ============================================================ */
+/* ═══════════════════════════════════════════════════════
+   ScrollProvider — Lenis + GSAP ScrollTrigger sync
+   ═══════════════════════════════════════════════════════ */
 export function ScrollProvider({ children }: { children: ReactNode }) {
   const lenisRef = useRef<any>(null);
 
   useEffect(() => {
-    /* ─── Sync GSAP ticker to Lenis ─── */
-    // This forces GSAP to use Lenis's scroll position, eliminating jitter.
+    let proxySetup = false;
+
+    const setupProxy = () => {
+      const lenis = lenisRef.current?.lenis;
+      if (!lenis || proxySetup) return;
+      proxySetup = true;
+
+      lenis.on('scroll', ScrollTrigger.update);
+
+      ScrollTrigger.scrollerProxy(document.documentElement, {
+        scrollTop(value) {
+          if (arguments.length) {
+            lenis.scrollTo(value as number, { immediate: true });
+          }
+          return lenis.scroll;
+        },
+        getBoundingClientRect() {
+          return {
+            top: 0,
+            left: 0,
+            width: window.innerWidth,
+            height: window.innerHeight,
+          };
+        },
+      });
+
+      ScrollTrigger.refresh();
+    };
+
     const update = (time: number) => {
       lenisRef.current?.lenis?.raf(time * 1000);
     };
+
     gsap.ticker.add(update);
     gsap.ticker.lagSmoothing(0);
 
-    /* ─── Refresh ScrollTrigger after Lenis settles ─── */
-    const timeout = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 100);
+    const t1 = setTimeout(setupProxy, 50);
+    const t2 = setTimeout(setupProxy, 300);
 
     return () => {
       gsap.ticker.remove(update);
-      clearTimeout(timeout);
+      clearTimeout(t1);
+      clearTimeout(t2);
     };
   }, []);
 

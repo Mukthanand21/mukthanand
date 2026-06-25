@@ -239,17 +239,22 @@ export function Services() {
       `}</style>
       <Section id="services" label="/services">
       <div className="mb-10">
-        <p className="max-w-prose text-base leading-relaxed text-fg-secondary">
+        <p
+          className="max-w-prose text-base leading-relaxed text-fg-secondary"
+          data-section-desc
+        >
           Services I&rsquo;ve shipped or contributed to.
         </p>
-        <p className="mt-2 font-mono text-xs text-fg-muted">
+        <p className="mt-2 font-mono text-xs text-fg-muted" data-section-meta>
           {services.length} services &middot; {liveCount} live &middot; {archivedCount} archived
         </p>
       </div>
 
       <div className="flex flex-col gap-5">
         {services.map((service, i) => (
-          <ServiceCard key={service.name} service={service} index={i} />
+          <div key={service.name} data-section-card>
+            <ServiceCard service={service} index={i} />
+          </div>
         ))}
       </div>
     </Section>

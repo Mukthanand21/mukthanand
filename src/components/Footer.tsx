@@ -1,13 +1,14 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useCallback } from 'react';
+import { useLenis } from '@studio-freight/react-lenis';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
-/* ─── nav links ─── */
-const NAV_LINKS = [
-  { to: '/status', label: '/status' },
-  { to: '/services', label: '/services' },
-  { to: '/changelog', label: '/changelog' },
-  { to: '/stack', label: '/stack' },
-  { to: '/contact', label: '/contact' },
+/* ─── section link map ─── */
+const SECTION_LINKS = [
+  { id: 'status', label: '/status' },
+  { id: 'services', label: '/services' },
+  { id: 'changelog', label: '/changelog' },
+  { id: 'stack', label: '/stack' },
+  { id: 'contact', label: '/contact' },
 ];
 
 /* ─── social links ─── */
@@ -52,16 +53,40 @@ const SOCIALS = [
 
 const BUILD = 'v3.0.0';
 
-/* ============================================================
+/* ═══════════════════════════════════════════════════════
    Global footer — 3-column system dashboard layout
    system | navigate | connect
-   ============================================================ */
+   ═══════════════════════════════════════════════════════ */
 export function Footer() {
   const reduced = usePrefersReducedMotion();
-  const { pathname } = useLocation();
+  const lenis = useLenis();
+
+  const scrollToSection = useCallback(
+    (id: string) => {
+      if (lenis && !reduced) {
+        (lenis as any).scrollTo(`#${id}`, {
+          duration: 1.2,
+          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        });
+      } else {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+        }
+      }
+    },
+    [lenis, reduced],
+  );
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+    if (lenis && !reduced) {
+      (lenis as any).scrollTo(0, {
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+    }
   };
 
   return (
@@ -74,7 +99,6 @@ export function Footer() {
       {/* ─── 3-column grid — system | navigate | connect ─── */}
       <div className="mx-auto max-w-content px-gutter py-6 sm:py-10">
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-[auto_1fr_auto] sm:gap-12">
-
           {/* ─── SYSTEM — hidden on mobile ─── */}
           <div className="hidden sm:block">
             <p className="col-label">SYSTEM</p>
@@ -101,18 +125,15 @@ export function Footer() {
           <div className="hidden sm:flex sm:flex-col sm:items-center md:text-center">
             <p className="col-label">NAVIGATE</p>
             <div className="nav-links">
-              {NAV_LINKS.map((link) => {
-                const isActive = pathname === link.to || (link.to !== '/status' && pathname.startsWith(link.to));
-                return (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className={`nav-link ${isActive ? 'nav-link-active' : ''}`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
+              {SECTION_LINKS.map((link) => (
+                <button
+                  key={link.id}
+                  onClick={() => scrollToSection(link.id)}
+                  className="nav-link bg-transparent border-none p-0 text-left cursor-pointer"
+                >
+                  {link.label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -134,7 +155,6 @@ export function Footer() {
               ))}
             </div>
           </div>
-
         </div>
       </div>
 
@@ -223,9 +243,6 @@ export function Footer() {
         }
         .nav-link:hover {
           color: #D3D1C7;
-        }
-        .nav-link-active {
-          color: #EF9F27;
         }
         .social-links {
           display: flex;

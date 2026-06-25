@@ -71,10 +71,13 @@ export function Contact() {
   return (
     <Section id="contact" label="POST /hire">
       <div className="mb-10">
-        <p className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
+        <p
+          className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary"
+          data-section-desc
+        >
           Send a request directly, or reach out through any channel below.
         </p>
-        <p className="mt-2 flex items-center gap-3 font-mono text-xs text-fg-muted">
+        <p className="mt-2 flex items-center gap-3 font-mono text-xs text-fg-muted" data-section-meta>
           <span className="inline-flex items-center gap-1.5">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
             <span>latency: 24ms</span>
@@ -98,6 +101,7 @@ export function Contact() {
 
         {/* ─── form column ─── */}
         <Reveal direction="left" delay={0} className="min-w-0 relative z-[1]">
+          <div data-section-card>
           {state === 'success' ? (
             /* success — replace form entirely */
             <div className="flex min-h-[280px] items-center justify-center rounded-card border-thin border-success/20 bg-bg-subtle p-8">
@@ -211,6 +215,7 @@ export function Contact() {
               </button>
             </form>
           )}
+        </div>
         </Reveal>
 
         {/* ─── links column ─── */}

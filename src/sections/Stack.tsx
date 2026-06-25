@@ -158,7 +158,9 @@ function TabPanel({ group }: { group: Group }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: reduced ? 0 : i * 0.06 }}
         >
-          <SkillCard skill={skill} featured={i === 0} />
+          <div data-section-card>
+            <SkillCard skill={skill} featured={i === 0} />
+          </div>
         </motion.div>
       ))}
     </div>
@@ -206,10 +208,13 @@ export function Stack() {
   return (
     <Section id="stack" label="/stack">
       <div className="mb-6">
-        <p className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
+        <p
+          className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary"
+          data-section-desc
+        >
           Skills grouped by discipline. Depth signaled honestly — no filler, no charts.
         </p>
-        <p className="mt-2 font-mono text-xs text-fg-muted">
+        <p className="mt-2 font-mono text-xs text-fg-muted" data-section-meta>
           {groups.reduce((sum, g) => sum + g.items.length, 0)} packages installed &middot; {groups.length} categories
         </p>
       </div>

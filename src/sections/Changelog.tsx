@@ -99,10 +99,13 @@ export function Changelog() {
         }
       `}</style>
       <div className="mb-12">
-        <p className="max-w-prose text-base leading-relaxed text-fg-secondary">
+        <p
+          className="max-w-prose text-base leading-relaxed text-fg-secondary"
+          data-section-desc
+        >
           A record of builds, shipped features, and lessons learned.
         </p>
-        <p className="mt-2 font-mono text-xs text-fg-muted">
+        <p className="mt-2 font-mono text-xs text-fg-muted" data-section-meta>
           {entries.length} releases &middot; latest {entries[0].version} &middot; {entries.filter(e => isMajor(e.version)).length} major
         </p>
       </div>
@@ -115,7 +118,7 @@ export function Changelog() {
           return (
             <div key={entry.version}>
               <Reveal delay={i * 0.06}>
-                <div className="group flex items-start gap-5">
+                <div className="group flex items-start gap-5" data-section-card>
                   {/* ─── dot column ─── */}
                   <div className="flex shrink-0 flex-col items-center w-[20px]">
                     {/* dot with pulsing glow ring */}
