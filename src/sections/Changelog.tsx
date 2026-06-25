@@ -1,5 +1,4 @@
 import { Section } from '../components/Section';
-import { Reveal } from '../motion/Reveal';
 
 /* ─── changelog entry data — placeholder until #16 ─── */
 type Entry = {
@@ -116,9 +115,8 @@ export function Changelog() {
           const isLast = i === entries.length - 1;
 
           return (
-            <div key={entry.version}>
-              <Reveal delay={i * 0.06}>
-                <div className="group flex items-start gap-5" data-section-card>
+            <div key={entry.version} className="opacity-0" data-section-card>
+                <div className="group flex items-start gap-5">
                   {/* ─── dot column ─── */}
                   <div className="flex shrink-0 flex-col items-center w-[20px]">
                     {/* dot with pulsing glow ring */}
@@ -193,7 +191,6 @@ export function Changelog() {
                     </p>
                   </div>
                 </div>
-              </Reveal>
             </div>
           );
         })}

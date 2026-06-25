@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 import { getRackChapters, type SectionId } from './rackChapters';
 import { rackDirector } from './rackDirector';
+import { contentDirector } from './contentDirector';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -63,6 +64,7 @@ export function useRackScrollDirector({
         invalidateOnRefresh: true,
         onUpdate(self) {
           rackDirector.lerpStates(fromChapter.rack, toChapter.rack, self.progress);
+          contentDirector.tick(fromId, toId, self.progress, fromChapter, toChapter);
         },
         onLeave(self) {
           if (self.progress >= 0.98) {

@@ -1,5 +1,4 @@
 import { Section } from '../components/Section';
-import { Reveal } from '../motion/Reveal';
 
 /* ─── service data — placeholder until #16 ─── */
 type ServiceStatus = 'live' | 'archived';
@@ -95,11 +94,10 @@ function MethodBadge({ method }: { method: string }) {
 }
 
 /* ─── individual service card ─── */
-function ServiceCard({ service, index }: { service: Service; index: number }) {
+function ServiceCard({ service }: { service: Service }) {
   const isArchived = service.status === 'archived';
 
   return (
-    <Reveal delay={index * 0.08}>
       <article
         className={`group rounded-card border border-border border-l-[3px] bg-bg-elevated p-6 transition-all duration-150 sm:p-8 ${
           isArchived
@@ -205,7 +203,6 @@ function ServiceCard({ service, index }: { service: Service; index: number }) {
           </span>
         </div>
       </article>
-    </Reveal>
   );
 }
 
@@ -251,9 +248,9 @@ export function Services() {
       </div>
 
       <div className="flex flex-col gap-5">
-        {services.map((service, i) => (
-          <div key={service.name} data-section-card>
-            <ServiceCard service={service} index={i} />
+        {services.map((service) => (
+          <div key={service.name} data-section-card className="opacity-0">
+            <ServiceCard service={service} />
           </div>
         ))}
       </div>

@@ -7,48 +7,14 @@ import { Stack } from '../sections/Stack';
 import { Contact } from '../sections/Contact';
 import { RackScene } from '../components/RackScene';
 import { useScrollSpy } from '../hooks/useScrollSpy';
-import { useSectionTransitions } from '../motion/useSectionTransition';
 import { useRackScrollDirector } from '../motion/useRackScrollDirector';
+import { useContentAnimations } from '../motion/useContentAnimations';
 import { useBootComplete } from '../components/Layout';
 
 /* ─── Section IDs used by useScrollSpy and deep-linking ─── */
 export const SECTION_IDS = ['status', 'services', 'changelog', 'stack', 'contact'] as const;
 export type SectionId = (typeof SECTION_IDS)[number];
 
-/* ─── Gold chapter bridges between sections (rack handled by director) ─── */
-const CHAPTER_BRIDGES: {
-  from: string;
-  to: string;
-  id: string;
-  type: 'gold-sweep';
-}[] = [
-  { from: 'status', to: 'services', id: 'transition-bridge-1', type: 'gold-sweep' },
-  { from: 'services', to: 'changelog', id: 'transition-bridge-2', type: 'gold-sweep' },
-  { from: 'changelog', to: 'stack', id: 'transition-bridge-3', type: 'gold-sweep' },
-  { from: 'stack', to: 'contact', id: 'transition-bridge-4', type: 'gold-sweep' },
-];
-
-function GoldSweepOverlay({ id }: { id: string }) {
-  return (
-    <div
-      id={id}
-      className="pointer-events-none fixed left-0 top-0 z-[5] h-screen w-screen"
-      style={{
-        background:
-          'linear-gradient(90deg, transparent 0%, rgba(245,208,112,0.12) 40%, rgba(245,208,112,0.2) 50%, rgba(245,208,112,0.12) 60%, transparent 100%)',
-        opacity: 0,
-        transform: 'translateX(-100%)',
-        willChange: 'transform, opacity',
-      }}
-      aria-hidden="true"
-    />
-  );
-}
-
-function useInitTransitions() {
-  const bootComplete = useBootComplete();
-  useSectionTransitions(CHAPTER_BRIDGES, bootComplete);
-}
 
 /* ═══════════════════════════════════════════════════════
    IndexPage — single-page scroll with global rack backdrop
@@ -59,8 +25,8 @@ export function IndexPage() {
     rootMargin: '-40% 0px -40% 0px',
   });
 
-  useInitTransitions();
   useRackScrollDirector({ bootComplete, sectionIds: [...SECTION_IDS] });
+  useContentAnimations({ autoInitCards: bootComplete });
 
   const glowRef = useRef<HTMLDivElement>(null);
   const lastSection = useRef<string | null>(null);
@@ -109,11 +75,6 @@ export function IndexPage() {
         }}
         aria-hidden="true"
       />
-
-      {/* ─── Chapter bridge overlays ─── */}
-      {CHAPTER_BRIDGES.map((t) => (
-        <GoldSweepOverlay key={t.id} id={t.id} />
-      ))}
 
       {/* ─── Scroll content above rack ─── */}
       <div className="relative z-[10]">

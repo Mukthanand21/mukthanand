@@ -1,5 +1,4 @@
-import { type ReactNode, type RefObject } from 'react';
-import { useSectionTransition } from '../motion/useSectionTransition';
+import { type ReactNode } from 'react';
 import { getChapterMeta, type SectionId } from '../motion/rackChapters';
 
 type SectionProps = {
@@ -19,14 +18,12 @@ const GRAIN_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
    Section — scroll chapter with scrim + entrance animation
    ═══════════════════════════════════════════════════════ */
 export function Section({ id, label, title, children, className, scrim }: SectionProps) {
-  const sectionRef = useSectionTransition(id) as RefObject<HTMLElement>;
   const chapter = getChapterMeta(id as SectionId);
   const displayTitle = title ?? chapter?.title;
   const scrimGradient = scrim !== undefined ? scrim : (chapter?.scrim ?? null);
 
   return (
     <section
-      ref={sectionRef}
       id={id}
       className={`relative overflow-hidden py-section ${className ?? ''}`}
       style={{

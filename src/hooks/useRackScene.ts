@@ -4,6 +4,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import gsap from 'gsap';
 import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 import { rackDirector } from '../motion/rackDirector';
+import { contentDirector } from '../motion/contentDirector';
 
 /* ═══════════════════════════════════════════════════════
    useRackScene — Imperative Three.js scene hook
@@ -1056,7 +1057,10 @@ export function useRackScene(
       }
 
       /* LEDs — pulsing emissive glow (static on mobile) */
-      leds.forEach(led => {
+      const contentState = contentDirector.current;
+      const isHighlighted = !reduced && !isMobile && contentState.highlightedUnitIndices.length > 0;
+
+      leds.forEach((led, idx) => {
         let intensity: number;
         if (reduced || isMobile) {
           intensity = led.state === 'warn' ? 1.5 : (led.state === 'live' ? 2.0 : 0.15);
@@ -1067,8 +1071,29 @@ export function useRackScene(
         } else {
           intensity = 0.15 + Math.sin(elapsed * led.blinkSpeed + led.phase) * 0.08;
         }
+
+        /* ─── Phase 3: contentDirector highlight override ───
+         *  When contentDirector.highlightedUnitIndices includes this LED,
+         *  boost emissiveIntensity to create a visible "unit active" pulse
+         *  synced to card entrance. The -2 sentinel = all units flash. */
+        if (isHighlighted) {
+          const shouldHighlight =
+            contentState.highlightedUnitIndices.includes(idx) ||
+            contentState.highlightedUnitIndices.includes(-2);
+          const isPulse = contentState.ledPulseActive.has(idx) || contentState.ledPulseActive.has(-2);
+
+          if (shouldHighlight) {
+            if (isPulse) {
+              // Brief fast flash for ledPulseAt events
+              intensity = 2.5 + Math.sin(elapsed * 12 + idx) * 1.5;
+            } else {
+              // Sustained brightness boost for card-associated unit highlights
+              intensity = Math.max(intensity, 2.0);
+            }
+          }
+        }
+
         led.material.emissiveIntensity = Math.max(0.08, intensity);
-        
       });
 
       /* Motes — slow drift (static on mobile) */
