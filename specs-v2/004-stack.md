@@ -1,124 +1,34 @@
 # specs-v2 / 004 — /stack (Skills)
 
 ## Purpose
-Show technical depth honestly.
-No skill bars. No bubble charts. No percentage ratings. No "95% Python."
-Skills are grouped by discipline, with proficiency signaled through honest labels only.
-A recruiter should see: what you know deeply, what you know well, what you've touched.
-
----
+Show technical depth honestly. No skill bars, no bubble charts, no percentages. Skills grouped by discipline with honest proficiency signaling.
 
 ## Layout
+Section slug + description, then tab-navigated discipline groups. Tabs across the top, active panel below with skill cards in a grid.
 
-Section slug + title, then a vertical list of discipline groups.
-Each group is a card. Cards are full-width, stacked vertically.
+## Tab Navigation
+- Pill-shaped buttons for each discipline
+- Active tab: gold underline indicator (Framer Motion `layoutId`)
+- Hover: muted color transition
 
-```
-/stack
+## Skill Card Anatomy
+- **Proficiency blocks:** `■ ■ ■` (strongest, accent), `■ ■ □` (strong, green), `■ □ □` (familiar, muted)
+- **Skill name:** With icon, transitions to accent on hover
+- **Note:** One-line description of experience
+- **Magnetic tilt:** Card subtly tilts toward cursor on hover
 
-  Skills grouped by discipline. Depth signaled honestly — no filler, no charts.
-
-  ┌──────────────────────────────────────────────────────┐
-  │  LANGUAGES                                           │
-  │                                                      │
-  │  Python  ● STRONGEST    JavaScript / TypeScript  ● STRONG    SQL  ● STRONG    Java  ● FAMILIAR │
-  └──────────────────────────────────────────────────────┘
-
-  ┌──────────────────────────────────────────────────────┐
-  │  BACKEND                                             │
-  │  ...                                                 │
-  └──────────────────────────────────────────────────────┘
-```
-
----
-
-## Skill Item Anatomy
-
-```
-[Skill name]  ●  [PROFICIENCY LABEL]
-```
-
-- **Skill name:** `--text-md`, weight 500, `--color-text-primary`
-- **Dot:** `5px` circle, color depends on proficiency (see below)
-- **Proficiency label:** mono, `--text-xs`, uppercase, letter-spacing `0.08em`
-
-### Proficiency levels + colors
-| Label | Dot color | Meaning |
-|---|---|---|
-| STRONGEST | `--color-accent` (gold) | Daily use, deepest expertise |
-| STRONG | `--color-success` (sage green) | Comfortable, used in production |
-| FAMILIAR | `--color-text-muted` (plum-muted) | Used in projects, not daily |
-
-Max 1–2 STRONGEST per discipline group. Be honest.
-
----
-
-## Discipline Groups (placeholder until #16)
-
-### LANGUAGES
-- Python ● STRONGEST
-- JavaScript / TypeScript ● STRONG
-- SQL ● STRONG
-- Java ● FAMILIAR
-
-### BACKEND
-- FastAPI ● STRONGEST
-- REST API Design ● STRONGEST
-- PostgreSQL ● STRONG
-- RAG Pipelines ● STRONG
-- FAISS ● STRONG
-- API Gateway Patterns ● STRONG
-- SQLAlchemy / Alembic ● STRONG
-
-### FRONTEND
-- React ● STRONG
-- TypeScript ● STRONG
-- Tailwind CSS ● STRONG
-- HTML / CSS ● STRONG
-
-### DEVOPS & TOOLS
-- GitLab CI/CD ● STRONG
-- Git (rebase, force-with-lease) ● STRONG
-- Linux (Ubuntu) ● STRONG
-- Docker ● FAMILIAR
-- AWS (Cloud Foundations) ● FAMILIAR
-
-### AI & ML
-- Hybrid Retrieval (FTS + pg_trgm) ● STRONGEST
-- Prompt Engineering ● STRONG
-- Groq API / LLM Integration ● STRONG
-- Sentence-Transformers ● FAMILIAR
-- wav2vec2 / ASR ● FAMILIAR
-
----
-
-## Group Card Anatomy
-
-```
-┌────────────────────────────────────────────────────┐
-│  [DISCIPLINE LABEL]                                │  ← mono, --text-xs, --color-text-muted, uppercase
-│                                                    │
-│  [skill] ● LABEL   [skill] ● LABEL   [skill] ...  │  ← wrapping flex row
-└────────────────────────────────────────────────────┘
-```
-
-- Card background: `--color-bg-elevated`
-- Card border: `0.5px solid --color-border`
-- Card border-radius: `12px`
-- Card padding: `24px`
-- Skills layout: `display: flex; flex-wrap: wrap; gap: 20px 32px`
-
----
+## Discipline Groups
+1. **LANGUAGES** — Python, JavaScript/TypeScript, SQL, Java, C
+2. **BACKEND** — FastAPI, PostgreSQL, REST API Design, Flask, SQLAlchemy/Alembic, RAG Pipelines
+3. **FRONTEND** — React, TypeScript, Tailwind CSS, HTML/CSS
+4. **DEVOPS & TOOLS** — Git, GitLab CI/CD, Linux, Bruno, Docker
+5. **AI & ML** — Hybrid Retrieval, Prompt Engineering, Groq APIs, Agentic AI, Sentence-Transformers, Linear Regression
 
 ## Scroll Animation
-Cards reveal on scroll: `translateY(20px→0)` + `opacity(0→1)`, `500ms`, `--ease-spring`.
-Stagger: 80ms between cards.
+Cards use Framer Motion `motion.div` with staggered entrance (`opacity: 0, y: 8` → `opacity: 1, y: 0`). Tab switches use `LayoutGroup` for smooth pill underline animation.
 
----
-
-## Acceptance Criteria
-- [ ] Zero skill bars, progress bars, percentages, or radar charts anywhere
-- [ ] Proficiency dot colors match the table above exactly
-- [ ] Skills wrap cleanly on 375px — no horizontal overflow
-- [ ] STRONGEST label appears max twice per group
-- [ ] Section is scannable in under 10 seconds — no dense walls of text
+## Acceptance
+- [ ] Zero skill bars, progress bars, percentages, or radar charts
+- [ ] Proficiency dot colors match spec
+- [ ] Skills wrap cleanly on 375px
+- [ ] STRONGEST label max twice per group
