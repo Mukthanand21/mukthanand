@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Ticker } from '../components/Ticker';
+
 import { useKineticScroll } from '../motion/useKineticScroll';
 import { KineticSwapper } from '../components/KineticSwapper';
 import { RackScene } from '../components/RackScene';
@@ -184,10 +184,6 @@ export function Status() {
         </div>
       </div>
 
-      {/* ─── ticker ─── */}
-      <div className="relative z-10 md:mt-20 mt-16 overflow-hidden">
-        <Ticker />
-      </div>
 
       {/* ─── Animation keyframes ─── */}
       <style>{`
