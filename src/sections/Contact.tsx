@@ -101,7 +101,6 @@ export function Contact() {
 
         {/* ─── form column ─── */}
         <Reveal direction="left" delay={0} className="min-w-0 relative z-[1]">
-          <div data-section-card>
           {state === 'success' ? (
             /* success — replace form entirely */
             <div className="flex min-h-[280px] items-center justify-center rounded-card border-thin border-success/20 bg-bg-subtle p-8">
@@ -215,7 +214,6 @@ export function Contact() {
               </button>
             </form>
           )}
-        </div>
         </Reveal>
 
         {/* ─── links column ─── */}

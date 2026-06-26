@@ -28,10 +28,18 @@ const groups: Group[] = [
     label: 'LANGUAGES',
     items: [
       { name: 'Python', level: 'strongest', note: 'Daily use across all projects' },
-      { name: 'JavaScript/TypeScript', level: 'strong', note: 'React frontends, scripts' },
-      { name: 'SQL', level: 'strong', note: 'PostgreSQL, complex queries' },
+      { name: 'JavaScript', level: 'strong', note: 'React frontends, scripts' },
       { name: 'Java', level: 'familiar', note: 'Academic, DSA' },
       { name: 'C', level: 'familiar', note: 'Systems coursework' },
+    ],
+  },
+  {
+    id: 'databases',
+    label: 'DATABASES',
+    items: [
+      { name: 'PostgreSQL', level: 'strongest', note: 'RAG retrieval, EHRS, migrations' },
+      { name: 'SQL', level: 'strong', note: 'Complex queries, data modeling' },
+      { name: 'MySQL', level: 'familiar', note: 'Academic projects, basics' },
     ],
   },
   {
@@ -39,11 +47,8 @@ const groups: Group[] = [
     label: 'BACKEND',
     items: [
       { name: 'FastAPI', level: 'strongest', note: '3 production backends' },
-      { name: 'PostgreSQL', level: 'strongest', note: 'RAG retrieval, EHRS, migrations' },
-      { name: 'REST API Design', level: 'strong', note: 'Endpoint design, RBAC, versioning' },
       { name: 'Flask', level: 'strong', note: 'MediFlow AI, early projects' },
-      { name: 'SQLAlchemy/Alembic', level: 'strong', note: 'ORM, migrations' },
-      { name: 'RAG Pipelines', level: 'strong', note: 'Hybrid FTS + pg_trgm, BYOK LLM' },
+      { name: 'REST API Design', level: 'strong', note: 'Endpoint design, RBAC, versioning' },
     ],
   },
   {
@@ -51,7 +56,6 @@ const groups: Group[] = [
     label: 'FRONTEND',
     items: [
       { name: 'React', level: 'strong', note: 'Corpus client, EHRS frontend' },
-      { name: 'TypeScript', level: 'strong', note: 'All frontend work 2025+' },
       { name: 'Tailwind CSS', level: 'strong', note: 'Component styling' },
       { name: 'HTML/CSS', level: 'strong', note: 'Semantic markup, accessibility' },
     ],
@@ -63,20 +67,18 @@ const groups: Group[] = [
       { name: 'Git', level: 'strong', note: 'Rebase, force-with-lease, protected branches' },
       { name: 'GitLab CI/CD', level: 'strong', note: 'Pipelines, Docker-based CI, Pages deploy' },
       { name: 'Linux (Ubuntu)', level: 'strong', note: 'Daily driver, VM tuning, kernel modules' },
-      { name: 'Bruno', level: 'strong', note: 'API testing, collection management' },
       { name: 'Docker', level: 'familiar', note: 'Containerisation basics, CI usage' },
+      { name: 'Bruno', level: 'strong', note: 'API testing, collection management' },
     ],
   },
   {
     id: 'ai-ml',
     label: 'AI & ML',
     items: [
-      { name: 'Hybrid Retrieval (FTS + pg_trgm)', level: 'strongest', note: 'No vector DB RAG' },
-      { name: 'Prompt Engineering', level: 'strong', note: 'Structured outputs, agent skills' },
-      { name: 'Groq / LLM APIs', level: 'strong', note: 'BYOK architecture, multi-provider' },
       { name: 'Agentic AI / Skills', level: 'strong', note: 'Custom skill creation, Viswam AI' },
-      { name: 'Sentence-Transformers', level: 'familiar', note: 'FAQSense, semantic search' },
-      { name: 'Linear Regression ML', level: 'familiar', note: 'MediFlow AI sales predictor' },
+      { name: 'RAG Pipelines', level: 'strong', note: 'Hybrid FTS + pg_trgm, BYOK LLM' },
+      { name: 'Groq / LLM APIs', level: 'strong', note: 'BYOK architecture, multi-provider' },
+      { name: 'Prompt Engineering', level: 'strong', note: 'Structured outputs, agent skills' },
     ],
   },
 ];
@@ -121,11 +123,11 @@ function SkillCard({ skill, featured }: { skill: Skill; featured?: boolean }) {
         {skill.name}
       </div>
 
-      {/* note + optional external link */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="font-sans text-xs leading-relaxed text-fg-muted">
-          {skill.note}
-        </div>
+       {/* note + optional external link */}
+       <div className="flex items-start justify-between gap-3">
+         <div className="font-sans text-xs leading-relaxed text-fg-secondary">
+           {skill.note}
+         </div>
         {skill.url && (
           <a
             href={skill.url}
@@ -158,9 +160,7 @@ function TabPanel({ group }: { group: Group }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: reduced ? 0 : i * 0.06 }}
         >
-          <div data-section-card>
             <SkillCard skill={skill} featured={i === 0} />
-          </div>
         </motion.div>
       ))}
     </div>

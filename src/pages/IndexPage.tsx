@@ -8,17 +8,12 @@ import { Contact } from '../sections/Contact';
 import { RackScene } from '../components/RackScene';
 import { useScrollSpy } from '../hooks/useScrollSpy';
 import { useRackScrollDirector } from '../motion/useRackScrollDirector';
-import { useContentAnimations } from '../motion/useContentAnimations';
+import { useSectionTransition } from '../motion/useSectionTransition';
 import { useBootComplete } from '../components/Layout';
 
-/* ─── Section IDs used by useScrollSpy and deep-linking ─── */
 export const SECTION_IDS = ['status', 'services', 'changelog', 'stack', 'contact'] as const;
 export type SectionId = (typeof SECTION_IDS)[number];
 
-
-/* ═══════════════════════════════════════════════════════
-   IndexPage — single-page scroll with global rack backdrop
-   ═══════════════════════════════════════════════════════ */
 export function IndexPage() {
   const bootComplete = useBootComplete();
   const activeSection = useScrollSpy(SECTION_IDS as unknown as string[], {
@@ -26,7 +21,27 @@ export function IndexPage() {
   });
 
   useRackScrollDirector({ bootComplete, sectionIds: [...SECTION_IDS] });
-  useContentAnimations({ autoInitCards: bootComplete });
+
+  const servicesRef = useSectionTransition('services', {
+    start: 'top 82%',
+    cardStagger: 0.12,
+    cardOffset: 35,
+  }) as React.RefObject<HTMLDivElement>;
+  const changelogRef = useSectionTransition('changelog', {
+    start: 'top 82%',
+    cardStagger: 0.1,
+    cardOffset: 30,
+  }) as React.RefObject<HTMLDivElement>;
+  const stackRef = useSectionTransition('stack', {
+    start: 'top 82%',
+    cardStagger: 0.06,
+    cardOffset: 24,
+  }) as React.RefObject<HTMLDivElement>;
+  const contactRef = useSectionTransition('contact', {
+    start: 'top 82%',
+    cardStagger: 0.08,
+    cardOffset: 28,
+  }) as React.RefObject<HTMLDivElement>;
 
   const glowRef = useRef<HTMLDivElement>(null);
   const lastSection = useRef<string | null>(null);
@@ -53,10 +68,8 @@ export function IndexPage() {
 
   return (
     <div data-page="index" data-active-section={activeSection ?? ''} className="relative">
-      {/* ─── Global 3D rack — fixed viewport backdrop ─── */}
       <RackScene bootComplete={bootComplete} global />
 
-      {/* ─── Site-wide ambient glow ─── */}
       <div
         ref={glowRef}
         id="ambient-glow"
@@ -76,13 +89,20 @@ export function IndexPage() {
         aria-hidden="true"
       />
 
-      {/* ─── Scroll content above rack ─── */}
       <div className="relative z-[10]">
         <Status />
-        <Services />
-        <Changelog />
-        <Stack />
-        <Contact />
+        <div ref={servicesRef}>
+          <Services />
+        </div>
+        <div ref={changelogRef}>
+          <Changelog />
+        </div>
+        <div ref={stackRef}>
+          <Stack />
+        </div>
+        <div ref={contactRef}>
+          <Contact />
+        </div>
       </div>
     </div>
   );

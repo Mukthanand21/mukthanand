@@ -1,6 +1,5 @@
 import { Section } from '../components/Section';
 
-/* ─── changelog entry data — placeholder until #16 ─── */
 type Entry = {
   version: string;
   date: string;
@@ -60,12 +59,10 @@ const entries: Entry[] = [
   },
 ];
 
-/* ─── determine if a version is a major release (vX.0.0) ─── */
 function isMajor(version: string): boolean {
   return /^v\d+\.0\.0$/.test(version);
 }
 
-/* ─── pill-style tag ─── */
 function EntryTag({ label }: { label: string }) {
   return (
     <span className="rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono text-[10px] text-fg-muted">
@@ -74,11 +71,6 @@ function EntryTag({ label }: { label: string }) {
   );
 }
 
-/* ============================================================
-   /changelog section — specs-v2/003-changelog.md
-   Vertical timeline with per-entry dot + connecting line.
-   Dot aligned to version + date baseline (4px top offset).
-   ============================================================ */
 export function Changelog() {
   return (
     <Section id="changelog" label="/changelog">
@@ -90,6 +82,22 @@ export function Changelog() {
           0%, 100% { transform: scale(1); opacity: 0.25; }
           50% { transform: scale(1.6); opacity: 0.08; }
         }
+        .changelog-line {
+          position: relative;
+        }
+        .changelog-line::after {
+          content: '';
+          position: absolute;
+          top: 12px;
+          left: 9px;
+          width: 2px;
+          height: calc(100% + 8px);
+          background: linear-gradient(to bottom, var(--color-accent), var(--color-border));
+          opacity: 0.5;
+        }
+        .changelog-line:last-child::after {
+          display: none;
+        }
         @media (prefers-reduced-motion: reduce) {
           .animate-dot-pulse {
             animation: none !important;
@@ -98,10 +106,7 @@ export function Changelog() {
         }
       `}</style>
       <div className="mb-12">
-        <p
-          className="max-w-prose text-base leading-relaxed text-fg-secondary"
-          data-section-desc
-        >
+        <p className="max-w-prose text-base leading-relaxed text-fg-secondary" data-section-desc>
           A record of builds, shipped features, and lessons learned.
         </p>
         <p className="mt-2 font-mono text-xs text-fg-muted" data-section-meta>
@@ -115,82 +120,68 @@ export function Changelog() {
           const isLast = i === entries.length - 1;
 
           return (
-            <div key={entry.version} className="opacity-0" data-section-card>
-                <div className="group flex items-start gap-5">
-                  {/* ─── dot column ─── */}
-                  <div className="flex shrink-0 flex-col items-center w-[20px]">
-                    {/* dot with pulsing glow ring */}
-                    <div className="relative flex items-center justify-center mt-[4px] shrink-0">
-                      {/* glow ring */}
-                      <div
-                        className={`absolute rounded-full bg-accent/25 animate-dot-pulse ${
-                          major ? 'h-[18px] w-[18px]' : 'h-[15px] w-[15px]'
-                        }`}
-                      />
-                      {/* dot */}
-                      <div
-                        className={`rounded-full bg-accent ${
-                          major ? 'h-3 w-3' : 'h-[10px] w-[10px]'
-                        }`}
-                      />
-                    </div>
-                    {/* connecting line — gradient from gold to border, hidden on last entry */}
-                    {!isLast && (
-                      <div
-                        className="w-px flex-1 mt-[8px] min-h-[60px]"
-                        style={{
-                          background: 'linear-gradient(to bottom, var(--color-accent) 0%, var(--color-border) 100%)',
-                          opacity: 0.5,
-                        }}
-                      />
-                    )}
-                  </div>
-
-                  {/* ─── content column ─── */}
-                  <div className={`flex-1 ${!isLast ? 'pb-8' : ''}`}>
-                    {/* header: version + date + tags */}
-                    <div className="mb-2 flex flex-wrap items-center gap-2.5">
-                      <span
-                        className={`font-mono uppercase text-accent ${
-                          major ? 'text-xs' : 'text-[11px]'
-                        }`}
-                      >
-                        {entry.version}
-                      </span>
-                      <span className="font-mono text-[11px] text-fg-muted">
-                        &mdash; {entry.date}
-                      </span>
-                      <span className="hidden sm:inline-flex sm:flex-wrap sm:items-center sm:gap-1.5">
-                        {entry.tags?.map((tag) => (
-                          <EntryTag key={tag} label={tag} />
-                        ))}
-                      </span>
-                    </div>
-
-                    {/* tags on mobile — separate row */}
-                    {entry.tags && entry.tags.length > 0 && (
-                      <div className="mb-2 flex flex-wrap gap-2 sm:hidden">
-                        {entry.tags.map((tag) => (
-                          <EntryTag key={tag} label={tag} />
-                        ))}
-                      </div>
-                    )}
-
-                    {/* title */}
-                    <h3
-                      className={`font-semibold text-fg transition-colors duration-150 group-hover:text-accent ${
-                        major ? 'text-xl' : 'text-lg'
-                      }`}
-                    >
-                      {entry.title}
-                    </h3>
-
-                    {/* description */}
-                    <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-fg-secondary">
-                      {entry.description}
-                    </p>
-                  </div>
+            <div
+              key={entry.version}
+              data-section-card
+              className="group flex items-start gap-5 pb-8 last:pb-0"
+            >
+              <div className="flex shrink-0 flex-col items-center w-[20px]">
+                <div className="relative flex items-center justify-center mt-[4px] shrink-0">
+                  <div
+                    className={`absolute rounded-full bg-accent/25 animate-dot-pulse ${
+                      major ? 'h-[18px] w-[18px]' : 'h-[15px] w-[15px]'
+                    }`}
+                  />
+                  <div
+                    className={`rounded-full bg-accent transition-transform duration-300 group-hover:scale-125 ${
+                      major ? 'h-3 w-3' : 'h-[10px] w-[10px]'
+                    }`}
+                  />
                 </div>
+                {!isLast && (
+                  <div className="w-px flex-1 mt-[8px] min-h-[60px] bg-gradient-to-b from-accent to-border opacity-50" />
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="mb-2 flex flex-wrap items-center gap-2.5">
+                  <span
+                    className={`font-mono uppercase text-accent ${
+                      major ? 'text-xs' : 'text-[11px]'
+                    }`}
+                  >
+                    {entry.version}
+                  </span>
+                  <span className="font-mono text-[11px] text-fg-muted">
+                    &mdash; {entry.date}
+                  </span>
+                  <span className="hidden sm:inline-flex sm:flex-wrap sm:items-center sm:gap-1.5">
+                    {entry.tags?.map((tag) => (
+                      <EntryTag key={tag} label={tag} />
+                    ))}
+                  </span>
+                </div>
+
+                {entry.tags && entry.tags.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-2 sm:hidden">
+                    {entry.tags.map((tag) => (
+                      <EntryTag key={tag} label={tag} />
+                    ))}
+                  </div>
+                )}
+
+                <h3
+                  className={`font-semibold text-fg transition-colors duration-150 group-hover:text-accent ${
+                    major ? 'text-xl' : 'text-lg'
+                  }`}
+                >
+                  {entry.title}
+                </h3>
+
+                <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-fg-secondary">
+                  {entry.description}
+                </p>
+              </div>
             </div>
           );
         })}
