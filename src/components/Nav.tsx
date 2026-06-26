@@ -1,47 +1,96 @@
-import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 import { useScrollDirection } from '../hooks/useScrollDirection';
+import { useScrollSpy } from '../hooks/useScrollSpy';
+import { useLenis } from '@studio-freight/react-lenis';
 
-/* ─── nav links — monospace, system-style paths ─── */
+/* ─── section IDs matching the IndexPage sections ─── */
+const SECTION_IDS = ['status', 'services', 'changelog', 'stack', 'contact'] as const;
+
+/* ─── nav links with their section IDs ─── */
 const LINKS = [
-  { to: '/status', label: '/status' },
-  { to: '/services', label: '/services' },
-  { to: '/changelog', label: '/changelog' },
-  { to: '/stack', label: '/stack' },
-  { to: '/contact', label: '/contact' },
+  { id: 'status', label: '/status' },
+  { id: 'services', label: '/services' },
+  { id: 'changelog', label: '/changelog' },
+  { id: 'stack', label: '/stack' },
+  { id: 'contact', label: '/contact' },
 ];
 
-/* ─── individual nav link with monospace + terminal colors ─── */
-function NavItem({ to, label }: { to: string; label: string }) {
+/* ─── individual nav link with scroll-to-section behavior ─── */
+function NavItem({
+  id,
+  label,
+  active,
+  onNavigate,
+}: {
+  id: string;
+  label: string;
+  active: boolean;
+  onNavigate: (id: string) => void;
+}) {
   return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `font-mono text-sm transition-colors duration-150 px-2.5 py-1.5 ${
-          isActive
-            ? 'text-[#EF9F27] bg-[#1a1509]'
-            : 'text-[#5F5E5A] hover:text-[#D3D1C7] hover:bg-[#1a1a17]'
-        }`
-      }
+    <button
+      onClick={() => onNavigate(id)}
+      className={`font-mono text-sm transition-colors duration-150 px-2.5 py-1.5 ${
+        active
+          ? 'text-accent bg-[#1a1509]'
+          : 'text-[#5F5E5A] hover:text-[#D3D1C7] hover:bg-[#1a1a17]'
+      }`}
       style={{ borderRadius: 5 }}
+      aria-current={active ? 'true' : undefined}
     >
       {label}
-    </NavLink>
+    </button>
   );
 }
 
-/* ============================================================
-   Global navigation bar — Dark system/terminal theme
+/* ═══════════════════════════════════════════════════════
+   Global navigation bar — scroll-based architecture
    - Monospace nav links with slash prefixes
-   - Logo mark with initials + name + version
-   - Status pill + hire me button on the right
+   - Logo mark with name + version
+   - Status pill on the right
+   - Active section tracked via IntersectionObserver
    - Hide on scroll down, show on scroll up
    - Amber scroll progress bar
    - Mobile hamburger with animated slide-down + blur backdrop
-   ============================================================ */
+   ═══════════════════════════════════════════════════════ */
 export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const scrollDir = useScrollDirection(10);
+
+  // Active section tracking via scroll spy
+  // Default to 'status' on first render to avoid flash of no-active
+  const [initialSection] = useState<string>('status');
+  const spySection = useScrollSpy(SECTION_IDS as unknown as string[], {
+    rootMargin: '-40% 0px -40% 0px',
+  });
+  const activeSection = spySection ?? initialSection;
+
+  // Lenis smooth scroll instance
+  const lenis = useLenis() ?? null;
+
+  // Scroll to a section using Lenis
+  const scrollToSection = useCallback(
+    (id: string) => {
+      // Check if we're on the 404 page (no sections exist)
+      const el = document.getElementById(id);
+      if (!el) {
+        // Fallback: navigate via route change
+        window.location.hash = `#${id}`;
+        return;
+      }
+
+      if (lenis) {
+        (lenis as any).scrollTo(`#${id}`, {
+          duration: 1.4,
+          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      setMobileOpen(false);
+    },
+    [lenis],
+  );
 
   // Body scroll lock when mobile menu is open
   useEffect(() => {
@@ -87,6 +136,9 @@ export function Nav() {
   // Hide nav when scrolling down past threshold, show on scroll up
   const isHidden = scrollDir === 'down' && window.scrollY > 80;
 
+  // Determine section context for nav morphing
+  const isContact = activeSection === 'contact';
+
   return (
     <>
       {/* mobile blur overlay */}
@@ -101,7 +153,7 @@ export function Nav() {
       />
 
       <header
-        className={`sticky top-0 z-[100] transition-transform duration-300 ${
+        className={`sticky top-0 w-full z-[100] transition-transform duration-300 ${
           isHidden ? '-translate-y-full' : 'translate-y-0'
         }`}
         style={{
@@ -111,94 +163,103 @@ export function Nav() {
         }}
       >
         <div className="mx-auto flex h-full max-w-content items-center justify-between px-gutter">
-          {/* ─── Logo (left) ─── */}
-          <NavLink to="/status" className="flex items-center gap-2 shrink-0">
-            {/* Name */}
+          {/* ─── Logo (left) — scrolls to top ─── */}
+          <button
+            onClick={() => scrollToSection('status')}
+            className="flex items-center gap-2 shrink-0 bg-transparent border-none p-0 cursor-pointer"
+          >
             <span className="font-sans" style={{ color: '#D3D1C7', fontSize: 13 }}>
               Mukthanand
             </span>
-            {/* Version */}
             <span className="font-mono hidden sm:inline" style={{ color: '#444441', fontSize: 10 }}>
               v3.0.0
             </span>
-          </NavLink>
+          </button>
 
-          {/* ─── Right side: nav links + status pill + hire button ─── */}
+          {/* ─── Right side: nav links + status pill ─── */}
           <div className="flex items-center gap-4">
             <nav aria-label="Main navigation">
               <ul className="hidden items-center gap-1 md:flex">
                 {LINKS.map((l) => (
-                  <li key={l.to}>
-                    <NavItem to={l.to} label={l.label} />
+                  <li key={l.id}>
+                    <NavItem
+                      id={l.id}
+                      label={l.label}
+                      active={activeSection === l.id}
+                      onNavigate={scrollToSection}
+                    />
                   </li>
                 ))}
               </ul>
             </nav>
 
             <div className="flex items-center gap-3 shrink-0">
-            {/* Status pill */}
-            <div
-              className="flex items-center gap-1.5"
-              style={{
-                border: '0.5px solid #2c2c2a',
-                borderRadius: 20,
-                padding: '4px 10px',
-              }}
-            >
-              <span
-                className="block rounded-full"
+              {/* Status pill — morphs to "hire me" on contact section */}
+              <button
+                onClick={() => scrollToSection('contact')}
+                className="flex items-center gap-1.5 bg-transparent border-none p-0 cursor-pointer"
                 style={{
-                  width: 5,
-                  height: 5,
-                  background: '#5DCAA5',
-                  animation: mobileOpen ? 'none' : 'navPulse 2s ease-in-out infinite',
+                  border: '0.5px solid #2c2c2a',
+                  borderRadius: 20,
+                  padding: '4px 10px',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
-              />
-              <span className="font-mono" style={{ color: '#444441', fontSize: 10 }}>
-                3 running
-              </span>
-            </div>
+              >
+                <span
+                  className="block rounded-full"
+                  style={{
+                    width: 5,
+                    height: 5,
+                    background: isContact ? 'var(--color-accent)' : '#5DCAA5',
+                    animation: mobileOpen
+                      ? 'none'
+                      : 'navPulse 2s ease-in-out infinite',
+                    transition: 'background 0.3s ease-out',
+                  }}
+                />
+                <span
+                  className="font-mono"
+                  style={{
+                    color: isContact ? 'var(--color-accent)' : '#444441',
+                    fontSize: 10,
+                    transition: 'color 0.3s ease-out',
+                  }}
+                >
+                  {isContact ? 'hire me' : '3 running'}
+                </span>
+              </button>
 
-            {/* mobile hamburger */}
-            <button
-              type="button"
-              className="relative flex h-8 w-8 items-center justify-center md:hidden"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={mobileOpen}
-            >
-              <span className="sr-only">{mobileOpen ? 'Close' : 'Menu'}</span>
-              <span
-                className={`block h-px w-5 transition-all duration-300 ${
-                  mobileOpen ? 'translate-y-0 rotate-45' : '-translate-y-1.5'
-                }`}
-                style={{ background: '#D3D1C7' }}
-              />
-              <span
-                className={`block h-px w-5 transition-all duration-300 ${
-                  mobileOpen ? 'opacity-0' : ''
-                }`}
-                style={{ background: '#D3D1C7' }}
-              />
-              <span
-                className={`block h-px w-5 transition-all duration-300 ${
-                  mobileOpen ? 'translate-y-0 -rotate-45' : 'translate-y-1.5'
-                }`}
-                style={{ background: '#D3D1C7' }}
-              />
-            </button>
-          </div>
+              {/* mobile hamburger */}
+              <button
+                type="button"
+                className="relative flex h-8 w-8 items-center justify-center md:hidden"
+                onClick={() => setMobileOpen(!mobileOpen)}
+                aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={mobileOpen}
+              >
+                <span className="sr-only">{mobileOpen ? 'Close' : 'Menu'}</span>
+                <span
+                  className={`block h-px w-5 transition-all duration-300 ${
+                    mobileOpen ? 'translate-y-0 rotate-45' : '-translate-y-1.5'
+                  }`}
+                  style={{ background: '#D3D1C7' }}
+                />
+                <span
+                  className={`block h-px w-5 transition-all duration-300 ${
+                    mobileOpen ? 'opacity-0' : ''
+                  }`}
+                  style={{ background: '#D3D1C7' }}
+                />
+                <span
+                  className={`block h-px w-5 transition-all duration-300 ${
+                    mobileOpen ? 'translate-y-0 -rotate-45' : 'translate-y-1.5'
+                  }`}
+                  style={{ background: '#D3D1C7' }}
+                />
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* scroll progress bar — amber line at nav bottom */}
-        <div
-          className="absolute bottom-0 left-0 h-px transition-[width] duration-150 ease-out will-change-[width]"
-          style={{
-            width: `${scrollProgress}%`,
-            background: '#EF9F27',
-          }}
-        />
 
         {/* mobile dropdown */}
         <div
@@ -210,20 +271,17 @@ export function Nav() {
             <nav aria-label="Mobile navigation">
               <ul className="flex flex-col px-gutter py-4">
                 {LINKS.map((l) => (
-                  <li key={l.to}>
-                    <NavLink
-                      to={l.to}
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `block py-3 font-mono text-sm transition-colors duration-150 ${
-                          isActive
-                            ? 'text-[#EF9F27]'
-                            : 'text-[#5F5E5A] hover:text-[#D3D1C7]'
-                        }`
-                      }
+                  <li key={l.id}>
+                    <button
+                      onClick={() => scrollToSection(l.id)}
+                      className={`block w-full text-left py-3 font-mono text-sm transition-colors duration-150 bg-transparent border-none cursor-pointer ${
+                        activeSection === l.id
+                          ? 'text-accent'
+                          : 'text-[#5F5E5A] hover:text-[#D3D1C7]'
+                      }`}
                     >
                       {l.label}
-                    </NavLink>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -239,6 +297,15 @@ export function Nav() {
           50% { opacity: 0.3; }
         }
       `}</style>
+      
+      {/* scroll progress bar — amber line fixed to top of window */}
+      <div
+        className="fixed top-0 left-0 h-[2px] z-[101] transition-[width] duration-150 ease-out will-change-[width]"
+        style={{
+          width: `${scrollProgress}%`,
+          background: 'var(--color-accent)',
+        }}
+      />
     </>
   );
 }

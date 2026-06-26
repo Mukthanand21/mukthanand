@@ -2,8 +2,6 @@ import { Link } from 'react-router-dom';
 
 import { useKineticScroll } from '../motion/useKineticScroll';
 import { KineticSwapper } from '../components/KineticSwapper';
-import { RackScene } from '../components/RackScene';
-import { useBootComplete } from '../components/Layout';
 
 /* ============================================================
    specs-v2/001-status.md — Hero /status
@@ -27,17 +25,13 @@ const GRAIN_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
 export function Status() {
   const heroRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
   const heroAccentRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
-  const bootComplete = useBootComplete();
 
   return (
     <section
       id="status"
-      className="relative min-h-[100dvh] overflow-hidden pt-6 -mx-gutter"
+      className="relative min-h-[100dvh] overflow-hidden pt-6"
       style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
     >
-      {/* ─── 3D rack background ─── */}
-      <RackScene bootComplete={bootComplete} />
-
       {/* ─── Vignette overlay — absolute, scoped to hero section ─── */}
       <div
         className="pointer-events-none absolute inset-0 z-[5]"
@@ -113,9 +107,6 @@ export function Status() {
                 >
                   Reddy.
                 </h1>
-
-                {/* gold accent line below name */}
-                <div className="mt-1 mb-5 h-px w-12 bg-accent" />
 
                 {/* role line */}
                 <div className="mt-4">

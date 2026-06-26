@@ -71,10 +71,13 @@ export function Contact() {
   return (
     <Section id="contact" label="POST /hire">
       <div className="mb-10">
-        <p className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary">
+        <p
+          className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary"
+          data-section-desc
+        >
           Send a request directly, or reach out through any channel below.
         </p>
-        <p className="mt-2 flex items-center gap-3 font-mono text-xs text-fg-muted">
+        <p className="mt-2 flex items-center gap-3 font-mono text-xs text-fg-muted" data-section-meta>
           <span className="inline-flex items-center gap-1.5">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
             <span>latency: 24ms</span>

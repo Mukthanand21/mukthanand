@@ -2,7 +2,14 @@
 # Vite must be configured with base: './' or the project path for Pages.
 stages:
   - build
+  - test
   - deploy
+
+variables:
+  LHCI_BUILD_CONTEXT__CURRENT_HASH: ${CI_COMMIT_SHA}
+  LHCI_BUILD_CONTEXT__COMMIT_MESSAGE: ${CI_COMMIT_MESSAGE}
+  LHCI_BUILD_CONTEXT__AUTHOR: ${CI_COMMIT_AUTHOR}
+  LHCI_BUILD_CONTEXT__BRANCH: ${CI_COMMIT_BRANCH}
 
 build:
   stage: build
@@ -20,6 +27,23 @@ build:
   rules:
     - if: $CI_COMMIT_BRANCH
 
+lighthouse:
+  stage: test
+  image: node:20
+  dependencies:
+    - build
+  script:
+    # Install Lighthouse CI globally (CI tool, not a project dep)
+    - npm install -g @lhci/cli
+    - lhci autorun
+  artifacts:
+    paths:
+      - .lighthouseci/
+    when: always
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_MERGE_REQUEST_IID
+
 pages:
   stage: deploy
   image: node:20
@@ -35,3 +59,4 @@ pages:
       - public
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == "feat/scroll-single-page"

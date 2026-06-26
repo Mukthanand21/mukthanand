@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import gsap from 'gsap';
 import { usePrefersReducedMotion } from './usePrefersReducedMotion';
+import { rackDirector } from '../motion/rackDirector';
+import { contentDirector } from '../motion/contentDirector';
 
 /* ═══════════════════════════════════════════════════════
    useRackScene — Imperative Three.js scene hook
@@ -661,13 +663,22 @@ function readColors() {
 /* ═══════════════════════════════════════════════════════
    Hook
    ═══════════════════════════════════════════════════════ */
-export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null>) {
+type UseRackSceneOptions = {
+  /** Fixed viewport canvas (global backdrop) vs section-local */
+  global?: boolean;
+};
+
+export function useRackScene(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  options: UseRackSceneOptions = {},
+) {
+  const { global = false } = options;
   const reduced = usePrefersReducedMotion();
   const sceneRef = useRef<{
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
-    heroGroup: THREE.Group;
+    rackAssembly: THREE.Group;
     leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite?: THREE.Sprite }[];
     motes: THREE.Points;
     moteGeo: THREE.BufferGeometry;
@@ -681,6 +692,8 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     smoothMouseY: number;
     isMobile: boolean;
     animating: boolean;
+    introDone: boolean;
+    camEnd: { pos: THREE.Vector3; look: THREE.Vector3 };
   } | null>(null);
 
   const initScene = useCallback(() => {
@@ -722,9 +735,12 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     scene.fog = new THREE.FogExp2(colors.bg, isMobile ? 0.025 : 0.04);
 
     /* ─── Camera ─── */
+    const viewportW = global ? window.innerWidth : containerRef.current.clientWidth;
+    const viewportH = global ? window.innerHeight : containerRef.current.clientHeight;
+
     const camera = new THREE.PerspectiveCamera(
       isMobile ? 30 : 40,
-      containerRef.current.clientWidth / containerRef.current.clientHeight,
+      viewportW / viewportH,
       0.1,
       isMobile ? 200 : 100,
     );
@@ -736,9 +752,8 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
        ─── */
 
     function onResize() {
-      if (!containerRef.current) return;
-      const w = containerRef.current.clientWidth;
-      const h = containerRef.current.clientHeight;
+      const w = global ? window.innerWidth : (containerRef.current?.clientWidth ?? window.innerWidth);
+      const h = global ? window.innerHeight : (containerRef.current?.clientHeight ?? window.innerHeight);
       renderer.setSize(w, h);
       renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
       camera.aspect = w / h;
@@ -798,13 +813,15 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
       { label: '/cache', sub: 'redis', state: 'warn' as const },
     ];
 
+    const rackAssembly = new THREE.Group();
+
     const hero = createRack(
       { detailed: !isMobile, unitData: heroUnitData, width: RACK_WIDTH, height: RACK_HEIGHT, depth: RACK_DEPTH },
       colors,
       isMobile,
       envMap,
     );
-    scene.add(hero.group);
+    rackAssembly.add(hero.group);
     const leds = hero.leds.slice();
 
     /* Side racks — subtle inward tilt for focus */
@@ -825,10 +842,12 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
         );
         r.group.position.set(side * (RACK_WIDTH + 0.5), 0, -1.0);
         r.group.rotation.y = side * -0.22;
-        scene.add(r.group);
+        rackAssembly.add(r.group);
         leds.push(...r.leds);
       });
     }
+
+    scene.add(rackAssembly);
 
     /* ─── Floor — simple dark metallic surface ───
        Reflector removed (was for bloom glow). Now just dark polished metal.
@@ -939,7 +958,7 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     /* ─── State ─── */
     const state = {
       scene, camera, renderer,
-      heroGroup: hero.group,
+      rackAssembly,
       leds, motes, moteGeo,
       rimLight, topAccent,
       glowMat,
@@ -948,6 +967,8 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
       smoothMouseX: 0, smoothMouseY: 0,
       isMobile,
       animating: true,
+      introDone: false,
+      camEnd,
     };
 
     sceneRef.current = state;
@@ -958,9 +979,19 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
 
     function easeOutExpo(t: number) { return t === 1 ? 1 : 1 - Math.pow(2, -10 * t); }
 
+    const targetCamPos = new THREE.Vector3();
+    const targetCamLook = new THREE.Vector3();
+    const currentCamPos = new THREE.Vector3();
+    const currentCamLook = new THREE.Vector3();
+
     /* ─── Render tick ─── */
     function tick() {
       if (!sceneRef.current?.animating) return;
+
+      const dir = rackDirector.current;
+      const opacity = global ? dir.opacity : 1;
+
+      if (global && opacity < 0.04 && !dir.active) return;
 
       const dt = Math.min(state.clock.getDelta(), 0.05);
       const elapsed = state.clock.getElapsedTime();
@@ -968,6 +999,13 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
       if (introStart === null) introStart = elapsed;
       const introT = Math.min((elapsed - introStart) / INTRO_DURATION, 1);
       const introEased = easeOutExpo(introT);
+
+      if (introT >= 1 && !state.introDone) {
+        state.introDone = true;
+        currentCamPos.copy(camEnd.pos);
+        currentCamLook.copy(camEnd.look);
+        if (global) rackDirector.markIntroComplete();
+      }
 
       smoothMouseX += (mouseX - smoothMouseX) * 0.04;
       smoothMouseY += (mouseY - smoothMouseY) * 0.04;
@@ -977,6 +1015,33 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
         const look = new THREE.Vector3().lerpVectors(camStart.look, camEnd.look, introEased);
         camera.position.copy(pos);
         camera.lookAt(look);
+
+        // Ensure rack starts at the correct layout position (asymmetric) instead of centered
+        rackAssembly.position.set(dir.groupX, dir.groupY, dir.groupZ);
+        rackAssembly.scale.setScalar(dir.groupScale);
+        rackAssembly.rotation.y = dir.groupRotY;
+      } else if (global && rackDirector.introComplete) {
+        targetCamPos.set(dir.cameraPos.x, dir.cameraPos.y, dir.cameraPos.z);
+        targetCamLook.set(dir.cameraLook.x, dir.cameraLook.y, dir.cameraLook.z);
+
+        if (dir.parallax && !reduced && !isMobile) {
+          targetCamPos.x += Math.sin(elapsed * 0.12) * 0.18 + smoothMouseX * 0.35;
+          targetCamPos.y += Math.cos(elapsed * 0.09) * 0.1 - smoothMouseY * 0.2;
+        }
+
+        currentCamPos.lerp(targetCamPos, 0.08);
+        currentCamLook.lerp(targetCamLook, 0.08);
+        camera.position.copy(currentCamPos);
+        camera.lookAt(currentCamLook);
+
+        rackAssembly.position.set(dir.groupX, dir.groupY, dir.groupZ);
+        rackAssembly.scale.setScalar(dir.groupScale);
+        rackAssembly.rotation.y += (dir.groupRotY - rackAssembly.rotation.y) * 0.06;
+
+        if (containerRef.current) {
+          containerRef.current.style.opacity = String(opacity);
+          containerRef.current.style.visibility = opacity < 0.02 ? 'hidden' : 'visible';
+        }
       } else if (reduced) {
         camera.position.copy(camEnd.pos);
         camera.lookAt(camEnd.look);
@@ -989,15 +1054,18 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
         camera.lookAt(camEnd.look.x, camEnd.look.y, camEnd.look.z);
       }
 
-      if (!reduced && !isMobile) {
-        /* Auto-orbit ±3° + enhanced mouse response */
+      if (!reduced && !isMobile && !global) {
+        /* Auto-orbit — section-local hero only */
         const autoOrbit = Math.sin(elapsed * 0.07) * 0.05;
         const targetRotation = smoothMouseX * 0.18 + autoOrbit;
-        hero.group.rotation.y += (targetRotation - hero.group.rotation.y) * 0.025;
+        rackAssembly.rotation.y += (targetRotation - rackAssembly.rotation.y) * 0.025;
       }
 
       /* LEDs — pulsing emissive glow (static on mobile) */
-      leds.forEach(led => {
+      const contentState = contentDirector.current;
+      const isHighlighted = !reduced && !isMobile && contentState.highlightedUnitIndices.length > 0;
+
+      leds.forEach((led, idx) => {
         let intensity: number;
         if (reduced || isMobile) {
           intensity = led.state === 'warn' ? 1.5 : (led.state === 'live' ? 2.0 : 0.15);
@@ -1008,8 +1076,29 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
         } else {
           intensity = 0.15 + Math.sin(elapsed * led.blinkSpeed + led.phase) * 0.08;
         }
+
+        /* ─── Phase 3: contentDirector highlight override ───
+         *  When contentDirector.highlightedUnitIndices includes this LED,
+         *  boost emissiveIntensity to create a visible "unit active" pulse
+         *  synced to card entrance. The -2 sentinel = all units flash. */
+        if (isHighlighted) {
+          const shouldHighlight =
+            contentState.highlightedUnitIndices.includes(idx) ||
+            contentState.highlightedUnitIndices.includes(-2);
+          const isPulse = contentState.ledPulseActive.has(idx) || contentState.ledPulseActive.has(-2);
+
+          if (shouldHighlight) {
+            if (isPulse) {
+              // Brief fast flash for ledPulseAt events
+              intensity = 2.5 + Math.sin(elapsed * 12 + idx) * 1.5;
+            } else {
+              // Sustained brightness boost for card-associated unit highlights
+              intensity = Math.max(intensity, 2.0);
+            }
+          }
+        }
+
         led.material.emissiveIntensity = Math.max(0.08, intensity);
-        
       });
 
       /* Motes — slow drift (static on mobile) */
@@ -1058,16 +1147,31 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
         containerRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [containerRef, reduced]);
+  }, [containerRef, reduced, global]);
 
   /* ─── Init on mount, cleanup on unmount ─── */
   useEffect(() => {
+    if (!containerRef.current) return;
     const cleanup = initScene();
-    return () => cleanup?.();
-  }, [initScene]);
+    return () => {
+      cleanup?.();
+      rackDirector.resetIntro();
+    };
+  }, [initScene, containerRef]);
 
-  /* ─── Pause/resume via IntersectionObserver ─── */
+  /* ─── Pause when tab hidden; global mode always runs when visible ─── */
   useEffect(() => {
+    const onVisibility = () => {
+      if (!sceneRef.current) return;
+      sceneRef.current.animating = document.visibilityState === 'visible';
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  /* ─── Section-local mode: pause when off-screen ─── */
+  useEffect(() => {
+    if (global) return;
     const el = containerRef.current;
     if (!el || !sceneRef.current) return;
 
@@ -1081,5 +1185,5 @@ export function useRackScene(containerRef: React.RefObject<HTMLDivElement | null
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [containerRef]);
+  }, [containerRef, global]);
 }

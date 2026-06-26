@@ -56,7 +56,7 @@ export function KineticSwapper({
     <Tag className={className} style={{ ...style, display: 'flex', flexWrap: 'wrap', gap: '0.25em' }}>
       <span>{prefix}&nbsp;</span>
       <span style={{ position: 'relative', display: 'inline-block', overflow: 'hidden', height: '1.2em' }}>
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="wait">
           <motion.span
             key={words[index]}
             className={wordClassName}
