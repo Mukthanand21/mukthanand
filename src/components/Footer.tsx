@@ -163,12 +163,7 @@ export function Footer() {
           text-transform: uppercase;
           margin-bottom: 12px;
         }
-        @media (max-width: 639px) {
-          .col-label { font-size: 8px; margin-bottom: 6px; letter-spacing: 0.06em; text-align: center; }
-          .social-link { font-size: 9px; gap: 4px; flex-direction: row; }
-          .social-icon { width: 12px; height: 12px; }
-          .social-links { flex-direction: row; gap: 12px; justify-content: center; }
-        }
+
         .status-row {
           display: flex;
           align-items: center;
@@ -278,6 +273,12 @@ export function Footer() {
         }
         .back-top:hover .up-arrow {
           transform: translateY(-1px);
+        }
+        @media (max-width: 639px) {
+          .col-label { font-size: 8px; margin-bottom: 6px; letter-spacing: 0.06em; text-align: center; }
+          .social-link { font-size: 11px; gap: 4px; flex-direction: row; }
+          .social-icon { width: 14px; height: 14px; }
+          .social-links { flex-direction: row; flex-wrap: wrap; gap: 16px; justify-content: center; }
         }
       `}</style>
     </footer>

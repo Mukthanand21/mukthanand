@@ -32,7 +32,7 @@ export function Status() {
   return (
     <section
       id="status"
-      className="relative md:min-h-screen overflow-hidden pt-6 -mx-gutter"
+      className="relative min-h-[100dvh] overflow-hidden pt-6 -mx-gutter"
       style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
     >
       {/* ─── 3D rack background ─── */}
@@ -71,7 +71,7 @@ export function Status() {
 
 
       {/* ─── Content overlay ─── */}
-      <div className="relative z-10 flex md:min-h-screen min-h-[0px] flex-col md:justify-center justify-start" style={{ pointerEvents: 'none', padding: '10vh 7vw' }}>
+      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center" style={{ pointerEvents: 'none', padding: '10vh 7vw' }}>
         <div>
             {/* ─── version tag ─── */}
             <p

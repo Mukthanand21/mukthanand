@@ -31,11 +31,11 @@ export function Layout() {
   }, [pathname, reduced]);
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="flex min-h-screen flex-col bg-bg text-fg">
       <BootLoader onComplete={() => setBootComplete(true)} />
 
       {/* hide content until boot is complete */}
-      <div className={bootComplete ? '' : 'invisible'}>
+      <div className={`flex flex-1 flex-col ${bootComplete ? '' : 'invisible'}`}>
         <BootContext.Provider value={bootComplete}>
           <ScrollProvider>
             <LensCursor />
@@ -48,12 +48,13 @@ export function Layout() {
             </a>
             <Nav />
             {pathname !== '/404' && <StatusBar />}
-            <main id="main-content" className="mx-auto max-w-content px-gutter" tabIndex={-1}>
+            <main id="main-content" className="mx-auto flex w-full flex-1 max-w-content flex-col px-gutter" tabIndex={-1}>
               {reduced ? (
                 <Outlet />
               ) : (
                 <motion.div
                   key={pathname}
+                  className="flex flex-1 flex-col"
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   onAnimationComplete={onRouteEntered}
