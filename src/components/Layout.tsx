@@ -25,11 +25,11 @@ export function Layout() {
   const is404 = pathname === '/404';
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="flex min-h-screen flex-col bg-bg text-fg">
       <BootLoader onComplete={() => setBootComplete(true)} />
 
       {/* hide content until boot is complete */}
-      <div className={bootComplete ? '' : 'invisible'}>
+      <div className={`flex flex-1 flex-col ${bootComplete ? '' : 'invisible'}`}>
         <BootContext.Provider value={bootComplete}>
           <ScrollProvider>
             <LensCursor />
@@ -43,7 +43,7 @@ export function Layout() {
             <Nav />
             {!is404 && <StatusBar />}
             {/* A — main is full-width; each section handles its own width + content max-width via <Section> */}
-            <main id="main-content" tabIndex={-1}>
+            <main id="main-content" className="flex flex-1 flex-col" tabIndex={-1}>
               <Outlet />
             </main>
             {!is404 && <Footer />}

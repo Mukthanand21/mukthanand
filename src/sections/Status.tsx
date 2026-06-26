@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Ticker } from '../components/Ticker';
+
 import { useKineticScroll } from '../motion/useKineticScroll';
 import { KineticSwapper } from '../components/KineticSwapper';
 
@@ -29,7 +29,7 @@ export function Status() {
   return (
     <section
       id="status"
-      className="relative md:min-h-screen overflow-hidden pt-6"
+      className="relative min-h-[100dvh] overflow-hidden pt-6"
       style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
     >
       {/* ─── Vignette overlay — absolute, scoped to hero section ─── */}
@@ -65,7 +65,7 @@ export function Status() {
 
 
       {/* ─── Content overlay ─── */}
-      <div className="relative z-10 flex md:min-h-screen min-h-[0px] flex-col md:justify-center justify-start" style={{ pointerEvents: 'none', padding: '10vh 7vw' }}>
+      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center" style={{ pointerEvents: 'none', padding: '10vh 7vw' }}>
         <div>
             {/* ─── version tag ─── */}
             <p
@@ -178,10 +178,6 @@ export function Status() {
         </div>
       </div>
 
-      {/* ─── ticker ─── */}
-      <div className="relative z-10 md:mt-20 mt-16 overflow-hidden">
-        <Ticker />
-      </div>
 
       {/* ─── Animation keyframes ─── */}
       <style>{`
