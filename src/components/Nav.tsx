@@ -261,15 +261,6 @@ export function Nav() {
           </div>
         </div>
 
-        {/* scroll progress bar — amber line at nav bottom */}
-        <div
-          className="absolute bottom-0 left-0 h-px transition-[width] duration-150 ease-out will-change-[width]"
-          style={{
-            width: `${scrollProgress}%`,
-            background: 'var(--color-accent)',
-          }}
-        />
-
         {/* mobile dropdown */}
         <div
           className={`overflow-hidden transition-all duration-300 ease-out md:hidden ${
@@ -306,6 +297,15 @@ export function Nav() {
           50% { opacity: 0.3; }
         }
       `}</style>
+      
+      {/* scroll progress bar — amber line fixed to top of window */}
+      <div
+        className="fixed top-0 left-0 h-[2px] z-[101] transition-[width] duration-150 ease-out will-change-[width]"
+        style={{
+          width: `${scrollProgress}%`,
+          background: 'var(--color-accent)',
+        }}
+      />
     </>
   );
 }

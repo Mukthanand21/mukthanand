@@ -1015,6 +1015,11 @@ export function useRackScene(
         const look = new THREE.Vector3().lerpVectors(camStart.look, camEnd.look, introEased);
         camera.position.copy(pos);
         camera.lookAt(look);
+
+        // Ensure rack starts at the correct layout position (asymmetric) instead of centered
+        rackAssembly.position.set(dir.groupX, dir.groupY, dir.groupZ);
+        rackAssembly.scale.setScalar(dir.groupScale);
+        rackAssembly.rotation.y = dir.groupRotY;
       } else if (global && rackDirector.introComplete) {
         targetCamPos.set(dir.cameraPos.x, dir.cameraPos.y, dir.cameraPos.z);
         targetCamLook.set(dir.cameraLook.x, dir.cameraLook.y, dir.cameraLook.z);
