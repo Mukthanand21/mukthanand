@@ -109,7 +109,7 @@ export function Status() {
                 </h1>
 
                 {/* gold accent line below name */}
-                <div className="mt-1 mb-5 h-px w-12 bg-accent" />
+                <div className="mt-1 mb-5 h-px w-32 md:w-[280px] bg-accent" />
 
                 {/* role line */}
                 <div className="mt-4">

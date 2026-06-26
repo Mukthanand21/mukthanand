@@ -95,6 +95,12 @@ function computeLedPulses(
   const pulses = new Set<number>();
   for (let i = 0; i < ledPulseAt.length; i++) {
     const { progress: p, unitIndex } = ledPulseAt[i];
+    
+    // Reset the trigger flag when the user scrolls back up past the trigger threshold
+    if (progress < p && triggeredPulses.has(i)) {
+      triggeredPulses.delete(i);
+    }
+
     // Trigger pulse when progress crosses the configured point (within 2% window)
     if (progress >= p && progress < p + 0.02 && !triggeredPulses.has(i)) {
       triggeredPulses.add(i);

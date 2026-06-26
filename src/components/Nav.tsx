@@ -32,7 +32,7 @@ function NavItem({
       onClick={() => onNavigate(id)}
       className={`font-mono text-sm transition-colors duration-150 px-2.5 py-1.5 ${
         active
-          ? 'text-[#EF9F27] bg-[#1a1509]'
+          ? 'text-accent bg-[#1a1509]'
           : 'text-[#5F5E5A] hover:text-[#D3D1C7] hover:bg-[#1a1a17]'
       }`}
       style={{ borderRadius: 5 }}
@@ -153,7 +153,7 @@ export function Nav() {
       />
 
       <header
-        className={`sticky top-0 z-[100] transition-transform duration-300 ${
+        className={`sticky top-0 w-full z-[100] transition-transform duration-300 ${
           isHidden ? '-translate-y-full' : 'translate-y-0'
         }`}
         style={{
@@ -210,7 +210,7 @@ export function Nav() {
                   style={{
                     width: 5,
                     height: 5,
-                    background: isContact ? '#EF9F27' : '#5DCAA5',
+                    background: isContact ? 'var(--color-accent)' : '#5DCAA5',
                     animation: mobileOpen
                       ? 'none'
                       : 'navPulse 2s ease-in-out infinite',
@@ -220,7 +220,7 @@ export function Nav() {
                 <span
                   className="font-mono"
                   style={{
-                    color: isContact ? '#EF9F27' : '#444441',
+                    color: isContact ? 'var(--color-accent)' : '#444441',
                     fontSize: 10,
                     transition: 'color 0.3s ease-out',
                   }}
@@ -266,7 +266,7 @@ export function Nav() {
           className="absolute bottom-0 left-0 h-px transition-[width] duration-150 ease-out will-change-[width]"
           style={{
             width: `${scrollProgress}%`,
-            background: '#EF9F27',
+            background: 'var(--color-accent)',
           }}
         />
 
@@ -285,7 +285,7 @@ export function Nav() {
                       onClick={() => scrollToSection(l.id)}
                       className={`block w-full text-left py-3 font-mono text-sm transition-colors duration-150 bg-transparent border-none cursor-pointer ${
                         activeSection === l.id
-                          ? 'text-[#EF9F27]'
+                          ? 'text-accent'
                           : 'text-[#5F5E5A] hover:text-[#D3D1C7]'
                       }`}
                     >
