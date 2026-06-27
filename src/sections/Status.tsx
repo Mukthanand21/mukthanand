@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -195,31 +194,84 @@ export function Status() {
 
             {/* CTA buttons */}
             <div
-              className="mt-8 flex flex-row items-center gap-3"
+              className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
               style={{
                 pointerEvents: 'auto',
                 opacity: 0,
                 animation: 'statusFadeUp 0.9s 2.85s cubic-bezier(0.16,1,0.3,1) forwards',
               }}
             >
-              {/* primary CTA — gold filled */}
-              <Link
-                to="/services"
-                className="inline-flex justify-center items-center gap-2 rounded-[2px] bg-accent px-5 py-3 font-sans text-sm font-semibold text-[#0A0A0A] transition-all duration-[120ms] hover:bg-accent-dim hover:-translate-y-px"
+              {/* primary CTA — gold filled + split-flap text + loop arrow */}
+              <a
+                href="#services"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = document.getElementById('services');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="group relative inline-flex justify-center items-center gap-2.5 rounded-[2px] bg-accent px-5 py-2.5 font-mono text-xs lowercase tracking-[0.08em] font-light text-[#0A0A0A] overflow-hidden transition-all duration-[150ms] hover:bg-accent-dim hover:-translate-y-px cursor-pointer"
               >
-                <span>view projects</span>
-                <span className="text-xs">&rarr;</span>
-              </Link>
+                <div className="relative h-[14px] overflow-hidden">
+                  <span className="flex flex-col transition-transform duration-[350ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2">
+                    <span className="h-[14px] leading-none">view projects</span>
+                    <span className="h-[14px] leading-none text-[#0A0A0A] opacity-75">view projects</span>
+                  </span>
+                </div>
+                
+                {/* Looping arrow swapper */}
+                <div className="relative overflow-hidden w-3 h-3 flex items-center justify-center">
+                  <span className="absolute transition-transform duration-300 group-hover:translate-x-4 flex items-center justify-center">
+                    &rarr;
+                  </span>
+                  <span className="absolute -translate-x-4 transition-transform duration-300 group-hover:translate-x-0 flex items-center justify-center text-[#0A0A0A]">
+                    &rarr;
+                  </span>
+                </div>
+              </a>
 
-              {/* secondary CTA — outline */}
+              {/* secondary CTA — outline + corner bracket reveal + pdf tag + loop download icon */}
               <a
                 href="https://drive.google.com/file/d/1x4HWdyhLU385gdNF4N_C3SwK1_5hhEGI/view?usp=sharing"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex justify-center items-center gap-2 rounded-[2px] border-thin border-border px-5 py-3 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent bg-bg-elevated sm:bg-transparent"
+                className="group relative inline-flex justify-center items-center gap-2.5 rounded-[2px] border border-border bg-bg-elevated sm:bg-transparent px-5 py-2.5 font-mono text-xs lowercase tracking-[0.08em] font-light text-fg transition-all duration-300 hover:text-accent hover:border-transparent hover:-translate-y-px"
               >
-                <span>download resume</span>
-                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
+                {/* Corner Bracket Accents — reveal and slide inward on hover */}
+                <span className="absolute top-0 left-0 w-1 h-1 border-t border-l border-accent opacity-0 scale-150 transition-all duration-[250ms] group-hover:opacity-100 group-hover:scale-100" />
+                <span className="absolute top-0 right-0 w-1 h-1 border-t border-r border-accent opacity-0 scale-150 transition-all duration-[250ms] group-hover:opacity-100 group-hover:scale-100" />
+                <span className="absolute bottom-0 left-0 w-1 h-1 border-b border-l border-accent opacity-0 scale-150 transition-all duration-[250ms] group-hover:opacity-100 group-hover:scale-100" />
+                <span className="absolute bottom-0 right-0 w-1 h-1 border-b border-r border-accent opacity-0 scale-150 transition-all duration-[250ms] group-hover:opacity-100 group-hover:scale-100" />
+
+                <span className="font-mono text-[9px] text-fg-muted/50 lowercase tracking-normal mr-[-4px]">pdf //</span>
+                
+                <div className="relative h-[14px] overflow-hidden">
+                  <span className="flex flex-col transition-transform duration-[350ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2">
+                    <span className="h-[14px] leading-none">download resume</span>
+                    <span className="h-[14px] leading-none text-accent">download resume</span>
+                  </span>
+                </div>
+
+                {/* Looping download icon */}
+                <div className="relative overflow-hidden w-3.5 h-3.5 flex items-center justify-center">
+                  <svg 
+                    className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-y-4" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2"
+                  >
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                  </svg>
+                  <svg 
+                    className="absolute -translate-y-4 h-3.5 w-3.5 text-accent transition-transform duration-300 group-hover:translate-y-0" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2"
+                  >
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                  </svg>
+                </div>
               </a>
             </div>
           </div>
