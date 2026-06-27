@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion, LayoutGroup } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Section } from '../components/Section';
 import { SkillIcon } from '../components/SkillIcon';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
@@ -104,12 +104,21 @@ function SkillCard({ skill, featured }: { skill: Skill; featured?: boolean }) {
   return (
     <div
       ref={tiltRef}
-      className={`group rounded-card border-thin border-border bg-bg-subtle p-4 transition-[background,border-color] duration-150 hover:border-accent/15 hover:shadow-[0_0_20px_-10px_rgba(232,182,90,0.05)] ${featured ? 'shadow-[0_0_24px_-16px_rgba(232,182,90,0.06)]' : ''
+      className={`group rounded-card border-thin border-border p-4 transition-[background,border-color] duration-150 hover:border-accent/15 hover:shadow-[0_0_20px_-10px_rgba(232,182,90,0.05)] ${featured
+          ? 'bg-[rgba(245,208,112,0.035)] shadow-[0_0_24px_-16px_rgba(232,182,90,0.08)]'
+          : 'bg-bg-subtle'
         }`}
     >
-      {/* proficiency blocks */}
-      <div className={`mb-1.5 font-mono font-light text-[10px] uppercase tracking-[0.12em] ${meta.color}`}>
-        {meta.blocks}
+      {/* proficiency blocks + gold diamond for strongest */}
+      <div className="mb-1.5 flex items-center gap-1.5">
+        <span className={`font-mono font-light text-[10px] uppercase tracking-[0.12em] ${meta.color}`}>
+          {meta.blocks}
+        </span>
+        {featured && (
+          <span className="font-sans text-[9px] text-accent opacity-70" aria-label="Strongest proficiency">
+            &#9670;
+          </span>
+        )}
       </div>
 
       {/* skill name + icon */}
@@ -200,7 +209,27 @@ function TabPill({
    ============================================================ */
 export function Stack() {
   const [activeTab, setActiveTab] = useState(groups[0].id);
+  const [hasScrolledTo, setHasScrolledTo] = useState(false);
   const currentGroup = groups.find((g) => g.id === activeTab)!;
+
+  /* ─── Delay card render until section scrolls into view ─── */
+  useEffect(() => {
+    if (hasScrolledTo) return;
+    const el = document.getElementById('stack');
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasScrolledTo(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasScrolledTo]);
 
   return (
     <Section id="stack" label="/stack">
@@ -211,8 +240,14 @@ export function Stack() {
         >
           Skills grouped by discipline. Depth signaled honestly — no filler, no charts.
         </p>
-        <p className="mt-2 font-mono text-xs text-fg-muted" data-section-meta>
-          {groups.reduce((sum, g) => sum + g.items.length, 0)} packages installed &middot; {groups.length} categories
+        <p
+          className="mt-2 font-mono text-xs text-fg-muted"
+          data-section-meta
+          key={currentGroup.id}
+        >
+          {currentGroup.items.length} skills &middot;{' '}
+          {currentGroup.items.filter((s) => s.level === 'strongest').length} strongest &middot;{' '}
+          {currentGroup.items.filter((s) => s.level === 'familiar').length} familiar
         </p>
       </div>
 
@@ -230,8 +265,18 @@ export function Stack() {
         </div>
       </LayoutGroup>
 
-      {/* active tab panel */}
-      <TabPanel key={currentGroup.id} group={currentGroup} />
+      {/* active tab panel — AnimatePresence for smooth tab switch transitions */}
+      <AnimatePresence mode="wait">
+        {hasScrolledTo && (
+          <motion.div
+            key={currentGroup.id}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15, ease: 'easeInOut' }}
+          >
+            <TabPanel group={currentGroup} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Section>
   );
 }
