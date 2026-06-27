@@ -174,7 +174,7 @@ function ServiceCard({ service }: { service: Service }) {
             </div>
           )}
 
-          <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-3 font-mono font-light text-xs text-fg-muted/60">
+          <div className="mt-5 grid grid-cols-2 gap-y-2 sm:flex sm:flex-wrap items-center sm:gap-x-4 border-t border-border pt-3 font-mono font-light text-xs text-fg-muted/60">
             <span className="inline-flex items-center gap-1">
               <span className="text-fg-muted/40">status:</span>
               <span className={`font-medium ${isArchived ? 'text-fg-muted/40' : 'text-success/70'}`}>

@@ -41,7 +41,7 @@ export default {
       spacing: {
         // 8px base scale
         section: '80px',
-        gutter: 'clamp(20px, 5vw, 48px)',
+        gutter: 'clamp(24px, 5vw, 48px)',
       },
       maxWidth: {
         content: '1100px',

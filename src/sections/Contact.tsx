@@ -134,7 +134,7 @@ export function Contact() {
                   type="text"
                   required
                   autoComplete="name"
-                  className="w-full rounded-lg border-thin border-border bg-bg-elevated px-3.5 py-3 font-sans text-sm text-fg outline-none caret-[var(--color-accent)] transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
+                  className="w-full rounded-lg border-thin border-fg-muted/20 bg-bg-elevated px-3.5 py-3.5 font-sans text-sm text-fg outline-none caret-[var(--color-accent)] transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
                   placeholder="Your name"
                 />
               </div>
@@ -153,7 +153,7 @@ export function Contact() {
                   type="email"
                   required
                   autoComplete="email"
-                  className="w-full rounded-lg border-thin border-border bg-bg-elevated px-3.5 py-3 font-sans text-sm text-fg outline-none caret-[var(--color-accent)] transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
+                  className="w-full rounded-lg border-thin border-fg-muted/20 bg-bg-elevated px-3.5 py-3.5 font-sans text-sm text-fg outline-none caret-[var(--color-accent)] transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
                   placeholder="you@example.com"
                 />
               </div>
@@ -171,7 +171,7 @@ export function Contact() {
                   name="message"
                   required
                   rows={4}
-                  className="w-full resize-y rounded-lg border-thin border-border bg-bg-elevated px-3.5 py-3 font-sans text-sm text-fg outline-none caret-[var(--color-accent)] transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
+                  className="w-full resize-y rounded-lg border-thin border-fg-muted/20 bg-bg-elevated px-3.5 py-3.5 font-sans text-sm text-fg outline-none caret-[var(--color-accent)] transition-[background,border-color] duration-150 placeholder:text-fg-muted/40 focus:border-accent focus:ring-[3px] focus:ring-accent/20"
                   placeholder="What would you like to discuss?"
                 />
               </div>

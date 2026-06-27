@@ -67,7 +67,7 @@ function StatusBarDesktop() {
       style={{
         height: 36,
         fontFamily: 'JetBrains Mono, ui-monospace, monospace',
-        fontSize: 10,
+        fontSize: 11,
       }}
     >
       <StatusItems />
@@ -122,7 +122,7 @@ function StatusBarMobile() {
           style={{
             height: 36,
             fontFamily: 'JetBrains Mono, ui-monospace, monospace',
-            fontSize: 10,
+            fontSize: 11,
           }}
         >
           <StatusItems id="mobile" />
@@ -146,11 +146,29 @@ function StatusBarMobile() {
         style={{
           height: 36,
           fontFamily: 'JetBrains Mono, ui-monospace, monospace',
-          fontSize: 10,
+          fontSize: 11,
         }}
       >
         <StatusItems id="mobile" />
+        <span style={{
+          width: '0.5px',
+          height: 14,
+          background: '#2c2c2a',
+          display: 'inline-block',
+          flexShrink: 0,
+          marginLeft: 16,
+          marginRight: 16,
+        }} />
         <StatusItems id="mobile-dup" />
+        <span style={{
+          width: '0.5px',
+          height: 14,
+          background: '#2c2c2a',
+          display: 'inline-block',
+          flexShrink: 0,
+          marginLeft: 16,
+          marginRight: 16,
+        }} />
       </div>
     </div>
   );

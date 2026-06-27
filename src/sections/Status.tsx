@@ -73,11 +73,20 @@ export function Status() {
         aria-hidden="true"
       />
 
-      {/* ─── Dark gradient overlay — full-bleed behind text column for legibility over 3D rack ─── */}
+      {/* Responsive dark gradient overlay for text legibility */}
+      <style>{`
+        .hero-gradient {
+          background: linear-gradient(to right, rgba(15,15,13,0.6) 0%, rgba(15,15,13,0.2) 100%);
+        }
+        @media (min-width: 768px) {
+          .hero-gradient {
+            background: linear-gradient(to right, rgba(15,15,13,0.85) 0%, rgba(15,15,13,0.7) 45%, rgba(15,15,13,0.3) 70%, transparent 100%);
+          }
+        }
+      `}</style>
       <div
-        className="pointer-events-none absolute inset-0 z-[7] hero-overlay"
+        className="pointer-events-none absolute inset-0 z-[7] hero-gradient"
         style={{
-          background: 'linear-gradient(to right, rgba(15,15,13,0.85) 0%, rgba(15,15,13,0.7) 45%, rgba(15,15,13,0.3) 70%, transparent 100%)',
           opacity: 0,
           animation: 'statusFadeUp 1s 2.1s cubic-bezier(0.16,1,0.3,1) forwards',
         }}
@@ -85,9 +94,8 @@ export function Status() {
       />
 
 
-
       {/* ─── Content overlay ─── */}
-      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center" style={{ pointerEvents: 'none', padding: '10vh 7vw' }}>
+      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-start md:justify-center px-[7vw] pt-[8vh] md:pt-[10vh]" style={{ pointerEvents: 'none' }}>
         <div>
           {/* ─── version tag ─── */}
           <p
@@ -105,7 +113,7 @@ export function Status() {
           <div>
             <h1
               ref={heroRef}
-              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,5vw,52px)] font-bold leading-[1.0]"
+              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,8vw,80px)] font-bold leading-[1.0]"
               style={{
                 color: '#f5f3ee',
                 willChange: 'transform',
@@ -118,7 +126,7 @@ export function Status() {
             </h1>
             <h1
               ref={heroAccentRef}
-              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,5vw,52px)] font-bold leading-[1.0]"
+              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,8vw,80px)] font-bold leading-[1.0]"
               style={{
                 color: 'var(--color-accent)',
                 willChange: 'transform',
@@ -131,7 +139,7 @@ export function Status() {
             </h1>
 
             {/* role line */}
-            <div className="mt-4">
+            <div className="mt-2">
               <KineticSwapper
                 prefix="Focused on"
                 words={[
@@ -141,15 +149,15 @@ export function Status() {
                   'Open Source',
                 ]}
                 className="font-sans font-light text-base leading-relaxed"
-                wordStyle={{ color: 'var(--color-accent)' }}
+                wordStyle={{ color: 'var(--color-accent)', textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}
                 interval={2500}
                 as="p"
-                style={{ color: '#888780' }}
+                style={{ color: '#888780', textShadow: '0 2px 12px rgba(0,0,0,0.8)' }}
               />
             </div>
 
             <p
-              className="mt-4 max-w-[40ch] font-sans font-light text-sm md:text-lg leading-relaxed"
+              className="mt-3 max-w-[40ch] font-sans font-light text-sm md:text-lg leading-relaxed"
               style={{
                 color: '#B0A898',
                 textShadow: '0 2px 12px rgba(0,0,0,0.5)',
@@ -166,7 +174,7 @@ export function Status() {
 
             {/* CTA buttons */}
             <div
-              className="mt-12 flex flex-wrap items-center gap-4"
+              className="mt-8 flex flex-row items-center gap-3"
               style={{
                 pointerEvents: 'auto',
                 opacity: 0,
@@ -176,7 +184,7 @@ export function Status() {
               {/* primary CTA — gold filled */}
               <Link
                 to="/services"
-                className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 font-sans text-sm font-semibold text-[#0A0A0A] transition-all duration-[120ms] hover:bg-accent-dim hover:-translate-y-px"
+                className="inline-flex justify-center items-center gap-2 rounded-[2px] bg-accent px-5 py-3 font-sans text-sm font-semibold text-[#0A0A0A] transition-all duration-[120ms] hover:bg-accent-dim hover:-translate-y-px"
               >
                 <span>view projects</span>
                 <span className="text-xs">&rarr;</span>
@@ -187,7 +195,7 @@ export function Status() {
                 href="https://drive.google.com/file/d/1x4HWdyhLU385gdNF4N_C3SwK1_5hhEGI/view?usp=sharing"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border-thin border-border px-5 py-2.5 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent md:bg-transparent bg-bg-elevated"
+                className="inline-flex justify-center items-center gap-2 rounded-[2px] border-thin border-border px-5 py-3 font-sans text-sm text-fg transition-colors duration-150 hover:border-accent hover:text-accent bg-bg-elevated sm:bg-transparent"
               >
                 <span>download resume</span>
                 <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
