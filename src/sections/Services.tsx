@@ -74,11 +74,10 @@ function StatusBadge({ status }: { status: ServiceStatus }) {
   const color = isLive ? 'text-success' : 'text-fg-muted';
 
   return (
-    <span className={`inline-flex items-center gap-1.5 font-mono text-xs ${color}`}>
+    <span className={`inline-flex items-center gap-1.5 font-mono font-light text-xs ${color}`}>
       <span
-        className={`inline-block h-1.5 w-1.5 rounded-full ${
-          isLive ? 'bg-success animate-dot-pulse-service' : 'bg-fg-muted'
-        }`}
+        className={`inline-block h-1.5 w-1.5 rounded-full ${isLive ? 'bg-success animate-dot-pulse-service' : 'bg-fg-muted'
+          }`}
       />
       <span className="uppercase tracking-wider">{status}</span>
     </span>
@@ -87,7 +86,7 @@ function StatusBadge({ status }: { status: ServiceStatus }) {
 
 function MethodBadge({ method }: { method: string }) {
   return (
-    <span className="inline-flex rounded border border-border bg-bg px-2.5 py-0.5 font-mono text-xs uppercase leading-none text-accent">
+    <span className="inline-flex rounded border border-border bg-bg px-2.5 py-0.5 font-mono font-light text-xs uppercase leading-none text-accent">
       {method}
     </span>
   );
@@ -102,11 +101,10 @@ function ServiceCard({ service }: { service: Service }) {
     <div ref={tiltRef} style={{ perspective: '800px' }}>
       <article
         data-section-card
-        className={`group relative rounded-card border border-border border-l-[3px] bg-bg-elevated p-6 transition-all duration-300 sm:p-8 ${
-          isArchived
+        className={`group relative rounded-card border border-border border-l-[3px] bg-bg-elevated p-6 transition-all duration-300 sm:p-8 ${isArchived
             ? 'border-dashed border-l-border opacity-60'
             : 'border-l-transparent hover:border-l-accent hover:bg-accent/[0.02]'
-        }`}
+          }`}
         style={{
           transformStyle: 'preserve-3d',
           transition: 'border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease',
@@ -127,7 +125,7 @@ function ServiceCard({ service }: { service: Service }) {
           <div className="mb-5 flex items-start justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2.5">
               <MethodBadge method={service.method} />
-              <span className="font-mono text-sm text-fg-muted">
+              <span className="font-mono font-light text-sm text-fg-muted">
                 {service.path}
               </span>
               <StatusBadge status={service.status} />
@@ -138,7 +136,7 @@ function ServiceCard({ service }: { service: Service }) {
                 href={service.link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 font-mono text-xs text-fg-muted transition-colors duration-150 hover:text-accent"
+                className="shrink-0 font-mono font-light text-xs text-fg-muted transition-colors duration-150 hover:text-accent"
                 aria-label={service.link.label}
               >
                 <span className="inline-flex items-center gap-1">
@@ -149,17 +147,17 @@ function ServiceCard({ service }: { service: Service }) {
                 </span>
               </a>
             ) : (
-              <span className="shrink-0 font-mono text-xs text-fg-muted">
+              <span className="shrink-0 font-mono font-light text-xs text-fg-muted">
                 &mdash;
               </span>
             )}
           </div>
 
-          <h3 className="text-lg font-semibold text-fg transition-colors duration-150 group-hover:text-accent md:text-xl">
+          <h3 className="font-sans font-medium text-lg text-fg transition-colors duration-150 group-hover:text-accent md:text-xl">
             {service.name}
           </h3>
 
-          <p className="mt-3 max-w-prose text-sm leading-relaxed text-fg-secondary md:text-md">
+          <p className="mt-3 max-w-prose font-sans font-light text-sm leading-relaxed text-fg-secondary md:text-md">
             {service.description}
           </p>
 
@@ -168,7 +166,7 @@ function ServiceCard({ service }: { service: Service }) {
               {service.tech.map((t) => (
                 <span
                   key={t}
-                  className="rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono text-xs text-fg-muted transition-colors duration-150 group-hover:border-accent/20 group-hover:text-accent/70"
+                  className="rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono font-light text-xs text-fg-muted transition-colors duration-150 group-hover:border-accent/20 group-hover:text-accent/70"
                 >
                   {t}
                 </span>
@@ -176,10 +174,10 @@ function ServiceCard({ service }: { service: Service }) {
             </div>
           )}
 
-          <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-3 font-mono text-xs text-fg-muted/60">
+          <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-3 font-mono font-light text-xs text-fg-muted/60">
             <span className="inline-flex items-center gap-1">
               <span className="text-fg-muted/40">status:</span>
-              <span className={isArchived ? 'text-fg-muted/40' : 'text-success/70'}>
+              <span className={`font-medium ${isArchived ? 'text-fg-muted/40' : 'text-success/70'}`}>
                 {isArchived ? '410 Gone' : '200 OK'}
               </span>
             </span>
@@ -191,7 +189,7 @@ function ServiceCard({ service }: { service: Service }) {
             </span>
             <span className="inline-flex items-center gap-1">
               <span className="text-fg-muted/40">uptime:</span>
-              <span>{isArchived ? '0d' : '142d'}</span>
+              <span className="font-medium">{isArchived ? '0d' : '142d'}</span>
             </span>
           </div>
         </div>

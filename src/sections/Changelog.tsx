@@ -1,4 +1,5 @@
 import { Section } from '../components/Section';
+import { DimmedPunctuation } from '../components/DimmedPunctuation';
 
 type Entry = {
   version: string;
@@ -65,7 +66,7 @@ function isMajor(version: string): boolean {
 
 function EntryTag({ label }: { label: string }) {
   return (
-    <span className="rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono text-[10px] text-fg-muted">
+    <span className="rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono font-light text-[10px] text-fg-muted">
       {label}
     </span>
   );
@@ -128,14 +129,12 @@ export function Changelog() {
               <div className="flex shrink-0 flex-col items-center w-[20px]">
                 <div className="relative flex items-center justify-center mt-[4px] shrink-0">
                   <div
-                    className={`absolute rounded-full bg-accent/25 animate-dot-pulse ${
-                      major ? 'h-[18px] w-[18px]' : 'h-[15px] w-[15px]'
-                    }`}
+                    className={`absolute rounded-full bg-accent/25 animate-dot-pulse ${major ? 'h-[18px] w-[18px]' : 'h-[15px] w-[15px]'
+                      }`}
                   />
                   <div
-                    className={`rounded-full bg-accent transition-transform duration-300 group-hover:scale-125 ${
-                      major ? 'h-3 w-3' : 'h-[10px] w-[10px]'
-                    }`}
+                    className={`rounded-full bg-accent transition-transform duration-300 group-hover:scale-125 ${major ? 'h-3 w-3' : 'h-[10px] w-[10px]'
+                      }`}
                   />
                 </div>
                 {!isLast && (
@@ -146,13 +145,12 @@ export function Changelog() {
               <div className="flex-1 min-w-0">
                 <div className="mb-2 flex flex-wrap items-center gap-2.5">
                   <span
-                    className={`font-mono uppercase text-accent ${
-                      major ? 'text-xs' : 'text-[11px]'
-                    }`}
+                    className={`font-mono font-medium uppercase text-accent ${major ? 'text-xs' : 'text-[11px]'
+                      }`}
                   >
-                    {entry.version}
+                    <DimmedPunctuation>{entry.version}</DimmedPunctuation>
                   </span>
-                  <span className="font-mono text-[11px] text-fg-muted">
+                  <span className="font-mono font-light text-[11px] text-fg-muted">
                     &mdash; {entry.date}
                   </span>
                   <span className="hidden sm:inline-flex sm:flex-wrap sm:items-center sm:gap-1.5">
@@ -171,14 +169,14 @@ export function Changelog() {
                 )}
 
                 <h3
-                  className={`font-semibold text-fg transition-colors duration-150 group-hover:text-accent ${
+                  className={`font-sans font-semibold text-fg transition-colors duration-150 group-hover:text-accent ${
                     major ? 'text-xl' : 'text-lg'
                   }`}
                 >
                   {entry.title}
                 </h3>
 
-                <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-fg-secondary">
+                <p className="mt-1.5 max-w-prose font-sans font-normal text-sm leading-relaxed text-fg-secondary">
                   {entry.description}
                 </p>
               </div>

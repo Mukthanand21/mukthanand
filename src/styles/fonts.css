@@ -2,15 +2,30 @@
    specs-v2/000-overview.md §3 (Typography)
 
    Typefaces:
-   - Cabinet Grotesk (100–900): Editorial display — hero, section titles, large numbers
-   - Inter (400–700): Primary sans — body text, UI elements, labels
+   - Syncopate (700): Editorial display — hero
+   - Geist Sans (300-600): Primary sans — headers, body text, UI elements, labels
+   - Geist Mono (300-500): Mono — status, code, terminal
    - Syne (700–800): Bootloader English reveal display only
    - Noto Scripts (700 each): Bootloader multilingual scramble animation
-
-   Loading strategy:
-   - Cabinet Grotesk via Fontshare CDN (preconnected in index.html)
-   - Inter via Google Fonts (preconnected in index.html)
-   - Syne + Noto Scripts via Google Fonts (loaded lazily after critical render)
-
-   font-display: swap for all non-critical fonts.
    ============================================================ */
+
+@font-face {
+  font-family: 'Geist';
+  src: url('../../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+/* ─── Micro-typography Enhancements ─── */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}

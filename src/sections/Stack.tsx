@@ -104,30 +104,28 @@ function SkillCard({ skill, featured }: { skill: Skill; featured?: boolean }) {
   return (
     <div
       ref={tiltRef}
-      className={`group rounded-card border-thin border-border bg-bg-subtle p-4 transition-[background,border-color] duration-150 hover:border-accent/15 hover:shadow-[0_0_20px_-10px_rgba(232,182,90,0.05)] ${
-        featured ? 'shadow-[0_0_24px_-16px_rgba(232,182,90,0.06)]' : ''
-      }`}
+      className={`group rounded-card border-thin border-border bg-bg-subtle p-4 transition-[background,border-color] duration-150 hover:border-accent/15 hover:shadow-[0_0_20px_-10px_rgba(232,182,90,0.05)] ${featured ? 'shadow-[0_0_24px_-16px_rgba(232,182,90,0.06)]' : ''
+        }`}
     >
       {/* proficiency blocks */}
-      <div className={`mb-1.5 font-mono text-[10px] uppercase tracking-[0.12em] ${meta.color}`}>
+      <div className={`mb-1.5 font-mono font-light text-[10px] uppercase tracking-[0.12em] ${meta.color}`}>
         {meta.blocks}
       </div>
 
       {/* skill name + icon */}
       <div
-        className={`mb-1 flex items-center gap-1.5 font-sans font-medium text-fg transition-colors duration-150 group-hover:text-accent ${
-          featured ? 'text-[17px]' : 'text-[14px]'
-        }`}
+        className={`mb-1 flex items-center gap-1.5 font-sans font-medium text-fg transition-colors duration-150 group-hover:text-accent ${featured ? 'text-[17px]' : 'text-[14px]'
+          }`}
       >
         <SkillIcon name={skill.name} />
         {skill.name}
       </div>
 
-       {/* note + optional external link */}
-       <div className="flex items-start justify-between gap-3">
-         <div className="font-sans text-xs leading-relaxed text-fg-secondary">
-           {skill.note}
-         </div>
+      {/* note + optional external link */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="font-sans font-light text-xs leading-relaxed text-fg-secondary">
+          {skill.note}
+        </div>
         {skill.url && (
           <a
             href={skill.url}
@@ -137,7 +135,7 @@ function SkillCard({ skill, featured }: { skill: Skill; featured?: boolean }) {
             aria-label={`${skill.name} — view project`}
           >
             <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">
-              <path d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-9.988l4.365 4.366-9.502 9.502 1.658 1.658 9.502-9.502 4.26 4.259.013-10.283h-.308z"/>
+              <path d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-9.988l4.365 4.366-9.502 9.502 1.658 1.658 9.502-9.502 4.26 4.259.013-10.283h-.308z" />
             </svg>
           </a>
         )}
@@ -160,7 +158,7 @@ function TabPanel({ group }: { group: Group }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: reduced ? 0 : i * 0.06 }}
         >
-            <SkillCard skill={skill} featured={i === 0} />
+          <SkillCard skill={skill} featured={i === 0} />
         </motion.div>
       ))}
     </div>
@@ -180,11 +178,10 @@ function TabPill({
   return (
     <button
       onClick={onClick}
-      className={`relative rounded-full border-thin bg-transparent px-3 py-1 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors duration-150 ${
-        active
+      className={`relative rounded-full border-thin bg-transparent px-3 py-1 font-mono font-light text-[10px] uppercase tracking-[0.1em] transition-colors duration-150 ${active
           ? 'border-border text-accent'
           : 'border-border text-fg-muted hover:text-fg-muted/80'
-      }`}
+        }`}
     >
       {label}
       {active && (

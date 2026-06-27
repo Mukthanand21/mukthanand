@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { useScrollSpy } from '../hooks/useScrollSpy';
 import { useLenis } from '@studio-freight/react-lenis';
+import { DimmedPunctuation } from './DimmedPunctuation';
 
 /* ─── section IDs matching the IndexPage sections ─── */
 const SECTION_IDS = ['status', 'services', 'changelog', 'stack', 'contact'] as const;
@@ -30,11 +31,10 @@ function NavItem({
   return (
     <button
       onClick={() => onNavigate(id)}
-      className={`font-mono text-sm transition-colors duration-150 px-2.5 py-1.5 ${
-        active
+      className={`font-sans font-medium text-sm transition-colors duration-150 px-2.5 py-1.5 ${active
           ? 'text-accent bg-[#1a1509]'
           : 'text-[#5F5E5A] hover:text-[#D3D1C7] hover:bg-[#1a1a17]'
-      }`}
+        }`}
       style={{ borderRadius: 5 }}
       aria-current={active ? 'true' : undefined}
     >
@@ -143,19 +143,17 @@ export function Nav() {
     <>
       {/* mobile blur overlay */}
       <div
-        className={`fixed inset-0 z-[99] bg-black/20 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
-          mobileOpen
+        className={`fixed inset-0 z-[99] bg-black/20 backdrop-blur-sm transition-opacity duration-300 md:hidden ${mobileOpen
             ? 'pointer-events-auto opacity-100'
             : 'pointer-events-none opacity-0'
-        }`}
+          }`}
         onClick={() => setMobileOpen(false)}
         aria-hidden="true"
       />
 
       <header
-        className={`sticky top-0 w-full z-[100] transition-transform duration-300 ${
-          isHidden ? '-translate-y-full' : 'translate-y-0'
-        }`}
+        className={`sticky top-0 w-full z-[100] transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'
+          }`}
         style={{
           background: '#0f0f0d',
           borderBottom: '0.5px solid #2c2c2a',
@@ -168,11 +166,11 @@ export function Nav() {
             onClick={() => scrollToSection('status')}
             className="flex items-center gap-2 shrink-0 bg-transparent border-none p-0 cursor-pointer"
           >
-            <span className="font-sans" style={{ color: '#D3D1C7', fontSize: 13 }}>
+            <span className="font-sans font-medium" style={{ color: '#D3D1C7', fontSize: 13 }}>
               Mukthanand
             </span>
-            <span className="font-mono hidden sm:inline" style={{ color: '#444441', fontSize: 10 }}>
-              v3.0.0
+            <span className="font-mono font-medium hidden sm:inline" style={{ color: '#444441', fontSize: 10 }}>
+              <DimmedPunctuation>v3.0.0</DimmedPunctuation>
             </span>
           </button>
 
@@ -218,7 +216,7 @@ export function Nav() {
                   }}
                 />
                 <span
-                  className="font-mono"
+                  className="font-sans font-medium"
                   style={{
                     color: isContact ? 'var(--color-accent)' : '#444441',
                     fontSize: 10,
@@ -239,21 +237,18 @@ export function Nav() {
               >
                 <span className="sr-only">{mobileOpen ? 'Close' : 'Menu'}</span>
                 <span
-                  className={`block h-px w-5 transition-all duration-300 ${
-                    mobileOpen ? 'translate-y-0 rotate-45' : '-translate-y-1.5'
-                  }`}
+                  className={`block h-px w-5 transition-all duration-300 ${mobileOpen ? 'translate-y-0 rotate-45' : '-translate-y-1.5'
+                    }`}
                   style={{ background: '#D3D1C7' }}
                 />
                 <span
-                  className={`block h-px w-5 transition-all duration-300 ${
-                    mobileOpen ? 'opacity-0' : ''
-                  }`}
+                  className={`block h-px w-5 transition-all duration-300 ${mobileOpen ? 'opacity-0' : ''
+                    }`}
                   style={{ background: '#D3D1C7' }}
                 />
                 <span
-                  className={`block h-px w-5 transition-all duration-300 ${
-                    mobileOpen ? 'translate-y-0 -rotate-45' : 'translate-y-1.5'
-                  }`}
+                  className={`block h-px w-5 transition-all duration-300 ${mobileOpen ? 'translate-y-0 -rotate-45' : 'translate-y-1.5'
+                    }`}
                   style={{ background: '#D3D1C7' }}
                 />
               </button>
@@ -263,9 +258,8 @@ export function Nav() {
 
         {/* mobile dropdown */}
         <div
-          className={`overflow-hidden transition-all duration-300 ease-out md:hidden ${
-            mobileOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
+          className={`overflow-hidden transition-all duration-300 ease-out md:hidden ${mobileOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}
         >
           <div style={{ borderTop: '0.5px solid #2c2c2a', background: '#0f0f0d' }}>
             <nav aria-label="Mobile navigation">
@@ -274,11 +268,10 @@ export function Nav() {
                   <li key={l.id}>
                     <button
                       onClick={() => scrollToSection(l.id)}
-                      className={`block w-full text-left py-3 font-mono text-sm transition-colors duration-150 bg-transparent border-none cursor-pointer ${
-                        activeSection === l.id
+                      className={`block w-full text-left py-3 font-sans font-medium text-sm transition-colors duration-150 bg-transparent border-none cursor-pointer ${activeSection === l.id
                           ? 'text-accent'
                           : 'text-[#5F5E5A] hover:text-[#D3D1C7]'
-                      }`}
+                        }`}
                     >
                       {l.label}
                     </button>
@@ -297,7 +290,7 @@ export function Nav() {
           50% { opacity: 0.3; }
         }
       `}</style>
-      
+
       {/* scroll progress bar — amber line fixed to top of window */}
       <div
         className="fixed top-0 left-0 h-[2px] z-[101] transition-[width] duration-150 ease-out will-change-[width]"

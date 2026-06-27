@@ -1,61 +1,63 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- ─── Devicons (tech brand icons) ─── -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- ─── Fontshare (Cabinet Grotesk — editorial display) ─── -->
-    <link rel="preconnect" href="https://api.fontshare.com" />
-    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+  <!-- ─── Devicons (tech brand icons) ─── -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
 
-    <!-- ─── Google Fonts ─── -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- ─── Fontshare (Cabinet Grotesk — editorial display) ─── -->
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
 
-    <!-- Cabinet Grotesk — editorial display (hero, section titles) -- preloaded -->
-    <link rel="preload" as="style" href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@1,2,3,4,5,6,7,8&display=swap" />
-    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@1,2,3,4,5,6,7,8&display=swap" />
+  <!-- ─── Google Fonts ─── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- Inter — primary body+UI font (400–700) -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" />
+  <!-- Syncopate — editorial display (hero) -->
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=swap" rel="stylesheet" />
 
-    <!-- Syne (bootloader display) + Noto Scripts (multilingual scramble) -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@700&family=Noto+Sans+Devanagari:wght@700&family=Noto+Sans+Tamil:wght@700&family=Noto+Sans+Kannada:wght@700&family=Noto+Sans+Bengali:wght@700&family=Noto+Sans+Malayalam:wght@700&family=Noto+Sans+Gujarati:wght@700&family=Noto+Sans+Gurmukhi:wght@700&family=Noto+Sans+Oriya:wght@700&family=Syne:wght@700;800&display=swap" />
+  <!-- Syne (bootloader display) + Noto Scripts (multilingual scramble) -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@700&family=Noto+Sans+Devanagari:wght@700&family=Noto+Sans+Tamil:wght@700&family=Noto+Sans+Kannada:wght@700&family=Noto+Sans+Bengali:wght@700&family=Noto+Sans+Malayalam:wght@700&family=Noto+Sans+Gujarati:wght@700&family=Noto+Sans+Gurmukhi:wght@700&family=Noto+Sans+Oriya:wght@700&family=Syne:wght@700;800&display=swap" />
 
-    <!-- ─── branding ─── -->
-    <meta name="theme-color" content="#0A0A0A" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- PNG fallback — generate /public/favicon.png (32×32) via a converter -->
-    <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+  <!-- ─── branding ─── -->
+  <meta name="theme-color" content="#0A0A0A" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <!-- PNG fallback — generate /public/favicon.png (32×32) via a converter -->
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
 
-    <!-- ─── SEO ─── -->
-    <title>mukthanand.dev</title>
-    <meta name="description" content="Software Engineer building AI-powered applications, scalable backend services, and full-stack products. Portfolio framed as a production system." />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://mukthanand-d6dd3b.gitlab.io/" />
+  <!-- ─── SEO ─── -->
+  <title>mukthanand.dev</title>
+  <meta name="description"
+    content="Software Engineer building AI-powered applications, scalable backend services, and full-stack products. Portfolio framed as a production system." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://mukthanand-d6dd3b.gitlab.io/" />
 
-    <!-- ─── Open Graph ─── -->
-    <meta property="og:title" content="mukthanand.dev" />
-    <meta property="og:description" content="Building AI-powered applications, scalable backend services, and full-stack products focused on reliability, performance, and real-world impact." />
-    <meta property="og:url" content="https://mukthanand-d6dd3b.gitlab.io/" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://mukthanand-d6dd3b.gitlab.io/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Mukthanand Reddy portfolio preview" />
+  <!-- ─── Open Graph ─── -->
+  <meta property="og:title" content="mukthanand.dev" />
+  <meta property="og:description"
+    content="Building AI-powered applications, scalable backend services, and full-stack products focused on reliability, performance, and real-world impact." />
+  <meta property="og:url" content="https://mukthanand-d6dd3b.gitlab.io/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://mukthanand-d6dd3b.gitlab.io/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Mukthanand Reddy portfolio preview" />
 
-    <!-- ─── Twitter Card ─── -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="mukthanand.dev" />
-    <meta name="twitter:description" content="Building AI-powered applications, scalable backend services, and full-stack products." />
-    <meta name="twitter:image" content="https://mukthanand-d6dd3b.gitlab.io/og-image.png" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <!-- ─── Twitter Card ─── -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="mukthanand.dev" />
+  <meta name="twitter:description"
+    content="Building AI-powered applications, scalable backend services, and full-stack products." />
+  <meta name="twitter:image" content="https://mukthanand-d6dd3b.gitlab.io/og-image.png" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

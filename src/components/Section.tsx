@@ -71,7 +71,7 @@ export function Section({ id, label, title, children, className, scrim }: Sectio
         {displayTitle && id !== 'status' && (
           <>
             <h2
-              className="mb-4 font-sans text-[clamp(28px,4vw,40px)] font-bold leading-[1.05] tracking-[-0.03em] text-fg"
+              className="mb-4 font-sans text-[clamp(28px,4vw,40px)] font-semibold leading-[1.05] tracking-[-0.03em] text-fg"
               data-section-title
             >
               {displayTitle}
