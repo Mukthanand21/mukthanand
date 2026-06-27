@@ -101,9 +101,9 @@ export function Status() {
           <p
             className="mb-5 font-mono font-light text-xs tracking-[0.1em]"
             style={{
-              color: '#444441',
+              color: 'var(--color-text-muted)',
               opacity: 0,
-              animation: 'statusFadeUp 1s 2.1s cubic-bezier(0.16,1,0.3,1) forwards',
+              animation: 'statusFadeUp 0.8s 2.25s cubic-bezier(0.16,1,0.3,1) forwards',
             }}
           >
             <DimmedPunctuation>v3.0.0</DimmedPunctuation> &mdash; final year build
@@ -113,7 +113,7 @@ export function Status() {
           <div>
             <h1
               ref={heroRef}
-              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,8vw,80px)] font-bold leading-[1.0]"
+              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,8vw,80px)] md:text-[54px] font-bold leading-[1.0]"
               style={{
                 color: '#f5f3ee',
                 willChange: 'transform',
@@ -126,7 +126,7 @@ export function Status() {
             </h1>
             <h1
               ref={heroAccentRef}
-              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,8vw,80px)] font-bold leading-[1.0]"
+              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,8vw,80px)] md:text-[54px] font-bold leading-[1.0]"
               style={{
                 color: 'var(--color-accent)',
                 willChange: 'transform',
@@ -152,14 +152,14 @@ export function Status() {
                 wordStyle={{ color: 'var(--color-accent)', textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}
                 interval={2500}
                 as="p"
-                style={{ color: '#888780', textShadow: '0 2px 12px rgba(0,0,0,0.8)' }}
+                style={{ color: 'var(--color-text-muted)', textShadow: '0 2px 12px rgba(0,0,0,0.8)' }}
               />
             </div>
 
             <p
               className="mt-3 max-w-[40ch] font-sans font-light text-sm md:text-lg leading-relaxed"
               style={{
-                color: '#B0A898',
+                color: 'var(--color-text-secondary)',
                 textShadow: '0 2px 12px rgba(0,0,0,0.5)',
                 opacity: 0,
                 animation: 'statusFadeUp 1s 2.65s cubic-bezier(0.16,1,0.3,1) forwards',

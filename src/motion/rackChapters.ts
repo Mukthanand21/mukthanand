@@ -80,15 +80,15 @@ const DESKTOP_HERO: RackChapterState = {
 };
 
 const MOBILE_HERO: RackChapterState = {
-  opacity: 1,
-  cameraPos: { x: 0, y: 5, z: 35 },
-  cameraLook: { x: 0, y: 1.5, z: 0 },
+  opacity: 0.75,
+  cameraPos: { x: 0, y: 6.5, z: 35 },
+  cameraLook: { x: 0, y: 0.5, z: 0 },
   groupX: 0,
   groupY: 0,
   groupZ: 0,
   groupScale: 1,
   groupRotY: 0,
-  parallax: false,
+  parallax: true,
   active: true,
 };
 
@@ -227,7 +227,7 @@ function mobileChapters(): ChapterMeta[] {
       id: 'services',
       title: 'Selected Work',
       rack: {
-        opacity: 0,
+        opacity: 0.38,
         cameraPos: MOBILE_HERO.cameraPos,
         cameraLook: MOBILE_HERO.cameraLook,
         groupX: 0,
@@ -236,7 +236,7 @@ function mobileChapters(): ChapterMeta[] {
         groupScale: 1,
         groupRotY: 0,
         parallax: false,
-        active: false,
+        active: true,
       },
       scrim:
         'linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.96) 100%)',
@@ -250,7 +250,7 @@ function mobileChapters(): ChapterMeta[] {
       id: 'changelog',
       title: 'The Journey',
       rack: {
-        opacity: 0,
+        opacity: 0.14,
         cameraPos: MOBILE_HERO.cameraPos,
         cameraLook: MOBILE_HERO.cameraLook,
         groupX: 0,
@@ -258,8 +258,8 @@ function mobileChapters(): ChapterMeta[] {
         groupZ: 0,
         groupScale: 1,
         groupRotY: 0,
-        parallax: false,
-        active: false,
+        parallax: true,
+        active: true,
       },
       scrim:
         'linear-gradient(180deg, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.96) 100%)',
@@ -273,7 +273,7 @@ function mobileChapters(): ChapterMeta[] {
       id: 'stack',
       title: 'The Stack',
       rack: {
-        opacity: 0,
+        opacity: 0.08,
         cameraPos: MOBILE_HERO.cameraPos,
         cameraLook: MOBILE_HERO.cameraLook,
         groupX: 0,
@@ -281,8 +281,8 @@ function mobileChapters(): ChapterMeta[] {
         groupZ: 0,
         groupScale: 1,
         groupRotY: 0,
-        parallax: false,
-        active: false,
+        parallax: true,
+        active: true,
       },
       scrim:
         'linear-gradient(180deg, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.97) 100%)',

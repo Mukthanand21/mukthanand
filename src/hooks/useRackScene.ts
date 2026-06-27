@@ -732,7 +732,7 @@ export function useRackScene(
 
     /* ─── Scene ─── */
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(colors.bg, isMobile ? 0.025 : 0.04);
+    scene.fog = new THREE.FogExp2(colors.bg, isMobile ? 0.015 : 0.04);
 
     /* ─── Camera ─── */
     const viewportW = global ? window.innerWidth : containerRef.current.clientWidth;
@@ -751,9 +751,20 @@ export function useRackScene(
        and floor glow pools pop against the dark background.
        ─── */
 
+    let lastWidth = 0;
+    let lastHeight = 0;
+
     function onResize() {
       const w = global ? window.innerWidth : (containerRef.current?.clientWidth ?? window.innerWidth);
       const h = global ? window.innerHeight : (containerRef.current?.clientHeight ?? window.innerHeight);
+      
+      // Ignore mobile height updates from browser address bars showing/hiding to prevent vertical jumps
+      if (isMobile && w === lastWidth && Math.abs(h - lastHeight) < 120) {
+        return;
+      }
+      lastWidth = w;
+      lastHeight = h;
+
       renderer.setSize(w, h);
       renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
       camera.aspect = w / h;
@@ -938,10 +949,10 @@ export function useRackScene(
        Looking slightly downward to reveal the 3/4 depth of the rack.
        ─── */
     const camStart = isMobile
-      ? { pos: new THREE.Vector3(0, 28, 100), look: new THREE.Vector3(0, 3, 0) }
+      ? { pos: new THREE.Vector3(0, 20, 60), look: new THREE.Vector3(0, 1.5, 0) }
       : { pos: new THREE.Vector3(0, 7.5, 20), look: new THREE.Vector3(0, 2.8, -1.5) };
     const camEnd = isMobile
-      ? { pos: new THREE.Vector3(0, 5, 35), look: new THREE.Vector3(0, 1.5, 0) }
+      ? { pos: new THREE.Vector3(0, 6.5, 35), look: new THREE.Vector3(0, 0.5, 0) }
       : { pos: new THREE.Vector3(0, 1.9, 13), look: new THREE.Vector3(0, 1.9, -0.6) };
 
     camera.position.copy(camStart.pos);
@@ -949,11 +960,29 @@ export function useRackScene(
 
     /* ─── Mouse tracking (desktop only) ─── */
     let mouseX = 0, mouseY = 0, smoothMouseX = 0, smoothMouseY = 0;
+
+    /* ─── Scroll velocity tracking (mobile only) ─── */
+    let lastScrollY = window.scrollY;
+    let scrollVelocity = 0;
+    
     const handleMouseMove = (e: MouseEvent) => {
       mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
       mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
     };
-    if (!isMobile) window.addEventListener('mousemove', handleMouseMove);
+
+    const handleDeviceOrientation = (e: DeviceOrientationEvent) => {
+      if (e.gamma === null || e.beta === null) return;
+      // Map gamma (roll) and beta (pitch) to mouseX/mouseY targets
+      // Comfortable holding angle for beta is ~45deg
+      mouseX = Math.min(Math.max(e.gamma / 20, -1.2), 1.2);
+      mouseY = Math.min(Math.max((e.beta - 45) / 20, -1.2), 1.2);
+    };
+
+    if (!isMobile) {
+      window.addEventListener('mousemove', handleMouseMove);
+    } else {
+      window.addEventListener('deviceorientation', handleDeviceOrientation);
+    }
 
     /* ─── State ─── */
     const state = {
@@ -994,6 +1023,13 @@ export function useRackScene(
       if (global && opacity < 0.04 && !dir.active) return;
 
       const dt = Math.min(state.clock.getDelta(), 0.05);
+
+      const currentScrollY = window.scrollY;
+      const scrollDiff = currentScrollY - lastScrollY;
+      lastScrollY = currentScrollY;
+
+      const targetVelocity = dt > 0 ? scrollDiff / dt : 0;
+      scrollVelocity += (targetVelocity - scrollVelocity) * 0.08;
       const elapsed = state.clock.getElapsedTime();
 
       if (introStart === null) introStart = elapsed;
@@ -1024,9 +1060,17 @@ export function useRackScene(
         targetCamPos.set(dir.cameraPos.x, dir.cameraPos.y, dir.cameraPos.z);
         targetCamLook.set(dir.cameraLook.x, dir.cameraLook.y, dir.cameraLook.z);
 
-        if (dir.parallax && !reduced && !isMobile) {
+        if (dir.parallax && !reduced) {
           targetCamPos.x += Math.sin(elapsed * 0.12) * 0.18 + smoothMouseX * 0.35;
           targetCamPos.y += Math.cos(elapsed * 0.09) * 0.1 - smoothMouseY * 0.2;
+        }
+
+        if (isMobile && !reduced) {
+          // Dynamic scroll-velocity tilt: camera shifts up, target tilts down when scrolling down
+          const velocityClamp = Math.min(Math.max(scrollVelocity, -3000), 3000);
+          const yOffset = velocityClamp * 0.00018;
+          targetCamPos.y += yOffset * 0.6;
+          targetCamLook.y -= yOffset * 0.4;
         }
 
         currentCamPos.lerp(targetCamPos, 0.08);
@@ -1061,14 +1105,25 @@ export function useRackScene(
         rackAssembly.rotation.y += (targetRotation - rackAssembly.rotation.y) * 0.025;
       }
 
-      /* LEDs — pulsing emissive glow (static on mobile) */
+      /* LEDs — pulsing emissive glow */
       const contentState = contentDirector.current;
       const isHighlighted = !reduced && !isMobile && contentState.highlightedUnitIndices.length > 0;
 
+      const mobileWave = isMobile && !reduced ? Math.sin(elapsed * 0.3) : 0;
+
       leds.forEach((led, idx) => {
         let intensity: number;
-        if (reduced || isMobile) {
+        if (reduced) {
           intensity = led.state === 'warn' ? 1.5 : (led.state === 'live' ? 2.0 : 0.15);
+        } else if (isMobile) {
+          // Very slow, single sine wave across all LEDs at once to minimize CPU calculations
+          if (led.state === 'live') {
+            intensity = 1.5 + mobileWave * 0.5;
+          } else if (led.state === 'warn') {
+            intensity = 1.1 + mobileWave * 0.4;
+          } else {
+            intensity = 0.15 + mobileWave * 0.05;
+          }
         } else if (led.state === 'live') {
           intensity = 1.2 + Math.sin(elapsed * led.blinkSpeed + led.phase) * 0.8;
         } else if (led.state === 'warn') {
@@ -1128,7 +1183,11 @@ export function useRackScene(
     return () => {
       state.animating = false;
       gsap.ticker.remove(tick);
-      if (!isMobile) window.removeEventListener('mousemove', handleMouseMove);
+      if (!isMobile) {
+        window.removeEventListener('mousemove', handleMouseMove);
+      } else {
+        window.removeEventListener('deviceorientation', handleDeviceOrientation);
+      }
       window.removeEventListener('resize', onResize);
 
       /* Dispose geometries, materials, textures */

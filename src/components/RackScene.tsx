@@ -44,7 +44,7 @@ export function RackScene({ bootComplete = false, global = false }: RackScenePro
         top: 0,
         left: 0,
         width: global ? '100vw' : '100%',
-        height: global ? '100vh' : '100%',
+        height: global ? '100dvh' : '100%',
         zIndex: global ? 0 : 0,
         overflow: 'hidden',
         opacity: 1,

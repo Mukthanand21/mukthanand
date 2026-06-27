@@ -57,9 +57,9 @@ export function useRackScrollDirector({
       const st = ScrollTrigger.create({
         id: `rack-chapter-${fromId}-${toId}`,
         trigger: fromEl,
-        start: isMobile ? 'bottom 85%' : 'center center',
+        start: isMobile ? 'bottom 100%' : 'center center',
         endTrigger: toEl,
-        end: isMobile ? 'top 90%' : 'center center',
+        end: isMobile ? 'top 0%' : 'center center',
         scrub: isMobile ? 0.6 : 1.2,
         invalidateOnRefresh: true,
         onUpdate(self) {
@@ -81,7 +81,7 @@ export function useRackScrollDirector({
       triggers.push(st);
     }
 
-    /* ─── Snap rack to chapter when section is dominant ─── */
+    /* ─── Snap active section when dominant ─── */
     sectionIds.forEach((id) => {
       const chapter = chapterMap.get(id);
       const el = document.getElementById(id);
@@ -93,11 +93,9 @@ export function useRackScrollDirector({
         start: 'top 55%',
         end: 'bottom 45%',
         onEnter: () => {
-          rackDirector.setState(chapter.rack);
           rackDirector.setActiveSection(id);
         },
         onEnterBack: () => {
-          rackDirector.setState(chapter.rack);
           rackDirector.setActiveSection(id);
         },
       });
