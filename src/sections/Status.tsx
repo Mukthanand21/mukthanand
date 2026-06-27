@@ -105,7 +105,7 @@ export function Status() {
           <div>
             <h1
               ref={heroRef}
-              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(42px,6.5vw,70px)] font-bold leading-[1.0]"
+              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,5vw,52px)] font-bold leading-[1.0]"
               style={{
                 color: '#f5f3ee',
                 willChange: 'transform',
@@ -118,7 +118,7 @@ export function Status() {
             </h1>
             <h1
               ref={heroAccentRef}
-              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(42px,6.5vw,70px)] font-bold leading-[1.0]"
+              className="font-display uppercase tracking-[0.05em] -ml-[0.05em] text-[clamp(24px,5vw,52px)] font-bold leading-[1.0]"
               style={{
                 color: 'var(--color-accent)',
                 willChange: 'transform',
