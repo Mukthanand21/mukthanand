@@ -166,7 +166,6 @@ export function Status() {
                   'Backend Systems',
                   'Full-Stack Applications',
                   'AI Products',
-                  'Open Source',
                 ]}
                 className="font-sans font-light text-base leading-relaxed"
                 wordStyle={{ color: 'var(--color-accent)', textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}
