@@ -4,63 +4,80 @@
    On mobile: auto-scrolling ticker-like animation.
    ═══════════════════════════════════════════════════════ */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, forwardRef } from 'react';
+import gsap from 'gsap';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 /* ─── Render the status items as flat JSX ─── */
-function StatusItems({ id }: { id?: string }) {
+function StatusItems({ id, uptime }: { id?: string; uptime: string }) {
   return (
     <>
-      {/* status — amber dot + teal text */}
-      <span className="inline-flex items-center gap-2 shrink-0" style={{ paddingRight: 16 }}>
+      {/* status — success LED + uppercase label */}
+      <span className="inline-flex items-center gap-2 shrink-0 pr-4">
         <span
-          className="block rounded-full"
-          style={{ width: 5, height: 5, background: '#EF9F27', animation: 'amberPulse 2.5s ease-in-out infinite' }}
+          className="block h-1.5 w-1.5 rounded-full bg-success animate-led-pulse"
+          style={{ boxShadow: '0 0 6px var(--color-success)' }}
         />
-        <span style={{ color: '#6FD9B6', fontWeight: 500 }}>online</span>
+        <span className="font-sans text-xs font-semibold uppercase tracking-wider text-success">
+          online
+        </span>
       </span>
 
       {/* divider */}
-      <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0, marginRight: 16 }} />
+      <span className="h-3.5 w-[0.5px] bg-border inline-block shrink-0 mr-4" />
 
       {/* build */}
-      <span className="inline-flex items-center gap-1 shrink-0" style={{ paddingRight: 16 }}>
-        <span style={{ color: '#5a5a58' }}>build:</span>
-        <span style={{ color: '#7a7974', fontWeight: 500 }}>v3.0.0</span>
+      <span className="inline-flex items-center gap-1.5 shrink-0 pr-4">
+        <span className="font-sans text-xs text-fg-muted uppercase">build</span>
+        <span className="font-mono text-xs text-fg-secondary font-medium transition-all duration-500 ease-brand">
+          v3.0.0
+        </span>
       </span>
 
       {/* divider */}
-      <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0, marginRight: 16 }} />
+      <span className="h-3.5 w-[0.5px] bg-border inline-block shrink-0 mr-4" />
 
       {/* uptime */}
-      <span className="inline-flex items-center gap-1 shrink-0" style={{ paddingRight: 16 }}>
-        <span style={{ color: '#5a5a58' }}>uptime:</span>
-        <span id={id ? `${id}-uptime` : undefined} style={{ color: '#7a7974', fontWeight: 500 }}>142d 06:21:14</span>
+      <span className="inline-flex items-center gap-1.5 shrink-0 pr-4">
+        <span className="font-sans text-xs text-fg-muted uppercase">uptime</span>
+        <span
+          id={id ? `${id}-uptime` : undefined}
+          className="font-mono text-xs text-fg-secondary font-medium transition-all duration-500 ease-brand"
+        >
+          {uptime || '0d 00:00:00'}
+        </span>
       </span>
 
       {/* divider */}
-      <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0, marginRight: 16 }} />
+      <span className="h-3.5 w-[0.5px] bg-border inline-block shrink-0 mr-4" />
 
       {/* region */}
-      <span className="inline-flex items-center gap-1 shrink-0" style={{ paddingRight: 16 }}>
-        <span style={{ color: '#5a5a58' }}>region:</span>
-        <span style={{ color: '#7a7974', fontWeight: 500 }}>IND Hyd</span>
+      <span className="inline-flex items-center gap-1.5 shrink-0 pr-4">
+        <span className="font-sans text-xs text-fg-muted uppercase">region</span>
+        <span className="font-mono text-xs text-fg-secondary font-medium transition-all duration-500 ease-brand">
+          IND Hyd
+        </span>
       </span>
 
       {/* divider */}
-      <span style={{ width: '0.5px', height: 14, background: '#2c2c2a', display: 'inline-block', flexShrink: 0, marginRight: 16 }} />
+      <span className="h-3.5 w-[0.5px] bg-border inline-block shrink-0 mr-4" />
 
       {/* load */}
-      <span className="inline-flex items-center gap-1 shrink-0">
-        <span style={{ color: '#5a5a58' }}>load:</span>
-        <span id={id ? `${id}-load` : 'load-readout'} style={{ color: '#7a7974', fontWeight: 500 }}>0.42</span>
+      <span className="inline-flex items-center gap-1.5 shrink-0">
+        <span className="font-sans text-xs text-fg-muted uppercase">load</span>
+        <span
+          id={id ? `${id}-load` : 'load-readout'}
+          className="font-mono text-xs text-fg-secondary font-medium transition-all duration-500 ease-brand"
+        >
+          0.42
+        </span>
       </span>
     </>
   );
 }
 
 /* ─── Desktop: static bar ─── */
-function StatusBarDesktop() {
+function StatusBarDesktop({ uptime }: { uptime: string }) {
   return (
     <div
       className="mx-auto flex max-w-content items-center justify-between px-gutter"
@@ -70,13 +87,13 @@ function StatusBarDesktop() {
         fontSize: 11,
       }}
     >
-      <StatusItems />
+      <StatusItems uptime={uptime} />
     </div>
   );
 }
 
 /* ─── Mobile: auto-scrolling ticker-like bar ─── */
-function StatusBarMobile() {
+function StatusBarMobile({ uptime }: { uptime: string }) {
   const reduced = usePrefersReducedMotion();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -125,7 +142,7 @@ function StatusBarMobile() {
             fontSize: 11,
           }}
         >
-          <StatusItems id="mobile" />
+          <StatusItems id="mobile" uptime={uptime} />
         </div>
       </div>
     );
@@ -149,26 +166,10 @@ function StatusBarMobile() {
           fontSize: 11,
         }}
       >
-        <StatusItems id="mobile" />
-        <span style={{
-          width: '0.5px',
-          height: 14,
-          background: '#2c2c2a',
-          display: 'inline-block',
-          flexShrink: 0,
-          marginLeft: 16,
-          marginRight: 16,
-        }} />
-        <StatusItems id="mobile-dup" />
-        <span style={{
-          width: '0.5px',
-          height: 14,
-          background: '#2c2c2a',
-          display: 'inline-block',
-          flexShrink: 0,
-          marginLeft: 16,
-          marginRight: 16,
-        }} />
+        <StatusItems id="mobile" uptime={uptime} />
+        <span className="h-3.5 w-[0.5px] bg-border shrink-0 mx-4" />
+        <StatusItems id="mobile-dup" uptime={uptime} />
+        <span className="h-3.5 w-[0.5px] bg-border shrink-0 mx-4" />
       </div>
     </div>
   );
@@ -177,44 +178,100 @@ function StatusBarMobile() {
 /* ═══════════════════════════════════════════════════════
    StatusBar wrapper — switches between desktop and mobile
    ═══════════════════════════════════════════════════════ */
-function StatusBarInner() {
-  return (
-    <div
-      style={{
-        position: 'relative',
-        zIndex: 1,
-        width: '100%',
-        borderBottom: '0.5px solid #2c2c2a',
-        backdropFilter: 'blur(8px)',
-        background: 'linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.65) 100%)',
-        opacity: 0,
-        animation: 'statusFadeDown 0.9s 1.8s cubic-bezier(0.16,1,0.3,1) forwards',
-      }}
-    >
-      {/* Desktop: visible at md+ */}
-      <div className="hidden md:block">
-        <StatusBarDesktop />
-      </div>
+const StatusBarInner = forwardRef<HTMLDivElement, { uptime: string }>(
+  ({ uptime }, ref) => {
+    return (
+      <div
+        ref={ref}
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          width: '100%',
+          borderBottom: '0.5px solid var(--color-border)',
+          boxShadow: '0 1px 10px rgba(245, 208, 112, 0.02)',
+          backdropFilter: 'blur(8px)',
+          background: 'linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.65) 100%)',
+          opacity: 0,
+          willChange: 'transform, opacity',
+        }}
+      >
+        {/* Desktop: visible at md+ */}
+        <div className="hidden md:block">
+          <StatusBarDesktop uptime={uptime} />
+        </div>
 
-      {/* Mobile: visible below md */}
-      <div className="md:hidden">
-        <StatusBarMobile />
+        {/* Mobile: visible below md */}
+        <div className="md:hidden">
+          <StatusBarMobile uptime={uptime} />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+);
+
+StatusBarInner.displayName = 'StatusBarInner';
 
 export function StatusBar() {
+  const [uptime, setUptime] = useState('');
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tick = () => {
+      // Calculate uptime relative to June 12, 2026
+      const startDate = new Date('2026-06-12T00:00:00');
+      const now = new Date();
+      const diffMs = now.getTime() - startDate.getTime();
+      
+      const diffSecs = Math.floor(diffMs / 1000);
+      const days = Math.floor(diffSecs / (3600 * 24));
+      const hours = Math.floor((diffSecs % (3600 * 24)) / 3600);
+      const minutes = Math.floor((diffSecs % 3600) / 60);
+      const seconds = diffSecs % 60;
+
+      const pad = (num: number) => String(num).padStart(2, '0');
+      
+      setUptime(`${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!barRef.current) return;
+    
+    // Smooth GSAP reveal synchronized with the bootloader wipe
+    gsap.fromTo(
+      barRef.current,
+      { opacity: 0, y: -12 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 1.1,
+        ease: 'power3.out', // var(--ease-cinematic)
+        delay: 1.8, // align with final settle
+        clearProps: 'transform',
+      }
+    );
+  }, []);
+
   return (
     <>
-      <StatusBarInner />
+      <StatusBarInner ref={barRef} uptime={uptime} />
       <style>{`
-        @keyframes statusFadeDown {
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes ledPulse {
+          0%, 100% { 
+            opacity: 1; 
+            box-shadow: 0 0 8px var(--color-success), 0 0 2px var(--color-success);
+          }
+          50% { 
+            opacity: 0.35; 
+            box-shadow: 0 0 2px rgba(168, 195, 160, 0.2);
+          }
         }
-        @keyframes amberPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.35; }
+        .animate-led-pulse {
+          animation: ledPulse 3.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
         }
       `}</style>
     </>
