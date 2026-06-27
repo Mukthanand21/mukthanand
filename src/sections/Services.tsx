@@ -1,4 +1,9 @@
+import { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useMagneticTilt } from '../hooks/useMagneticTilt';
+
+gsap.registerPlugin(ScrollTrigger);
 
 type ServiceStatus = 'live' | 'archived';
 type LinkLabel = { href: string; label: string };
@@ -86,8 +91,9 @@ function StatusBadge({ status }: { status: ServiceStatus }) {
 
 function MethodBadge({ method }: { method: string }) {
   return (
-    <span className="inline-flex rounded border border-border bg-bg px-2.5 py-0.5 font-mono font-light text-xs uppercase leading-none text-accent">
-      {method}
+    <span className="group/badge relative inline-flex overflow-hidden rounded border border-border bg-bg px-2.5 py-0.5 font-mono font-light text-xs uppercase leading-none text-accent">
+      <span className="relative z-[1]">{method}</span>
+      <span className="absolute inset-0 scale-0 bg-accent/20 blur-xl transition-transform duration-500 group-hover/badge:scale-100" aria-hidden="true" />
     </span>
   );
 }
@@ -96,33 +102,178 @@ function ServiceCard({ service }: { service: Service }) {
   const isArchived = service.status === 'archived';
   const tiltRef = useMagneticTilt<HTMLDivElement>();
   const glowColor = service.highlightColor ?? 'rgba(245, 208, 112, 0.06)';
+  const [displayMs, setDisplayMs] = useState(0);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Animated response time counter
+  useEffect(() => {
+    if (isArchived) return;
+    let frame = 0;
+    const total = service.responseMs;
+    const duration = 800;
+    const increment = total / (duration / 16);
+    
+    const animate = () => {
+      setDisplayMs(prev => {
+        const next = prev + increment;
+        if (next >= total) return total;
+        frame = requestAnimationFrame(animate);
+        return next;
+      });
+    };
+    
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [isArchived, service.responseMs]);
+
+  // Individual card scroll animation with text cascade
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 88%',
+          toggleActions: 'play none none reverse',
+        },
+      });
+
+      // 1. Card container
+      tl.fromTo(
+        card,
+        {
+          opacity: 0,
+          y: prefersReduced ? 0 : 40,
+          scale: prefersReduced ? 1 : 0.95,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.7,
+          ease: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        }
+      );
+
+      if (!prefersReduced) {
+        // 2. Header (method, path, status, link) - slide from left
+        tl.fromTo(
+          card.querySelector('.card-header'),
+          { opacity: 0, x: -20 },
+          { opacity: 1, x: 0, duration: 0.5, ease: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+          '-=0.4'
+        );
+
+        // 3. Title - fade + slight scale
+        tl.fromTo(
+          card.querySelector('.card-title'),
+          { opacity: 0, scale: 0.98 },
+          { opacity: 1, scale: 1, duration: 0.4, ease: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+          '-=0.3'
+        );
+
+        // 4. Description - line-by-line reveal (clip-path)
+        tl.fromTo(
+          card.querySelector('.card-description'),
+          { opacity: 0, clipPath: 'inset(0 0 100% 0)' },
+          { opacity: 1, clipPath: 'inset(0 0 0% 0)', duration: 0.6, ease: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+          '-=0.2'
+        );
+
+        // 5. Tech tags - stagger scale
+        const techTags = card.querySelectorAll('.tech-tag');
+        if (techTags.length > 0) {
+          tl.fromTo(
+            techTags,
+            { opacity: 0, scale: 0.85, y: 8 },
+            { 
+              opacity: 1, 
+              scale: 1, 
+              y: 0,
+              stagger: 0.04, 
+              duration: 0.35,
+              ease: 'cubic-bezier(0.16, 1, 0.3, 1)'
+            },
+            '-=0.3'
+          );
+        }
+
+        // 6. Metadata - stagger from left
+        const metaItems = card.querySelectorAll('.meta-item');
+        if (metaItems.length > 0) {
+          tl.fromTo(
+            metaItems,
+            { opacity: 0, x: -12 },
+            { 
+              opacity: 1, 
+              x: 0,
+              stagger: 0.08, 
+              duration: 0.3,
+              ease: 'cubic-bezier(0.16, 1, 0.3, 1)'
+            },
+            '-=0.2'
+          );
+        }
+      }
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  // Track mouse position for parallax glow
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isArchived) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePos({ x, y });
+  };
 
   return (
-    <div ref={tiltRef} style={{ perspective: '800px' }}>
+    <div ref={tiltRef} style={{ perspective: '800px' }} onMouseMove={handleMouseMove}>
       <article
+        ref={cardRef}
         data-section-card
-        className={`group relative rounded-card border border-border border-l-[3px] bg-bg-elevated p-6 transition-all duration-300 sm:p-8 ${isArchived
-            ? 'border-dashed border-l-border opacity-60'
-            : 'border-l-transparent hover:border-l-accent hover:bg-accent/[0.02]'
-          }`}
+        className={`group relative rounded-card border bg-bg-elevated p-6 transition-all duration-300 sm:p-8 ${
+          isArchived
+            ? 'border-dashed border-border/60 opacity-60'
+            : 'border-border/40 border-l-[3px] border-l-accent/15 hover:border-border hover:border-l-accent hover:bg-accent/[0.02] hover:shadow-[inset_0_1px_0_0_rgba(245,208,112,0.08)] sm:border-l-transparent'
+        }`}
         style={{
           transformStyle: 'preserve-3d',
           transition: 'border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease',
         }}
       >
-        {/* Glow overlay on hover */}
+        {/* Animated border shimmer */}
+        {!isArchived && (
+          <div
+            className="pointer-events-none absolute left-0 top-0 h-full w-[3px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            style={{
+              background: 'linear-gradient(180deg, transparent, var(--color-accent), transparent)',
+              animation: 'shimmer 3s ease-in-out infinite',
+            }}
+            aria-hidden="true"
+          />
+        )}
+        
+        {/* Parallax glow overlay on hover */}
         {!isArchived && (
           <div
             className="pointer-events-none absolute inset-0 rounded-card opacity-0 transition-opacity duration-500 group-hover:opacity-100"
             style={{
-              background: `radial-gradient(ellipse at 50% 0%, ${glowColor} 0%, transparent 70%)`,
+              background: `radial-gradient(ellipse at ${mousePos.x}% ${mousePos.y}%, ${glowColor} 0%, transparent 70%)`,
             }}
             aria-hidden="true"
           />
         )}
 
         <div className="relative z-[1]">
-          <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="card-header mb-5 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2.5">
               <MethodBadge method={service.method} />
               <span className="font-mono font-light text-sm text-fg-muted">
@@ -136,28 +287,28 @@ function ServiceCard({ service }: { service: Service }) {
                 href={service.link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 font-mono font-light text-xs text-fg-muted transition-colors duration-150 hover:text-accent"
+                className="shrink-0 font-mono font-light text-xs text-fg-muted transition-colors duration-150 hover:text-accent sm:text-right"
                 aria-label={service.link.label}
               >
                 <span className="inline-flex items-center gap-1">
                   {service.link.label}
-                  <span className="inline-block transition-transform duration-150 group-hover:translate-x-0.5">
+                  <span className="inline-block transition-all duration-150 group-hover:translate-x-0.5 group-hover:rotate-[-8deg] group-hover:scale-110">
                     &rarr;
                   </span>
                 </span>
               </a>
             ) : (
-              <span className="shrink-0 font-mono font-light text-xs text-fg-muted">
+              <span className="shrink-0 font-mono font-light text-xs text-fg-muted sm:text-right">
                 &mdash;
               </span>
             )}
           </div>
 
-          <h3 className="font-sans font-medium text-lg text-fg transition-colors duration-150 group-hover:text-accent md:text-xl">
+          <h3 className="card-title font-sans font-medium text-lg text-fg transition-colors duration-150 group-hover:text-accent md:text-xl">
             {service.name}
           </h3>
 
-          <p className="mt-3 max-w-prose font-sans font-light text-sm leading-relaxed text-fg-secondary md:text-md">
+          <p className="card-description mt-3 max-w-prose font-sans font-light text-sm leading-relaxed text-fg-secondary md:text-md">
             {service.description}
           </p>
 
@@ -166,7 +317,7 @@ function ServiceCard({ service }: { service: Service }) {
               {service.tech.map((t) => (
                 <span
                   key={t}
-                  className="rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono font-light text-xs text-fg-muted transition-colors duration-150 group-hover:border-accent/20 group-hover:text-accent/70"
+                  className="tech-tag rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono font-light text-xs text-fg-muted transition-colors duration-150 group-hover:border-accent/20 group-hover:text-accent/70"
                 >
                   {t}
                 </span>
@@ -175,19 +326,19 @@ function ServiceCard({ service }: { service: Service }) {
           )}
 
           <div className="mt-5 grid grid-cols-2 gap-y-2 sm:flex sm:flex-wrap items-center sm:gap-x-4 border-t border-border pt-3 font-mono font-light text-xs text-fg-muted/60">
-            <span className="inline-flex items-center gap-1">
+            <span className="meta-item inline-flex items-center gap-1">
               <span className="text-fg-muted/40">status:</span>
               <span className={`font-medium ${isArchived ? 'text-fg-muted/40' : 'text-success/70'}`}>
                 {isArchived ? '410 Gone' : '200 OK'}
               </span>
             </span>
-            <span className="inline-flex items-center gap-1">
+            <span className="meta-item inline-flex items-center gap-1">
               <span className="text-fg-muted/40">response:</span>
               <span>
-                {isArchived ? '—' : `${service.responseMs}ms`}
+                {isArchived ? '—' : `${Math.round(displayMs)}ms`}
               </span>
             </span>
-            <span className="inline-flex items-center gap-1">
+            <span className="meta-item inline-flex items-center gap-1">
               <span className="text-fg-muted/40">uptime:</span>
               <span className="font-medium">{isArchived ? '0d' : '142d'}</span>
             </span>
@@ -201,6 +352,17 @@ function ServiceCard({ service }: { service: Service }) {
 export function Services() {
   const liveCount = services.filter((s) => s.status === 'live').length;
   const archivedCount = services.filter((s) => s.status === 'archived').length;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const cards = containerRef.current.querySelectorAll('[data-section-card]');
+    if (cards.length === 0) return;
+
+    // Section-level animations are now handled per-card
+    return () => {};
+  }, []);
 
   return (
     <>
@@ -212,8 +374,15 @@ export function Services() {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.35; }
         }
+        @keyframes shimmer {
+          0%, 100% { transform: translateY(-100%); }
+          50% { transform: translateY(100%); }
+        }
         @media (prefers-reduced-motion: reduce) {
           .animate-dot-pulse-service {
+            animation: none !important;
+          }
+          [style*="animation: shimmer"] {
             animation: none !important;
           }
         }
@@ -275,7 +444,7 @@ export function Services() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-5">
+          <div ref={containerRef} className="flex flex-col gap-5">
             {services.map((service) => (
               <ServiceCard key={service.name} service={service} />
             ))}
