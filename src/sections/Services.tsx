@@ -8,6 +8,51 @@ gsap.registerPlugin(ScrollTrigger);
 type ServiceStatus = 'live' | 'archived';
 type LinkLabel = { href: string; label: string };
 
+type PlatformIcon = {
+  path: string;
+  brandColor: string;
+  viewBox?: string;
+};
+
+const PLATFORM_ICONS: Record<string, PlatformIcon> = {
+  Telegram: {
+    path: 'M23.91 3.79L20.3 20.84c-.25 1.21-.98 1.5-2 .94l-5.5-4.07-2.66 2.57c-.3.3-.55.56-1.1.56-.72 0-.6-.27-.84-.95L6.3 13.7l-5.45-1.7c-1.18-.35-1.19-1.16.26-1.75l21.26-8.2c.97-.43 1.9.24 1.53 1.73z',
+    brandColor: '#0088CC',
+  },
+  Streamlit: {
+    path: 'M16.673 11.32l6.862-3.618c.233-.136.554.12.442.387L20.463 17.1zm-8.556-.229l3.473-5.187c.203-.328.578-.316.793-.028l7.886 11.75zm-3.375 7.25c-.28 0-.835-.284-.993-.716l-3.72-9.46c-.118-.331.139-.614.48-.464l19.474 10.306c-.149.147-.453.337-.72.334z',
+    brandColor: '#FF4B4B',
+  },
+  GitHub: {
+    path: 'M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12',
+    brandColor: '#333',
+  },
+  Search: {
+    path: 'M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35',
+    brandColor: 'currentColor',
+  },
+};
+
+function PlatformBadge({ platform }: { platform: string }) {
+  const icon = PLATFORM_ICONS[platform];
+  if (!icon) return null;
+
+  return (
+    <svg
+      viewBox={icon.viewBox ?? '0 0 24 24'}
+      className="mr-1 inline-block h-3.5 w-3.5 shrink-0 align-middle"
+      fill={platform === 'Search' ? 'none' : icon.brandColor}
+      stroke={platform === 'Search' ? icon.brandColor : 'none'}
+      strokeWidth={platform === 'Search' ? 2 : 0}
+      strokeLinecap={platform === 'Search' ? 'round' : undefined}
+      strokeLinejoin={platform === 'Search' ? 'round' : undefined}
+      aria-hidden="true"
+    >
+      <path d={icon.path} />
+    </svg>
+  );
+}
+
 type Service = {
   method: string;
   path: string;
@@ -18,6 +63,7 @@ type Service = {
   status: ServiceStatus;
   responseMs: number;
   highlightColor?: string;
+  platform?: string;
 };
 
 const services: Service[] = [
@@ -29,6 +75,7 @@ const services: Service[] = [
       'Built the RAG system for Corpus, a 10k+ user open-source platform. Designed PostgreSQL-native hybrid retrieval (FTS + pg_trgm) with 92% top-1 accuracy, 50–200 ms scan times, and a BYOK architecture supporting multiple LLM providers.',
     tech: ['PostgreSQL', 'pg_trgm', 'FastAPI', 'Python', 'React', 'TypeScript'],
     link: { href: 'https://corpus.swecha.org', label: 'corpus.swecha.org' },
+    platform: 'Search',
     status: 'live',
     responseMs: 87,
     highlightColor: 'rgba(245, 208, 112, 0.06)',
@@ -41,6 +88,7 @@ const services: Service[] = [
       'Built at a 48hr hackathon, a Telugu-first Telegram bot helping Telangana SMB owners discover government schemes, check eligibility, and get document guidance in their native language. Added voice input (STT) and voice output (TTS) using Groq API.',
     tech: ['Python', 'Telegram Bot API', 'Groq', 'STT', 'TTS', 'Telugu NLP'],
     link: { href: 'https://t.me/scheme_saathi_bot', label: '@scheme_saathi_bot' },
+    platform: 'Telegram',
     status: 'live',
     responseMs: 142,
     highlightColor: 'rgba(168, 195, 160, 0.06)',
@@ -56,6 +104,7 @@ const services: Service[] = [
       href: 'https://faqsense.streamlit.app',
       label: 'faqsense.streamlit.app',
     },
+    platform: 'Streamlit',
     status: 'live',
     responseMs: 205,
     highlightColor: 'rgba(168, 195, 160, 0.06)',
@@ -68,6 +117,7 @@ const services: Service[] = [
       'Full-stack pharmacy management system with AI sales prediction. Built with Flask (backend), PostgreSQL (database), and Tailwind CSS (frontend). Includes a Linear Regression ML model to forecast medicine sales and inventory needs.',
     tech: ['Python', 'Flask', 'PostgreSQL', 'Tailwind CSS', 'Machine Learning', 'Linear Regression'],
     link: { href: 'https://github.com/Mukthanand21/MediFlow.ai', label: 'github.com/Mukthanand21/MediFlow.ai' },
+    platform: 'GitHub',
     status: 'archived',
     responseMs: 0,
     highlightColor: 'rgba(107, 77, 107, 0.04)',
@@ -291,6 +341,7 @@ function ServiceCard({ service }: { service: Service }) {
                 aria-label={service.link.label}
               >
                 <span className="inline-flex items-center gap-1">
+                  {service.platform && <PlatformBadge platform={service.platform} />}
                   {service.link.label}
                   <span className="inline-block transition-all duration-150 group-hover:translate-x-0.5 group-hover:rotate-[-8deg] group-hover:scale-110">
                     &rarr;
