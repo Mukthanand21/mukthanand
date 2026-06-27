@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -32,6 +32,27 @@ export function Status() {
   const heroRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
   const heroAccentRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
 
+  const [scrollOpacity, setScrollOpacity] = useState(1);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    // delay scroll indicator fade-in until landing title transitions finish
+    const timer = setTimeout(() => setVisible(true), 3000);
+
+    const handleScroll = () => {
+      const y = window.scrollY;
+      const opacity = Math.max(0, 1 - y / 100);
+      setScrollOpacity(opacity);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   useEffect(() => {
     if (!heroRef.current || !heroAccentRef.current) return;
 
@@ -51,7 +72,7 @@ export function Status() {
   return (
     <section
       id="status"
-      className="relative min-h-[100dvh] overflow-hidden pt-6"
+      className="relative min-h-[85dvh] md:min-h-[100dvh] overflow-hidden pt-6"
       style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
     >
       {/* ─── Vignette overlay — absolute, scoped to hero section ─── */}
@@ -95,7 +116,7 @@ export function Status() {
 
 
       {/* ─── Content overlay ─── */}
-      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-start md:justify-center px-[7vw] pt-[8vh] md:pt-[10vh]" style={{ pointerEvents: 'none' }}>
+      <div className="relative z-10 flex min-h-[80dvh] md:min-h-[100dvh] flex-col justify-center px-[7vw] pt-[8vh] md:pt-[10vh]" style={{ pointerEvents: 'none' }}>
         <div>
           {/* ─── version tag ─── */}
           <p
@@ -206,10 +227,86 @@ export function Status() {
       </div>
 
 
+      {/* Viewfinder scroll indicator — fixed to viewport, fades out on first scroll */}
+      <div 
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: visible ? 'translate(-50%, 0)' : 'translate(-50%, 12px)',
+          opacity: visible ? scrollOpacity : 0,
+          transition: visible 
+            ? 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)' 
+            : 'opacity 0.6s ease, transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
+          zIndex: 30,
+        }}
+        className="group flex flex-col items-center pointer-events-auto cursor-pointer"
+        onClick={() => {
+          const el = document.getElementById('services');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
+      >
+        <span className="font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: 'var(--color-text-muted)' }}>
+          explore
+        </span>
+        <div className="w-6 h-6 relative mt-1.5 group-hover:scale-110 transition-transform duration-300 animate-brackets-pulse">
+          {/* Viewfinder corners — matching the wireframe rack chassis geometry */}
+          <span className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-fg/65" />
+          <span className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-fg/65" />
+          <span className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-fg/65" />
+          <span className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-fg/65" />
+          
+          {/* Faint radar pulse expanding ring */}
+          <span className="absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full border border-accent animate-radar-pulse" />
+          
+          {/* Pulsing center point — gold status indicator with ambient glow matching nav pill */}
+          <span className="absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full bg-accent group-hover:brightness-125 transition-all duration-300 animate-dot-glow" />
+        </div>
+
+        {/* Connector line */}
+        <div className="h-4 w-[1px] bg-gradient-to-b from-accent to-transparent opacity-60 mt-2" />
+        
+        {/* Bouncing arrow and route label */}
+        <div className="flex flex-col items-center mt-0.5 animate-arrow-bounce">
+          <span className="text-[10px] text-accent leading-none font-sans">&darr;</span>
+          <span className="font-mono text-[8px] tracking-[0.15em] text-fg-muted/40 uppercase mt-1">
+            /services
+          </span>
+        </div>
+      </div>
+
       {/* ─── Animation keyframes ─── */}
       <style>{`
         @keyframes statusFadeUp {
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bracketsPulse {
+          0%, 100% { transform: scale(0.9); opacity: 0.4; }
+          50% { transform: scale(1.12); opacity: 0.95; }
+        }
+        .animate-brackets-pulse {
+          animation: bracketsPulse 2.8s ease-in-out infinite;
+        }
+        @keyframes dotGlow {
+          0%, 100% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.7; box-shadow: 0 0 4px var(--color-accent); }
+          50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; box-shadow: 0 0 10px var(--color-accent); }
+        }
+        .animate-dot-glow {
+          animation: dotGlow 2.0s ease-in-out infinite;
+        }
+        @keyframes radarPulse {
+          0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+          100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+        .animate-radar-pulse {
+          animation: radarPulse 2.0s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes arrowBounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(3px); }
+        }
+        .animate-arrow-bounce {
+          animation: arrowBounce 1.6s ease-in-out infinite;
         }
         @media (prefers-reduced-motion: reduce) {
           .status-bar, .label, h1, h1 span, .sub, .actions, .hero-overlay {

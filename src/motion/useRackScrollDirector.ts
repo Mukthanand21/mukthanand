@@ -57,9 +57,9 @@ export function useRackScrollDirector({
       const st = ScrollTrigger.create({
         id: `rack-chapter-${fromId}-${toId}`,
         trigger: fromEl,
-        start: isMobile ? 'bottom 100%' : 'center center',
+        start: isMobile ? 'bottom 75%' : 'center center',
         endTrigger: toEl,
-        end: isMobile ? 'top 0%' : 'center center',
+        end: isMobile ? 'top 25%' : 'center center',
         scrub: isMobile ? 0.6 : 1.2,
         invalidateOnRefresh: true,
         onUpdate(self) {

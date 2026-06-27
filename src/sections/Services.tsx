@@ -220,7 +220,7 @@ export function Services() {
       `}</style>
       <section
         id="services"
-        className="relative overflow-hidden py-section"
+        className="relative overflow-hidden pt-12 pb-section sm:py-section"
         style={{
           width: '100vw',
           marginLeft: 'calc(-50vw + 50%)',
