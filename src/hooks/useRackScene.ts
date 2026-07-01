@@ -137,7 +137,7 @@ function createRack(
   envMap: THREE.Texture | null,
 ) {
   const group = new THREE.Group();
-  const leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite?: THREE.Sprite }[] = [];
+  const leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; isPort?: boolean; simState?: string; simTimer?: number; sprite?: THREE.Sprite }[] = [];
   // Labels removed
 
   /* ─── Materials with varied roughness ─── */
@@ -157,21 +157,23 @@ function createRack(
   });
   const matAccentTrim = new THREE.MeshStandardMaterial({
     color: colors.accent, 
-    metalness: 0.85, 
-    roughness: 0.22 + (Math.random() - 0.5) * 0.04,
-    emissive: shade(colors.accent, 0.2), 
-    emissiveIntensity: 0.6,
+    metalness: 0.9, 
+    roughness: 0.15,
+    emissive: colors.accent, 
+    emissiveIntensity: 1.5,
     envMap,
-    envMapIntensity: 0.75,
+    envMapIntensity: 1.25,
   });
 
   /* ─── Beveled edge material (darker, catches light) ─── */
   const matBevel = new THREE.MeshStandardMaterial({
-    color: shade(colors.accent, 0.6),
+    color: shade(colors.accent, 0.7),
     metalness: 0.9,
-    roughness: 0.2,
+    roughness: 0.15,
+    emissive: shade(colors.accent, 0.12),
+    emissiveIntensity: 0.6,
     envMap,
-    envMapIntensity: 0.5,
+    envMapIntensity: 0.9,
   });
 
   /* ─── Port/connector materials ─── */
@@ -184,7 +186,7 @@ function createRack(
   const matPortLED = new THREE.MeshStandardMaterial({
     color: 0x00ff88,
     emissive: 0x00ff88,
-    emissiveIntensity: 0.8,
+    emissiveIntensity: 2.5,
     roughness: 0.3,
   });
 
@@ -366,9 +368,9 @@ function createRack(
         );
         unitGroup.add(portRecess);
 
-        // Port activity LED (tiny, random blink) — placed slightly in front of portRecess front face (0.048)
+        // Port activity LED (larger, network blink) — placed slightly in front of portRecess front face (0.048)
         const portLED = new THREE.Mesh(
-          new THREE.CircleGeometry(0.003, 8),
+          new THREE.CircleGeometry(0.009, 8), // Enlarge from 0.003 to 0.009 so it registers on screen
           matPortLED.clone()
         );
         portLED.position.set(
@@ -381,9 +383,10 @@ function createRack(
         // Store for animation
         leds.push({
           material: portLED.material as THREE.MeshStandardMaterial,
-          blinkSpeed: 2.5 + Math.random() * 1.5,
+          blinkSpeed: 8 + Math.random() * 12,
           phase: Math.random() * Math.PI * 2,
           state: 'live',
+          isPort: true, // Tag as port LED for randomized packet flicker
           sprite: new THREE.Sprite(), // dummy sprite
         });
       }
@@ -547,9 +550,11 @@ function createRack(
 
       leds.push({
         material: ledMat,
-        blinkSpeed: state === 'live' ? 1.1 : (state === 'warn' ? 1.6 : 0.35),
+        blinkSpeed: state === 'live' ? 2.5 : (state === 'warn' ? 3.5 : 1.2),
         phase: i * 0.65 + l * 0.3,
         state,
+        simState: state,
+        simTimer: Math.random() * 3.0,
       });
     }
 
@@ -679,7 +684,7 @@ export function useRackScene(
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
     rackAssembly: THREE.Group;
-    leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; sprite?: THREE.Sprite }[];
+    leds: { material: THREE.MeshStandardMaterial; blinkSpeed: number; phase: number; state: string; isPort?: boolean; simState?: string; simTimer?: number; sprite?: THREE.Sprite }[];
     motes: THREE.Points;
     moteGeo: THREE.BufferGeometry;
     rimLight: THREE.SpotLight;
@@ -1113,23 +1118,66 @@ export function useRackScene(
 
       leds.forEach((led, idx) => {
         let intensity: number;
-        if (reduced) {
-          intensity = led.state === 'warn' ? 1.5 : (led.state === 'live' ? 2.0 : 0.15);
-        } else if (isMobile) {
-          // Very slow, single sine wave across all LEDs at once to minimize CPU calculations
-          if (led.state === 'live') {
-            intensity = 1.5 + mobileWave * 0.5;
-          } else if (led.state === 'warn') {
-            intensity = 1.1 + mobileWave * 0.4;
-          } else {
-            intensity = 0.15 + mobileWave * 0.05;
-          }
-        } else if (led.state === 'live') {
-          intensity = 1.2 + Math.sin(elapsed * led.blinkSpeed + led.phase) * 0.8;
-        } else if (led.state === 'warn') {
-          intensity = 0.8 + Math.sin(elapsed * led.blinkSpeed + led.phase) * 1.0;
+        if (led.isPort) {
+          // Rapid packet flickering for active network ports
+          intensity = Math.random() > 0.42 ? 3.0 : 0.12;
         } else {
-          intensity = 0.15 + Math.sin(elapsed * led.blinkSpeed + led.phase) * 0.08;
+          // Power LEDs: simulate active server blade query telemetry
+          if (led.simTimer === undefined) led.simTimer = 0;
+          if (led.simState === undefined) led.simState = led.state;
+
+          // Decrement timer
+          if (led.simTimer > 0) {
+            led.simTimer -= dt;
+          } else {
+            // Timer expired, select a new state randomly
+            const rand = Math.random();
+            if (led.state === 'live' || led.state === 'warn') {
+              // Primary indicators: mostly live, occasionally warn or idle
+              if (rand < 0.65) {
+                led.simState = 'live';
+                led.simTimer = 1.0 + Math.random() * 2.5; // active for 1-3.5s
+              } else if (rand < 0.85) {
+                led.simState = 'warn';
+                led.simTimer = 0.5 + Math.random() * 1.5; // warn for 0.5-2s
+              } else {
+                led.simState = 'idle';
+                led.simTimer = 0.4 + Math.random() * 1.0;
+              }
+            } else {
+              // Idle/secondary indicators: mostly idle, occasionally flickers green/amber
+              if (rand < 0.82) {
+                led.simState = 'idle';
+                led.simTimer = 1.5 + Math.random() * 4.0; // idle for 1.5-5.5s
+              } else if (rand < 0.94) {
+                led.simState = 'live';
+                led.simTimer = 0.3 + Math.random() * 1.2; // active brief pulse
+              } else {
+                led.simState = 'warn';
+                led.simTimer = 0.2 + Math.random() * 0.8;
+              }
+            }
+          }
+
+          // Apply state color dynamically
+          if (led.simState === 'live') {
+            led.material.color.set(colors.success);
+            led.material.emissive.set(colors.success);
+            // Sharp digital on/off blinking
+            intensity = (Math.sin(elapsed * led.blinkSpeed * 2.5 + led.phase) > -0.2) ? 2.5 : 0.15;
+          } else if (led.simState === 'warn') {
+            led.material.color.set(colors.accent);
+            led.material.emissive.set(colors.accent);
+            // Fast warning alert blinking
+            intensity = (Math.sin(elapsed * led.blinkSpeed * 3.5 + led.phase) > 0.0) ? 2.2 : 0.15;
+          } else {
+            // Standby idle mode: faint, solid glowing amber-grey indicator
+            led.material.color.set(colors.bgSubtle);
+            led.material.emissive.set(colors.bgSubtle);
+            intensity = 0.45; // Constant dim standby glow
+          }
+
+          // Mobile shares the same high-fidelity square-wave blinking pattern as desktop
         }
 
         /* ─── Phase 3: contentDirector highlight override ───
