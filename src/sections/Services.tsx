@@ -290,10 +290,10 @@ function ServiceCard({ service }: { service: Service }) {
       <article
         ref={cardRef}
         data-section-card
-        className={`group relative rounded-card border bg-bg-elevated p-6 transition-all duration-300 sm:p-8 ${
+        className={`group relative rounded-card border p-6 transition-all duration-300 sm:p-8 ${
           isArchived
-            ? 'border-dashed border-border/60 opacity-60'
-            : 'border-border/40 border-l-[3px] border-l-accent/15 hover:border-border hover:border-l-accent hover:bg-accent/[0.02] hover:shadow-[inset_0_1px_0_0_rgba(245,208,112,0.08)] sm:border-l-transparent'
+            ? 'services-card-archived border-dashed border-border/60 opacity-60'
+            : 'services-card border-border/40 border-l-[3px] border-l-accent/15 hover:border-border hover:border-l-accent hover:shadow-[inset_0_1px_0_0_rgba(245,208,112,0.08)] sm:border-l-transparent'
         }`}
         style={{
           transformStyle: 'preserve-3d',
@@ -440,6 +440,29 @@ export function Services() {
         @keyframes shimmer {
           0%, 100% { transform: translateY(-100%); }
           50% { transform: translateY(100%); }
+        }
+        .services-card {
+          background-color: rgba(17, 17, 17, 0.82) !important;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+        .services-card:hover {
+          background-color: rgba(25, 24, 22, 0.85) !important;
+        }
+        .services-card-archived {
+          background-color: rgba(17, 17, 17, 0.5) !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+        @media (max-width: 767px) {
+          .services-card {
+            background-color: rgba(17, 17, 17, 0.45) !important;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+          }
+          .services-card:hover {
+            background-color: rgba(25, 24, 22, 0.48) !important;
+          }
         }
         @media (prefers-reduced-motion: reduce) {
           .animate-dot-pulse-service {
