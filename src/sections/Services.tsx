@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useMagneticTilt } from '../hooks/useMagneticTilt';
+import { getChapterMeta } from '../motion/rackChapters';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -405,6 +406,17 @@ export function Services() {
   const archivedCount = services.filter((s) => s.status === 'archived').length;
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const chapter = getChapterMeta('services', isMobile);
+  const scrimGradient = chapter?.scrim ?? 'linear-gradient(180deg, rgba(10,10,10,0.15) 0%, rgba(10,10,10,0.50) 45%, rgba(10,10,10,0.70) 100%)';
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -450,8 +462,7 @@ export function Services() {
         <div
           className="pointer-events-none absolute inset-0 z-[1]"
           style={{
-            background:
-              'linear-gradient(180deg, rgba(10,10,10,0.72) 0%, rgba(10,10,10,0.88) 35%, rgba(10,10,10,0.94) 100%)',
+            background: scrimGradient,
           }}
           aria-hidden="true"
         />

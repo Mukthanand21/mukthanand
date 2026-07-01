@@ -1,3 +1,4 @@
+/* ─── rackChapters.ts ─── */
 /* ═══════════════════════════════════════════════════════
    rackChapters — scroll chapter config for the global rack
 
@@ -67,7 +68,7 @@ export type ChapterMeta = {
 
 /* ─── Desktop hero camera (matches useRackScene camEnd) ─── */
 const DESKTOP_HERO: RackChapterState = {
-  opacity: 1,
+  opacity: 1.0,
   cameraPos: { x: 0, y: 1.9, z: 13 },
   cameraLook: { x: 0, y: 1.9, z: -0.6 },
   groupX: 2.5,
@@ -80,7 +81,7 @@ const DESKTOP_HERO: RackChapterState = {
 };
 
 const MOBILE_HERO: RackChapterState = {
-  opacity: 0.75,
+  opacity: 0.85,
   cameraPos: { x: 0, y: 6.5, z: 35 },
   cameraLook: { x: 0, y: 0.5, z: 0 },
   groupX: 0,
@@ -104,7 +105,7 @@ function desktopChapters(): ChapterMeta[] {
       id: 'services',
       title: 'Selected Work',
       rack: {
-        opacity: 0.38,
+        opacity: 0.75, // Highly visible background rack
         cameraPos: { x: 5.5, y: 3.2, z: 18 },
         cameraLook: { x: -1.5, y: 1.6, z: -0.5 },
         groupX: -3.2,
@@ -116,7 +117,7 @@ function desktopChapters(): ChapterMeta[] {
         active: true,
       },
       scrim:
-        'linear-gradient(180deg, rgba(10,10,10,0.72) 0%, rgba(10,10,10,0.88) 35%, rgba(10,10,10,0.94) 100%)',
+        'linear-gradient(180deg, rgba(10,10,10,0.15) 0%, rgba(10,10,10,0.50) 45%, rgba(10,10,10,0.70) 100%)',
       content: {
         cardStaggerWindow: [0.1, 0.7],
         unitHighlightMap: {
@@ -132,7 +133,7 @@ function desktopChapters(): ChapterMeta[] {
       id: 'changelog',
       title: 'The Journey',
       rack: {
-        opacity: 0.14,
+        opacity: 0.65, // Soft, glowing server outline
         cameraPos: { x: 0, y: 4.5, z: 24 },
         cameraLook: { x: 0, y: 1.2, z: 0 },
         groupX: -6,
@@ -144,7 +145,7 @@ function desktopChapters(): ChapterMeta[] {
         active: true,
       },
       scrim:
-        'linear-gradient(180deg, rgba(10,10,10,0.82) 0%, rgba(10,10,10,0.92) 50%, rgba(10,10,10,0.96) 100%)',
+        'linear-gradient(180deg, rgba(10,10,10,0.70) 0%, rgba(10,10,10,0.55) 45%, rgba(10,10,10,0.75) 100%)',
       content: {
         cardStaggerWindow: [0.15, 0.8],
         unitHighlightMap: {
@@ -170,7 +171,7 @@ function desktopChapters(): ChapterMeta[] {
       id: 'stack',
       title: 'The Stack',
       rack: {
-        opacity: 0.08,
+        opacity: 0.58, // Solid structural presence
         cameraPos: { x: -2, y: 6, z: 28 },
         cameraLook: { x: 0, y: 0.8, z: 0 },
         groupX: -8,
@@ -182,7 +183,7 @@ function desktopChapters(): ChapterMeta[] {
         active: true,
       },
       scrim:
-        'linear-gradient(180deg, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.95) 100%)',
+        'linear-gradient(180deg, rgba(10,10,10,0.75) 0%, rgba(10,10,10,0.60) 45%, rgba(10,10,10,0.80) 100%)',
       content: {
         cardStaggerWindow: [0.2, 0.75],
         unitHighlightMap: {},  // no rack unit highlights for stack section
@@ -193,7 +194,7 @@ function desktopChapters(): ChapterMeta[] {
       id: 'contact',
       title: 'Get in Touch',
       rack: {
-        opacity: 0,
+        opacity: 0.50, // Clearly silhouetted in footer
         cameraPos: { x: 0, y: 8, z: 32 },
         cameraLook: { x: 0, y: 0, z: 0 },
         groupX: -10,
@@ -202,10 +203,10 @@ function desktopChapters(): ChapterMeta[] {
         groupScale: 0.55,
         groupRotY: 0.35,
         parallax: false,
-        active: false,
+        active: true,
       },
       scrim:
-        'linear-gradient(180deg, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.98) 100%)',
+        'linear-gradient(180deg, rgba(10,10,10,0.80) 0%, rgba(10,10,10,0.65) 45%, rgba(10,10,10,0.85) 100%)',
       content: {
         cardStaggerWindow: [0.2, 0.6],
         unitHighlightMap: {},  // no rack unit highlights for contact section
@@ -227,7 +228,7 @@ function mobileChapters(): ChapterMeta[] {
       id: 'services',
       title: 'Selected Work',
       rack: {
-        opacity: 0.38,
+        opacity: 0.70, // High mobile visibility
         cameraPos: MOBILE_HERO.cameraPos,
         cameraLook: MOBILE_HERO.cameraLook,
         groupX: -0.6,
@@ -239,7 +240,7 @@ function mobileChapters(): ChapterMeta[] {
         active: true,
       },
       scrim:
-        'linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.96) 100%)',
+        'linear-gradient(180deg, rgba(10,10,10,0.20) 0%, rgba(10,10,10,0.50) 45%, rgba(10,10,10,0.65) 100%)',
       content: {
         cardStaggerWindow: [0.0, 0.3],  // mobile: fast entrance
         unitHighlightMap: {},            // mobile: no LED highlights (rack not visible)
@@ -250,7 +251,7 @@ function mobileChapters(): ChapterMeta[] {
       id: 'changelog',
       title: 'The Journey',
       rack: {
-        opacity: 0.14,
+        opacity: 0.65, // High mobile visibility
         cameraPos: MOBILE_HERO.cameraPos,
         cameraLook: MOBILE_HERO.cameraLook,
         groupX: 0.6,
@@ -262,7 +263,7 @@ function mobileChapters(): ChapterMeta[] {
         active: true,
       },
       scrim:
-        'linear-gradient(180deg, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.96) 100%)',
+        'linear-gradient(180deg, rgba(10,10,10,0.65) 0%, rgba(10,10,10,0.52) 45%, rgba(10,10,10,0.70) 100%)',
       content: {
         cardStaggerWindow: [0.0, 0.3],
         unitHighlightMap: {},
@@ -273,7 +274,7 @@ function mobileChapters(): ChapterMeta[] {
       id: 'stack',
       title: 'The Stack',
       rack: {
-        opacity: 0.08,
+        opacity: 0.60, // High mobile visibility
         cameraPos: MOBILE_HERO.cameraPos,
         cameraLook: MOBILE_HERO.cameraLook,
         groupX: -0.5,
@@ -285,7 +286,7 @@ function mobileChapters(): ChapterMeta[] {
         active: true,
       },
       scrim:
-        'linear-gradient(180deg, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.97) 100%)',
+        'linear-gradient(180deg, rgba(10,10,10,0.70) 0%, rgba(10,10,10,0.55) 45%, rgba(10,10,10,0.72) 100%)',
       content: {
         cardStaggerWindow: [0.0, 0.3],
         unitHighlightMap: {},
@@ -296,7 +297,7 @@ function mobileChapters(): ChapterMeta[] {
       id: 'contact',
       title: 'Get in Touch',
       rack: {
-        opacity: 0,
+        opacity: 0.55, // High mobile visibility
         cameraPos: MOBILE_HERO.cameraPos,
         cameraLook: MOBILE_HERO.cameraLook,
         groupX: 0,
@@ -305,10 +306,10 @@ function mobileChapters(): ChapterMeta[] {
         groupScale: 0.6,
         groupRotY: -0.05,
         parallax: false,
-        active: false,
+        active: true,
       },
       scrim:
-        'linear-gradient(180deg, rgba(10,10,10,0.94) 0%, rgba(10,10,10,0.99) 100%)',
+        'linear-gradient(180deg, rgba(10,10,10,0.72) 0%, rgba(10,10,10,0.60) 45%, rgba(10,10,10,0.78) 100%)',
       content: {
         cardStaggerWindow: [0.0, 0.3],
         unitHighlightMap: {},
