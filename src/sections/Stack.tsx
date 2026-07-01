@@ -64,6 +64,7 @@ const groups: Group[] = [
     id: 'devops',
     label: 'DEVOPS & TOOLS',
     items: [
+      { name: 'AWS', level: 'strong', note: 'Academy Graduate. Cloud architectures, IAM, Lambda, S3, RDS.' },
       { name: 'Git', level: 'strong', note: 'Rebase, force-with-lease, protected branches' },
       { name: 'GitLab CI/CD', level: 'strong', note: 'Pipelines, Docker-based CI, Pages deploy' },
       { name: 'Linux (Ubuntu)', level: 'strong', note: 'Daily driver, VM tuning, kernel modules' },
@@ -187,18 +188,12 @@ function TabPill({
   return (
     <button
       onClick={onClick}
-      className={`relative rounded-full border-thin bg-transparent px-3 py-1 font-mono font-light text-[10px] uppercase tracking-[0.1em] transition-colors duration-150 ${active
-          ? 'border-border text-accent'
-          : 'border-border text-fg-muted hover:text-fg-muted/80'
+      className={`relative rounded-full border px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] transition-all duration-150 ${active
+          ? 'border-accent/15 bg-accent/[0.04] text-accent shadow-[0_0_12px_rgba(245,208,112,0.04)] opacity-100'
+          : 'border-border/30 bg-bg-elevated/40 text-fg-secondary/80 hover:text-fg hover:bg-bg-subtle/60 hover:border-border/60 opacity-60 hover:opacity-100'
         }`}
     >
       {label}
-      {active && (
-        <motion.div
-          layoutId="tab-underline"
-          className="absolute -bottom-1 left-2 right-2 h-0.5 rounded-full bg-accent"
-        />
-      )}
     </button>
   );
 }
@@ -277,6 +272,87 @@ export function Stack() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Systems Cryptographic Credentials Grid */}
+      <div className="mt-14 border-t border-border/40 pt-8">
+        <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-fg-muted mb-4">
+          SYSTEM / CREDENTIALS
+        </p>
+        <CredentialsPanel />
+      </div>
     </Section>
+  );
+}
+
+/* ─── credentials panel ─── */
+function CredentialsPanel() {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* AWS Certification Card */}
+      <div className="group relative rounded-card border border-border/60 bg-bg-subtle/30 backdrop-blur-md p-5 transition-all duration-300 hover:border-accent/20 hover:bg-bg-elevated/40 hover:shadow-[0_0_24px_rgba(245,208,112,0.03)]">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-mono text-[8px] text-accent tracking-wider uppercase bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
+            AWS ACADEMY
+          </span>
+          <span className="font-mono text-[9px] text-fg-muted">
+            CA_ID: AWS-DEC-2025
+          </span>
+        </div>
+        <h4 className="font-sans font-medium text-[14px] text-fg transition-colors duration-150 group-hover:text-accent flex items-center gap-2.5">
+          <SkillIcon name="AWS" />
+          AWS Cloud Practitioner & Developer
+        </h4>
+        <p className="mt-2 font-sans font-light text-xs leading-relaxed text-fg-secondary">
+          Cloud infrastructure architectures, IAM policies, serverless Lambda integration, Amazon S3 storage bucket configuration, and RDS PostgreSQL deployments.
+        </p>
+        <a 
+          href="/AWS_Academy_Graduate.pdf" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="mt-4 w-full inline-flex items-center justify-between rounded border border-border/60 bg-bg-elevated/40 px-3 py-2 font-mono text-[9px] uppercase tracking-wider text-fg-secondary transition-all duration-150 hover:border-accent/30 hover:bg-accent/[0.03] hover:text-accent"
+        >
+          <span className="flex items-center gap-1.5 font-sans">
+            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse shrink-0" />
+            CA_STATUS: VERIFIED
+          </span>
+          <span className="text-accent flex items-center gap-1 font-sans font-medium text-[10px] lowercase normal-case">
+            view_key &rarr;
+          </span>
+        </a>
+      </div>
+
+      {/* Coursera Meta Front-End Certification Card */}
+      <div className="group relative rounded-card border border-border/60 bg-bg-subtle/30 backdrop-blur-md p-5 transition-all duration-300 hover:border-accent/20 hover:bg-bg-elevated/40 hover:shadow-[0_0_24px_rgba(245,208,112,0.03)]">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-mono text-[8px] text-accent tracking-wider uppercase bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
+            COURSERA / META
+          </span>
+          <span className="font-mono text-[9px] text-fg-muted">
+            CA_ID: CRT-FEB-2026
+          </span>
+        </div>
+        <h4 className="font-sans font-medium text-[14px] text-fg transition-colors duration-150 group-hover:text-accent flex items-center gap-2.5">
+          <SkillIcon name="Coursera" />
+          Meta Front-End Developer
+        </h4>
+        <p className="mt-2 font-sans font-light text-xs leading-relaxed text-fg-secondary">
+          Advanced single-page React applications, UI state management models, accessibility guidelines (WCAG), CSS grid/flex layouts, and testing suites.
+        </p>
+        <a 
+          href="/Coursera_Frontend_Certificate.pdf" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="mt-4 w-full inline-flex items-center justify-between rounded border border-border/60 bg-bg-elevated/40 px-3 py-2 font-mono text-[9px] uppercase tracking-wider text-fg-secondary transition-all duration-150 hover:border-accent/30 hover:bg-accent/[0.03] hover:text-accent"
+        >
+          <span className="flex items-center gap-1.5 font-sans">
+            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse shrink-0" />
+            CA_STATUS: VERIFIED
+          </span>
+          <span className="text-accent flex items-center gap-1 font-sans font-medium text-[10px] lowercase normal-case">
+            view_key &rarr;
+          </span>
+        </a>
+      </div>
+    </div>
   );
 }

@@ -1114,8 +1114,6 @@ export function useRackScene(
       const contentState = contentDirector.current;
       const isHighlighted = !reduced && !isMobile && contentState.highlightedUnitIndices.length > 0;
 
-      const mobileWave = isMobile && !reduced ? Math.sin(elapsed * 0.3) : 0;
-
       leds.forEach((led, idx) => {
         let intensity: number;
         if (led.isPort) {

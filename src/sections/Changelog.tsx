@@ -7,12 +7,18 @@ import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 gsap.registerPlugin(ScrollTrigger);
 
+type CredentialLink = {
+  label: string;
+  url: string;
+};
+
 type Entry = {
   version: string;
   date: string;
   title: string;
   description: string;
   tags?: string[];
+  credentials?: CredentialLink[];
 };
 
 const entries: Entry[] = [
@@ -23,6 +29,9 @@ const entries: Entry[] = [
     description:
       'Completed B.Tech in Computer Science & Engineering at ICFAI Tech Hyderabad. CGPA 8.05. Ready to ship full-time across backend, full-stack, and AI engineering roles.',
     tags: ['Education', 'B.Tech CSE', 'ICFAI Tech Hyderabad'],
+    credentials: [
+      { label: 'AWS Academy Graduate', url: '/AWS_Academy_Graduate.pdf' },
+    ],
   },
   {
     version: 'v1.4.0',
@@ -31,6 +40,9 @@ const entries: Entry[] = [
     description:
       'Owned and shipped the full RAG retrieval feature for corpus.swecha.org. Hybrid FTS + pg_trgm, BYOK LLM architecture, sub-second retrieval. Also shipped Spotify-style transcript sync UI and API cleanup MRs.',
     tags: ['corpus.swecha.org', 'PostgreSQL', 'FastAPI', 'React'],
+    credentials: [
+      { label: 'Viswam AI Certificate', url: '/Final_Viswam_Certificate.png' },
+    ],
   },
   {
     version: 'v1.3.0',
@@ -63,6 +75,9 @@ const entries: Entry[] = [
     description:
       'Contributed to the Skillbanc Manim Templates open-source repo. Built math animations for Indian school textbooks (Grades 1,2,6,8,9) covering Fractions, Decimals, Exponents, and Geometric Constructions. First experience with Git, GitHub, branches, and PRs.',
     tags: ['Open Source', 'Python', 'Manim', 'Education'],
+    credentials: [
+      { label: 'Skillbanc Certificate', url: '/Final_Internship_Completion_Ceritificate.pdf' },
+    ],
   },
 ];
 
@@ -297,6 +312,26 @@ export function Changelog() {
                 <p className="mt-1.5 max-w-prose font-sans font-normal text-sm leading-relaxed text-fg-secondary">
                   {entry.description}
                 </p>
+
+                {entry.credentials && entry.credentials.length > 0 && (
+                  <div className="mt-3.5 flex flex-wrap gap-2.5">
+                    {entry.credentials.map((cred) => (
+                      <a
+                        key={cred.url}
+                        href={cred.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-full border border-accent/15 bg-accent/[0.03] px-3 py-1 font-mono text-[9px] uppercase tracking-wider text-accent transition-all duration-150 hover:border-accent/35 hover:bg-accent/[0.08] hover:shadow-[0_0_12px_rgba(245,208,112,0.1)]"
+                      >
+                        <svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="8" r="6" />
+                          <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        {cred.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           );
