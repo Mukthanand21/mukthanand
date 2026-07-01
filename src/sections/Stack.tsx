@@ -1,9 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Section } from '../components/Section';
 import { SkillIcon } from '../components/SkillIcon';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 import { useMagneticTilt } from '../hooks/useMagneticTilt';
+
+gsap.registerPlugin(ScrollTrigger);
 
 /* ─── types ─── */
 type Level = 'strongest' | 'strong' | 'familiar';
@@ -81,6 +85,40 @@ const groups: Group[] = [
       { name: 'Groq / LLM APIs', level: 'strong', note: 'BYOK architecture, multi-provider' },
       { name: 'Prompt Engineering', level: 'strong', note: 'Structured outputs, agent skills' },
     ],
+  },
+];
+
+/* ─── credential data ─── */
+type Credential = {
+  issuer: string;
+  title: string;
+  description: string;
+  pdfUrl: string;
+  caId: string;
+  iconName: string;
+  skills: string[];
+};
+
+const CREDENTIALS: Credential[] = [
+  {
+    issuer: 'AWS ACADEMY',
+    title: 'AWS Cloud Practitioner & Developer',
+    description:
+      'Cloud infrastructure architectures, IAM policies, serverless Lambda integration, Amazon S3 storage bucket configuration, and RDS PostgreSQL deployments.',
+    pdfUrl: '/AWS_Academy_Graduate.pdf',
+    caId: 'AWS-DEC-2025',
+    iconName: 'AWS',
+    skills: ['IAM', 'Lambda', 'S3', 'RDS', 'Cloud Architecture'],
+  },
+  {
+    issuer: 'COURSERA / META',
+    title: 'Meta Front-End Developer',
+    description:
+      'Advanced single-page React applications, UI state management models, accessibility guidelines (WCAG), CSS grid/flex layouts, and testing suites.',
+    pdfUrl: '/Coursera_Frontend_Certificate.pdf',
+    caId: 'SEP-2024',
+    iconName: 'Coursera',
+    skills: ['React', 'State Management', 'WCAG', 'CSS Grid/Flex', 'Testing'],
   },
 ];
 
@@ -188,9 +226,9 @@ function TabPill({
   return (
     <button
       onClick={onClick}
-      className={`relative rounded-full border px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] transition-all duration-150 ${active
-          ? 'border-accent/15 bg-accent/[0.04] text-accent shadow-[0_0_12px_rgba(245,208,112,0.04)] opacity-100'
-          : 'border-border/30 bg-bg-elevated/40 text-fg-secondary/80 hover:text-fg hover:bg-bg-subtle/60 hover:border-border/60 opacity-60 hover:opacity-100'
+      className={`relative rounded-full border border-border px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] transition-all duration-150 ${active
+          ? 'border-accent/30 bg-accent/[0.04] text-accent opacity-100'
+          : 'bg-bg-elevated text-fg-muted hover:text-fg hover:bg-bg-subtle hover:border-border opacity-70 hover:opacity-100'
         }`}
     >
       {label}
@@ -273,86 +311,256 @@ export function Stack() {
         )}
       </AnimatePresence>
 
-      {/* Systems Cryptographic Credentials Grid */}
-      <div className="mt-14 border-t border-border/40 pt-8">
-        <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-fg-muted mb-4">
-          SYSTEM / CREDENTIALS
-        </p>
+      {/* ─── Systems Cryptographic Credentials ─── */}
+      <div className="mt-14 border-t border-border/20 pt-8">
+        <div className="mb-6 flex items-center gap-3" data-cred-header>
+          <span className="font-mono text-xs uppercase tracking-[0.12em] text-accent">
+            SYSTEM / CREDENTIALS
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-r from-accent/30 to-transparent" aria-hidden="true" />
+        </div>
         <CredentialsPanel />
       </div>
     </Section>
   );
 }
 
-/* ─── credentials panel ─── */
+/* ─── CredentialsPanel — cards now handle their own entrance via per-element GSAP cascade ─── */
 function CredentialsPanel() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      {/* AWS Certification Card */}
-      <div className="group relative rounded-card border border-border/60 bg-bg-subtle/30 backdrop-blur-md p-5 transition-all duration-300 hover:border-accent/20 hover:bg-bg-elevated/40 hover:shadow-[0_0_24px_rgba(245,208,112,0.03)]">
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-mono text-[8px] text-accent tracking-wider uppercase bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
-            AWS ACADEMY
-          </span>
-          <span className="font-mono text-[9px] text-fg-muted">
-            CA_ID: AWS-DEC-2025
-          </span>
-        </div>
-        <h4 className="font-sans font-medium text-[14px] text-fg transition-colors duration-150 group-hover:text-accent flex items-center gap-2.5">
-          <SkillIcon name="AWS" />
-          AWS Cloud Practitioner & Developer
-        </h4>
-        <p className="mt-2 font-sans font-light text-xs leading-relaxed text-fg-secondary">
-          Cloud infrastructure architectures, IAM policies, serverless Lambda integration, Amazon S3 storage bucket configuration, and RDS PostgreSQL deployments.
-        </p>
-        <a 
-          href="/AWS_Academy_Graduate.pdf" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="mt-4 w-full inline-flex items-center justify-between rounded border border-border/60 bg-bg-elevated/40 px-3 py-2 font-mono text-[9px] uppercase tracking-wider text-fg-secondary transition-all duration-150 hover:border-accent/30 hover:bg-accent/[0.03] hover:text-accent"
-        >
-          <span className="flex items-center gap-1.5 font-sans">
-            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse shrink-0" />
-            CA_STATUS: VERIFIED
-          </span>
-          <span className="text-accent flex items-center gap-1 font-sans font-medium text-[10px] lowercase normal-case">
-            view_key &rarr;
-          </span>
-        </a>
+    <>
+      <style>{`
+        @keyframes cred-shimmer {
+          0%, 100% { transform: translateY(-100%); }
+          50% { transform: translateY(100%); }
+        }
+        .cred-card-active .cred-card-title {
+          color: var(--color-accent) !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [style*="animation: cred-shimmer"] {
+            animation: none !important;
+          }
+        }
+      `}</style>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        {CREDENTIALS.map((cred) => (
+          <CredentialCard key={cred.caId} credential={cred} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ─── CredentialCard — full-card link with shimmer, per-element GSAP cascade, scroll-focus ─── */
+function CredentialCard({
+  credential,
+}: {
+  credential: Credential;
+}) {
+  const cardRef = useRef<HTMLAnchorElement>(null);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+  const reduced = usePrefersReducedMotion();
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (reduced) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  };
+
+  /* ─── Per-card GSAP entrance cascade + scroll-focus ─── */
+  useEffect(() => {
+    if (reduced) return;
+    const card = cardRef.current;
+    if (!card) return;
+
+    const ctx = gsap.context(() => {
+      /* set initial hidden state */
+      gsap.set(card, { opacity: 0, y: 28, scale: 0.96 });
+
+      /* scroll-focus active state — brightens title when in viewport center */
+      ScrollTrigger.create({
+        trigger: card,
+        start: 'top 65%',
+        end: 'bottom 35%',
+        onEnter: () => card.classList.add('cred-card-active'),
+        onLeave: () => card.classList.remove('cred-card-active'),
+        onEnterBack: () => card.classList.add('cred-card-active'),
+        onLeaveBack: () => card.classList.remove('cred-card-active'),
+      });
+
+      /* per-element cascade timeline */
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 88%',
+          toggleActions: 'play none none reverse',
+        },
+      });
+
+      // 1. Card container entrance
+      tl.to(card, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.7,
+        ease: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      });
+
+      // 2. Icon + Title — slide from left
+      const iconEl = card.querySelector('[data-cred-icon]');
+      const titleEl = card.querySelector('[data-cred-title]');
+      if (iconEl && titleEl) {
+        tl.fromTo(
+          [iconEl, titleEl],
+          { opacity: 0, x: -16 },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.5,
+            ease: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          },
+          '-=0.4',
+        );
+      }
+
+      // 3. Description — fade + slide up
+      const descEl = card.querySelector('[data-cred-desc]');
+      if (descEl) {
+        tl.fromTo(
+          descEl,
+          { opacity: 0, y: 12 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+            ease: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          },
+          '-=0.3',
+        );
+      }
+
+      // 4. Skill tags — stagger scale
+      const tagsEl = card.querySelector('[data-cred-tags]');
+      if (tagsEl) {
+        const tagSpans = tagsEl.querySelectorAll('span');
+        if (tagSpans.length > 0) {
+          tl.fromTo(
+            tagSpans,
+            { opacity: 0, scale: 0.85, y: 8 },
+            {
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              stagger: 0.04,
+              duration: 0.35,
+              ease: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            },
+            '-=0.3',
+          );
+        }
+      }
+
+
+    });
+
+    return () => ctx.revert();
+  }, [reduced]);
+
+  return (
+    <a
+      ref={cardRef}
+      href={credential.pdfUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-cred-card
+      onMouseMove={handleMouseMove}
+      className="group relative block overflow-hidden rounded-card border border-border/50 bg-[rgba(17,17,17,0.55)] p-5 transition-all duration-500 hover:border-accent/15 hover:shadow-[inset_0_1px_0_0_rgba(245,208,112,0.08)] sm:p-6"
+      style={{
+        perspective: '800px',
+        transformStyle: 'preserve-3d',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      } as React.CSSProperties}
+    >
+      {/* ─── Animated gold shimmer accent bar ─── */}
+      <div
+        className="pointer-events-none absolute left-0 top-0 h-full w-[3px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{
+          background:
+            'linear-gradient(180deg, transparent, var(--color-accent), transparent)',
+          animation: 'cred-shimmer 3s ease-in-out infinite',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* ─── Mouse-following parallax glow ─── */}
+      {!reduced && (
+        <div
+          className="pointer-events-none absolute inset-0 rounded-card opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            background: `radial-gradient(ellipse at ${mousePos.x}% ${mousePos.y}%, rgba(245, 208, 112, 0.08) 0%, transparent 70%)`,
+          }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ─── Corner gradient overlay on hover ─── */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-card opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{
+          background:
+            'linear-gradient(135deg, rgba(245, 208, 112, 0.06) 0%, transparent 40%, transparent 60%, rgba(245, 208, 112, 0.03) 100%)',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* ─── Top row: issuer badge + CA_ID ─── */}
+      <div className="relative z-[1] mb-3.5 flex items-center justify-between">
+        <span className="rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono text-[10px] text-fg-muted transition-colors duration-200 group-hover:border-accent/20 group-hover:text-accent/70">
+          {credential.issuer}
+        </span>
+        <span className="font-mono text-[9px] tracking-wider text-fg-muted/50">
+          {credential.caId}
+        </span>
       </div>
 
-      {/* Coursera Meta Front-End Certification Card */}
-      <div className="group relative rounded-card border border-border/60 bg-bg-subtle/30 backdrop-blur-md p-5 transition-all duration-300 hover:border-accent/20 hover:bg-bg-elevated/40 hover:shadow-[0_0_24px_rgba(245,208,112,0.03)]">
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-mono text-[8px] text-accent tracking-wider uppercase bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
-            COURSERA / META
-          </span>
-          <span className="font-mono text-[9px] text-fg-muted">
-            CA_ID: CRT-FEB-2026
-          </span>
+      {/* ─── Icon + Title ─── */}
+      <div data-cred-icon className="relative z-[1] mb-3 flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-bg-elevated/40 transition-all duration-300 group-hover:bg-accent/[0.06]">
+          <SkillIcon name={credential.iconName} />
         </div>
-        <h4 className="font-sans font-medium text-[14px] text-fg transition-colors duration-150 group-hover:text-accent flex items-center gap-2.5">
-          <SkillIcon name="Coursera" />
-          Meta Front-End Developer
-        </h4>
-        <p className="mt-2 font-sans font-light text-xs leading-relaxed text-fg-secondary">
-          Advanced single-page React applications, UI state management models, accessibility guidelines (WCAG), CSS grid/flex layouts, and testing suites.
-        </p>
-        <a 
-          href="/Coursera_Frontend_Certificate.pdf" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="mt-4 w-full inline-flex items-center justify-between rounded border border-border/60 bg-bg-elevated/40 px-3 py-2 font-mono text-[9px] uppercase tracking-wider text-fg-secondary transition-all duration-150 hover:border-accent/30 hover:bg-accent/[0.03] hover:text-accent"
+        <h4
+          data-cred-title
+          className="cred-card-title font-sans font-medium text-[15px] leading-snug text-fg transition-colors duration-300 group-hover:text-accent"
         >
-          <span className="flex items-center gap-1.5 font-sans">
-            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse shrink-0" />
-            CA_STATUS: VERIFIED
-          </span>
-          <span className="text-accent flex items-center gap-1 font-sans font-medium text-[10px] lowercase normal-case">
-            view_key &rarr;
-          </span>
-        </a>
+          {credential.title}
+        </h4>
       </div>
-    </div>
+
+      {/* ─── Description ─── */}
+      <p data-cred-desc className="relative z-[1] mb-4 font-sans font-light text-xs leading-relaxed text-fg-secondary">
+        {credential.description}
+      </p>
+
+      {/* ─── Skill tags ─── */}
+      {credential.skills.length > 0 && (
+        <div data-cred-tags className="relative z-[1] mb-5 flex flex-wrap gap-1.5">
+          {credential.skills.map((skill) => (
+            <span
+              key={skill}
+              className="rounded-full border border-border bg-bg-elevated px-3 py-1 font-mono text-[10px] text-fg-muted transition-colors duration-200 group-hover:border-accent/20 group-hover:text-accent/70"
+            >
+              {skill}
+            </span>
+          ))}
+        </div>
+      )}
+
+
+    </a>
   );
 }

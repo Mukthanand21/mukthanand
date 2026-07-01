@@ -29,9 +29,6 @@ const entries: Entry[] = [
     description:
       'Completed B.Tech in Computer Science & Engineering at ICFAI Tech Hyderabad. CGPA 8.05. Ready to ship full-time across backend, full-stack, and AI engineering roles.',
     tags: ['Education', 'B.Tech CSE', 'ICFAI Tech Hyderabad'],
-    credentials: [
-      { label: 'AWS Academy Graduate', url: '/AWS_Academy_Graduate.pdf' },
-    ],
   },
   {
     version: 'v1.4.0',
