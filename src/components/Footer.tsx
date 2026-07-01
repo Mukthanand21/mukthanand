@@ -92,33 +92,37 @@ export function Footer() {
   return (
     <footer
       style={{
-        background: '#0f0f0d',
-        borderTop: '0.5px solid #2c2c2a',
+        position: 'relative',
+        zIndex: 10,
+        background: 'var(--color-bg)',
+        borderTop: '1px solid var(--color-border)',
       }}
     >
       {/* ─── 3-column grid — system | navigate | connect ─── */}
       <div className="mx-auto max-w-content px-gutter py-6 sm:py-10">
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-[auto_1fr_auto] sm:gap-12">
-          {/* ─── SYSTEM — hidden on mobile ─── */}
-          <div className="hidden sm:block">
+          {/* ─── SYSTEM — centered on mobile, left-aligned on desktop ─── */}
+          <div className="col-span-3 sm:col-span-1 text-center sm:text-left">
             <p className="col-label">SYSTEM</p>
-            <div className="status-row">
+            <div className="status-row justify-center sm:justify-start">
               <span className="status-dot" />
               <span className="status-text">operational</span>
             </div>
-            <div className="build-row">
-              <span className="build-key">build:</span>
-              <span className="build-val">{BUILD}</span>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 mt-2 text-xs font-mono">
+              <div className="build-row mt-0">
+                <span className="build-key">build:</span>
+                <span className="build-val">{BUILD}</span>
+              </div>
+              <div className="build-row mt-0">
+                <span className="build-key">region:</span>
+                <span className="build-val">IND Hyd</span>
+              </div>
+              <div className="build-row mt-0 hidden sm:flex">
+                <span className="build-key">stack:</span>
+                <span className="build-val">react + vite</span>
+              </div>
             </div>
-            <div className="build-row">
-              <span className="build-key">region:</span>
-              <span className="build-val">IND Hyd</span>
-            </div>
-            <div className="build-row">
-              <span className="build-key">stack:</span>
-              <span className="build-val">react + vite</span>
-            </div>
-            <p className="copy">&copy; {new Date().getFullYear()} mukthanand reddy</p>
+            <p className="copy mt-3">&copy; {new Date().getFullYear()} mukthanand reddy</p>
           </div>
 
           {/* ─── NAVIGATE — hidden on mobile ─── */}
@@ -137,8 +141,8 @@ export function Footer() {
             </div>
           </div>
 
-          {/* ─── CONNECT — full width on mobile, right-aligned on desktop ─── */}
-          <div className="col-span-3 sm:col-span-1 sm:mr-12 md:text-right">
+          {/* ─── CONNECT — hidden on mobile, right-aligned on desktop ─── */}
+          <div className="hidden sm:block sm:mr-12 md:text-right">
             <p className="col-label">CONNECT</p>
             <div className="social-links">
               {SOCIALS.map((s) => (
