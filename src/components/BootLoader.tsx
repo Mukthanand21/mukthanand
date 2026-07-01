@@ -82,6 +82,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const timersRef = useRef<number[]>([]);
   const skipRef = useRef(false);
+  const lastTouchRef = useRef(0);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
@@ -271,27 +272,81 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     }
   }, [T, cycleLetter, typeIn]);
 
+  /* ─── Reusable Skip Sequence ─── */
+  const handleSkip = useCallback(() => {
+    if (skipRef.current) return;
+    skipRef.current = true;
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    
+    setLockedStates(new Array(LETTERS.length).fill(true));
+    setCyclingStates(new Array(LETTERS.length).fill(false));
+    
+    onCompleteRef.current?.();
+    setIsRevealing(true);
+    T(() => setPhase('complete'), 1200);
+  }, [T]);
+
+  /* ─── Double Tap tracker (instantly triggers skip on touch devices) ─── */
+  const handleTouchStart = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTouchRef.current < 250) {
+      handleSkip();
+    }
+    lastTouchRef.current = now;
+  }, [handleSkip]);
+
   /* ─── Keyboard interrupt ─── */
   useEffect(() => {
     if (phase === 'complete') return;
 
     const handleKeyDown = () => {
-      if (skipRef.current) return;
-      skipRef.current = true;
-      timersRef.current.forEach(clearTimeout);
-      timersRef.current = [];
-      
-      setLockedStates(new Array(LETTERS.length).fill(true));
-      setCyclingStates(new Array(LETTERS.length).fill(false));
-      
-      onCompleteRef.current?.();
-      setIsRevealing(true);
-      T(() => setPhase('complete'), 1200);
+      handleSkip();
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [phase, T]);
+  }, [phase, handleSkip]);
+
+  /* ─── Kinetic Mouse Parallax with smooth linear interpolation (Lerp) ─── */
+  useEffect(() => {
+    if (reduced) return;
+
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let frameId = 0;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const { innerWidth, innerHeight } = window;
+      // Normalize coordinate offset from center (-1 to 1)
+      targetX = (e.clientX / innerWidth) * 2 - 1;
+      targetY = (e.clientY / innerHeight) * 2 - 1;
+    };
+
+    const updateTilt = () => {
+      // Smooth interpolation loop (8% speed step per frame for elegant weight)
+      currentX += (targetX - currentX) * 0.08;
+      currentY += (targetY - currentY) * 0.08;
+
+      const container = containerRef.current;
+      if (container) {
+        container.style.setProperty('--grid-tilt-x', `${currentX}`);
+        container.style.setProperty('--grid-tilt-y', `${currentY}`);
+      }
+
+      frameId = requestAnimationFrame(updateTilt);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    frameId = requestAnimationFrame(updateTilt);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(frameId);
+    };
+  }, [reduced]);
 
   /* ─── Main boot sequence ─── */
   useEffect(() => {
@@ -349,6 +404,8 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   return (
     <div
       ref={containerRef}
+      onDoubleClick={handleSkip}
+      onTouchStart={handleTouchStart}
       className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
       style={{
         backgroundColor: phase === 'boot' ? '#000' : 'var(--color-bg)',
@@ -358,6 +415,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
         transitionDuration: isRevealing ? '1.2s' : '0s',
         transitionProperty: 'clip-path, background-color',
+        touchAction: 'none', // disable zoom delays to trigger double-tap instantly
       }}
     >
       {/* ─── Collapsing Shutter-Edge Ring (Gold energy portal ring) ─── */}
@@ -408,6 +466,65 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         }}
         aria-hidden="true"
       />
+
+      {/* ─── 3D Perspective Wireframe Hallway Grids ─── */}
+      <div 
+        className="perspective-container pointer-events-none absolute inset-0 z-[1]"
+        style={{ 
+          opacity: isRevealing ? 0 : 0.45,
+          transform: isRevealing ? 'scale(1.8)' : 'scale(1)',
+          rotate: isRevealing ? '8deg' : '0deg',
+          transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 1.2s cubic-bezier(0.22, 1, 0.36, 1), rotate 1.2s cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+        aria-hidden="true"
+      >
+        <div 
+          className="grid-floor" 
+          style={{
+            animation: isRevealing
+              ? 'floorScroll 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite, gridFlicker 6s linear infinite'
+              : 'floorScroll 10s linear infinite, gridFlicker 6s linear infinite'
+          }}
+        />
+        <div 
+          className="grid-ceiling" 
+          style={{
+            animation: isRevealing
+              ? 'ceilingScroll 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite, gridFlicker 6s linear infinite'
+              : 'ceilingScroll 10s linear infinite, gridFlicker 6s linear infinite'
+          }}
+        />
+
+        {/* Horizon Ambient Wash (Breathing backlight) */}
+        <div 
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 'min(90vw, 420px)',
+            height: 'min(90vw, 420px)',
+            background: 'radial-gradient(circle, rgba(245, 208, 112, 0.12) 0%, transparent 70%)',
+            animation: 'horizonBreathe 5s ease-in-out infinite',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        />
+
+        {/* Depth-of-Field (DoF) Horizon Lens Blur Overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 2,
+            background: 'radial-gradient(circle at center, rgba(10,10,10,0.85) 0%, transparent 60%)',
+            backdropFilter: 'blur(3.5px)',
+            WebkitBackdropFilter: 'blur(3.5px)',
+            maskImage: 'radial-gradient(circle at center, black 0%, transparent 55%)',
+            WebkitMaskImage: 'radial-gradient(circle at center, black 0%, transparent 55%)',
+          }}
+        />
+      </div>
 
       {/* ─── Radial glow spotlight ─── */}
       {(phase === 'active' || phase === 'boot') && (
@@ -711,6 +828,90 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           }
           50% {
             opacity: 0.92;
+          }
+        }
+
+        .perspective-container {
+          perspective: 800px;
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          z-index: 1;
+        }
+
+        .grid-floor {
+          position: absolute;
+          width: 250%;
+          height: 60%;
+          bottom: 0;
+          left: -75%;
+          background-image: 
+            radial-gradient(circle at 0px 0px, rgba(245, 208, 112, 0.85) 2.5px, transparent 2.5px),
+            linear-gradient(to right, rgba(245, 208, 112, 0.45) 1.5px, transparent 1.5px),
+            linear-gradient(to bottom, rgba(245, 208, 112, 0.45) 1.5px, transparent 1.5px);
+          background-size: 80px 80px;
+          transform: rotateX(65deg) rotateY(calc(var(--grid-tilt-x, 0) * 3deg)) rotateZ(calc(var(--grid-tilt-x, 0) * -1.5deg)) translateY(0);
+          animation: floorScroll 10s linear infinite;
+          mask-image: linear-gradient(to top, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 85%);
+          -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 85%);
+          will-change: transform;
+        }
+
+        .grid-ceiling {
+          position: absolute;
+          width: 250%;
+          height: 60%;
+          top: 0;
+          left: -75%;
+          background-image: 
+            radial-gradient(circle at 0px 0px, rgba(245, 208, 112, 0.85) 2.5px, transparent 2.5px),
+            linear-gradient(to right, rgba(245, 208, 112, 0.45) 1.5px, transparent 1.5px),
+            linear-gradient(to bottom, rgba(245, 208, 112, 0.45) 1.5px, transparent 1.5px);
+          background-size: 80px 80px;
+          transform: rotateX(-65deg) rotateY(calc(var(--grid-tilt-x, 0) * 3deg)) rotateZ(calc(var(--grid-tilt-x, 0) * 1.5deg)) translateY(0);
+          animation: ceilingScroll 10s linear infinite;
+          mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 85%);
+          -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 85%);
+          will-change: transform;
+        }
+
+        @keyframes floorScroll {
+          0% {
+            transform: rotateX(65deg) rotateY(calc(var(--grid-tilt-x, 0) * 3deg)) rotateZ(calc(var(--grid-tilt-x, 0) * -1.5deg)) translateY(0);
+          }
+          100% {
+            transform: rotateX(65deg) rotateY(calc(var(--grid-tilt-x, 0) * 3deg)) rotateZ(calc(var(--grid-tilt-x, 0) * -1.5deg)) translateY(80px);
+          }
+        }
+
+        @keyframes ceilingScroll {
+          0% {
+            transform: rotateX(-65deg) rotateY(calc(var(--grid-tilt-x, 0) * 3deg)) rotateZ(calc(var(--grid-tilt-x, 0) * 1.5deg)) translateY(0);
+          }
+          100% {
+            transform: rotateX(-65deg) rotateY(calc(var(--grid-tilt-x, 0) * 3deg)) rotateZ(calc(var(--grid-tilt-x, 0) * 1.5deg)) translateY(80px);
+          }
+        }
+
+        /* Subtle Analog voltage grid flicker shimmer */
+        @keyframes gridFlicker {
+          0%, 19%, 21%, 23%, 25%, 39%, 41%, 89%, 91%, 100% {
+            opacity: 1;
+          }
+          20%, 24%, 40%, 90% {
+            opacity: 0.72;
+          }
+        }
+
+        /* Horizon backlight breathing pulse */
+        @keyframes horizonBreathe {
+          0%, 100% {
+            transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0.55;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1.15);
+            opacity: 1.0;
           }
         }
 
