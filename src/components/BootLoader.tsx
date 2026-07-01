@@ -13,17 +13,18 @@ const LETTER_SCRIPTS: Record<string, string[]> = {
   'K': ['క', 'क', 'க', 'ಕ', 'ক'],
   'T': ['త', 'त', 'த', 'ತ', 'ত'],
   'H': ['హ', 'ह', 'ஹ', 'ಹ', 'হ'],
-  'A': ['అ', 'अ', 'அ', 'ಅ', 'অ'],
+  'A': ['అ', 'अ', 'அ', 'அ', 'অ'],
   'N': ['న', 'न', 'ந', 'ನ', 'ন'],
-  'D': ['డ', 'ड', 'ட', 'ಡ', 'ড'],
+  'D': ['డ', 'ड', 'ட', 'ಡ', 'ड'],
 };
 
+// Elegant Traditional Serif scripts for visual texture
 const SCRIPT_FONTS = [
-  "'Noto Sans Telugu', sans-serif",
-  "'Noto Sans Devanagari', sans-serif",
-  "'Noto Sans Tamil', sans-serif",
-  "'Noto Sans Kannada', sans-serif",
-  "'Noto Sans Bengali', sans-serif",
+  "'Noto Serif Telugu', serif",
+  "'Noto Serif Devanagari', serif",
+  "'Noto Serif Tamil', serif",
+  "'Noto Serif Kannada', serif",
+  "'Noto Serif Bengali', serif",
 ];
 
 const NAME = 'MUKTHANAND';
@@ -39,9 +40,21 @@ type BootLoaderProps = {
 };
 
 /* ═══════════════════════════════════════════════════════
-   BootLoader — V3 Cinematic Title Sequence
-   Pure visual: multilingual script cycling → gold lock → glow → fade
-   No text, no particles, no progress bar.
+   BootLoader — V5.5 Ultimate Ultra-Premium Sequence
+   Features:
+   1. Circular Iris Reveal Shutter (Collapsing portal exit)
+   2. Vignette Masking + Breathing (Atmospheric depth focus)
+   3. Letter Lock Spring + Chromatic Aberration Glitch
+   4. Power-On Circuit Charge (Pre-scramble shimmer ripple)
+   5. Merged Underline Glow Pulse (Breathing circuit activation)
+   6. Active Spotlight drifting glow tracking the scramble
+   7. Snappy Typewriter SYSTEM READY with blinking block cursor
+   8. Fully resolved high-contrast footer HUD text
+   9. Syncopate lock-on font to match the landing page Hero name
+   10. Traditional Noto Serif scripts for scrambled visual texture
+   11. Spaced tracking/gaps for gallery-style typography layout
+   12. Collapsing Shutter-Edge Ring (Gold portal ring in sync with shutter)
+   13. Bespoke Node Metadata (Tiny geographic location coordinates)
    ═══════════════════════════════════════════════════════ */
 export function BootLoader({ onComplete }: BootLoaderProps) {
   const reduced = usePrefersReducedMotion();
@@ -53,6 +66,16 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   const [isRevealing, setIsRevealing] = useState(false);
   const [glowIntensity, setGlowIntensity] = useState<'faint' | 'bloom' | 'fading'>('faint');
   const [bootStatus, setBootStatus] = useState<'booting' | 'ready'>('booting');
+  const [statusText, setStatusText] = useState('');
+
+  /* ─── Segmented Underline Progress Trackers ─── */
+  const [lockedStates, setLockedStates] = useState<boolean[]>(new Array(LETTERS.length).fill(false));
+  const [cyclingStates, setCyclingStates] = useState<boolean[]>(new Array(LETTERS.length).fill(false));
+  const [isPoweringOn, setIsPoweringOn] = useState(false);
+
+  /* ─── Spotlight Glow Tracker ─── */
+  const [activeSpotlightIndex, setActiveSpotlightIndex] = useState(-1);
+  const [glowPosition, setGlowPosition] = useState({ x: '50%', y: '50%' });
 
   /* ─── Refs ─── */
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,6 +91,65 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     timersRef.current.push(id);
     return id;
   }, []);
+
+  /* ─── Track active letter position for radial glow spotlight ─── */
+  useEffect(() => {
+    if (showGoldLine) {
+      setGlowPosition({ x: '50%', y: '50%' });
+      return;
+    }
+
+    if (activeSpotlightIndex === -1) {
+      setGlowPosition({ x: '50%', y: '50%' });
+      return;
+    }
+
+    const activeSpan = letterRefs.current[activeSpotlightIndex];
+    const container = containerRef.current;
+    if (activeSpan && container) {
+      const spanRect = activeSpan.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const x = spanRect.left + spanRect.width / 2 - containerRect.left;
+      const y = spanRect.top + spanRect.height / 2 - containerRect.top;
+      setGlowPosition({ x: `${x}px`, y: `${y}px` });
+    }
+  }, [activeSpotlightIndex, showGoldLine]);
+
+  /* ─── Typewriter logic: 30ms/char + snappy 150ms blink ─── */
+  const typeIn = useCallback((
+    text: string,
+    onChar: (curr: string) => void,
+    done: () => void
+  ) => {
+    let index = 0;
+    let currentText = '';
+
+    const step = () => {
+      if (skipRef.current) return;
+      if (index < text.length) {
+        currentText += text[index];
+        onChar(currentText + '█');
+        index++;
+        T(step, 30);
+      } else {
+        // Snappy blinking block cursor
+        let blinkCount = 0;
+        const blink = () => {
+          if (skipRef.current) return;
+          if (blinkCount < 2) {
+            onChar(text + (blinkCount % 2 === 0 ? ' ' : '█'));
+            blinkCount++;
+            T(blink, 150);
+          } else {
+            onChar(text);
+            done();
+          }
+        };
+        blink();
+      }
+    };
+    step();
+  }, [T]);
 
   /* ─── cycleLetter: 6 cycles at 40ms, then lock to English ─── */
   const cycleLetter = useCallback((
@@ -96,22 +178,13 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         iteration++;
         T(step, 50);
       } else {
-        // LOCK to English — gold flash + scale pop + glow
-        span.style.transition = 'color 0.15s, font-family 0.08s, transform 0.15s, filter 0.2s';
-        span.style.fontFamily = "'Syne', sans-serif";
-        span.style.color = '#E8B65A';
-        span.style.transform = 'scale(1.15)';
-        span.style.filter = 'drop-shadow(0 0 10px rgba(232,182,90,0.45))';
+        // LOCK to English — trigger spring + chromatic glitch keyframe animation on Syncopate
+        span.style.fontFamily = "'Syncopate', sans-serif";
         span.textContent = letter;
+        span.style.animation = 'letterLock 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards';
 
-        // Settle to warm white — glow fades as letter dims
         T(() => {
           if (skipRef.current) return;
-          if (span) {
-            span.style.color = 'var(--color-text-primary)';
-            span.style.transform = 'scale(1)';
-            span.style.filter = 'drop-shadow(0 0 6px rgba(232,182,90,0.15))';
-          }
           onLock();
         }, 180);
       }
@@ -125,16 +198,36 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
     let lockedCount = 0;
 
     for (let i = 0; i < LETTERS.length; i++) {
-      const offset = i < 3 ? i * 150 : 300 + (i - 2) * 250;
+      const offset = i < 3 ? i * 120 : 240 + (i - 2) * 200;
 
       T(() => {
         if (skipRef.current) return;
 
+        // Track active letter index to update spotlight position
+        setActiveSpotlightIndex(i);
+        setCyclingStates(prev => {
+          const next = [...prev];
+          next[i] = true;
+          return next;
+        });
+
         cycleLetter(i, LETTERS[i], () => {
           if (skipRef.current) return;
+
+          setCyclingStates(prev => {
+            const next = [...prev];
+            next[i] = false;
+            return next;
+          });
+          setLockedStates(prev => {
+            const next = [...prev];
+            next[i] = true;
+            return next;
+          });
+
           lockedCount++;
 
-          // All letters locked — gold line sweeps in
+          // All letters locked — gold line sweeps in (merging transition starts)
           if (lockedCount === LETTERS.length) {
             T(() => {
               if (skipRef.current) return;
@@ -146,33 +239,37 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                 setGlowIntensity('bloom');
               }, 120);
 
-              // After glow blooms, fade in SYSTEM READY + switch status to ready
+              // Typewriter SYSTEM READY reveal (360ms typing + 300ms blinking)
               T(() => {
                 if (skipRef.current) return;
                 setSystemReady(true);
                 setBootStatus('ready');
 
-                // Hold the glow + SYSTEM READY for 600ms, then reveal
-                T(() => {
-                  if (skipRef.current) return;
-                  setGlowIntensity('fading');
+                typeIn('SYSTEM READY', (curr) => {
+                  setStatusText(curr);
+                }, () => {
+                  // Hold the glow for 150ms, then reveal the main page
                   T(() => {
                     if (skipRef.current) return;
-                    onCompleteRef.current?.();
-                    setIsRevealing(true);
+                    setGlowIntensity('fading');
                     T(() => {
                       if (skipRef.current) return;
-                      setPhase('complete');
-                    }, 1200);
-                  }, 200);
-                }, 600);
-              }, 400);
+                      onCompleteRef.current?.();
+                      setIsRevealing(true);
+                      T(() => {
+                        if (skipRef.current) return;
+                        setPhase('complete');
+                      }, 1200);
+                    }, 50);
+                  }, 150);
+                });
+              }, 100);
             }, 36);
           }
         });
       }, offset);
     }
-  }, [T, cycleLetter]);
+  }, [T, cycleLetter, typeIn]);
 
   /* ─── Keyboard interrupt ─── */
   useEffect(() => {
@@ -183,6 +280,10 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       skipRef.current = true;
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
+      
+      setLockedStates(new Array(LETTERS.length).fill(true));
+      setCyclingStates(new Array(LETTERS.length).fill(false));
+      
       onCompleteRef.current?.();
       setIsRevealing(true);
       T(() => setPhase('complete'), 1200);
@@ -190,24 +291,26 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [phase]);
+  }, [phase, T]);
 
   /* ─── Main boot sequence ─── */
   useEffect(() => {
     if (reduced) {
       // Quick reveal: show name immediately, fade in
       T(() => {
+        setLockedStates(new Array(LETTERS.length).fill(true));
         for (let i = 0; i < LETTERS.length; i++) {
           const span = letterRefs.current[i];
           if (!span) continue;
           span.textContent = LETTERS[i];
-          span.style.fontFamily = "'Syne', sans-serif";
+          span.style.fontFamily = "'Syncopate', sans-serif";
           span.style.color = 'var(--color-text-primary)';
         }
         setShowGoldLine(true);
         T(() => {
           if (skipRef.current) return;
           setSystemReady(true);
+          setStatusText('SYSTEM READY');
           T(() => {
             if (skipRef.current) return;
             onCompleteRef.current?.();
@@ -218,14 +321,21 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       return;
     }
 
-    /* Stage 1: Black void (300ms) — pure black, silence */
+    /* Stage 1: Black void (250ms) ─── */
     T(() => {
       if (skipRef.current) return;
 
-      /* Stage 2: Script cycling starts */
+      /* Stage 2: Power-on charge ripple starts */
       setPhase('active');
-      startLetterCycling();
-    }, 300);
+      setIsPoweringOn(true);
+
+      // Start letter cycling after the 400ms ripple finishes
+      T(() => {
+        if (skipRef.current) return;
+        setIsPoweringOn(false);
+        startLetterCycling();
+      }, 400);
+    }, 250);
 
     return () => {
       timersRef.current.forEach(clearTimeout);
@@ -239,17 +349,57 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
       style={{
         backgroundColor: phase === 'boot' ? '#000' : 'var(--color-bg)',
         transition: 'background-color 0.3s ease-out',
-        clipPath: isRevealing ? 'inset(0 0 100% 0)' : 'inset(0 0 0 0)',
+        // Circular Iris Reveal Shutter (Collapsing circular portal)
+        clipPath: isRevealing ? 'circle(0% at 50% 50%)' : 'circle(150% at 50% 50%)',
         transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
         transitionDuration: isRevealing ? '1.2s' : '0s',
         transitionProperty: 'clip-path, background-color',
       }}
     >
-      {/* ─── Grain texture overlay — same treatment as the hero section ─── */}
+      {/* ─── Collapsing Shutter-Edge Ring (Gold energy portal ring) ─── */}
+      {isRevealing && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            borderRadius: '50%',
+            border: '2px solid var(--color-accent)',
+            boxShadow: '0 0 24px rgba(245, 208, 112, 0.65), inset 0 0 24px rgba(245, 208, 112, 0.45)',
+            animation: 'irisCollapse 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+            pointerEvents: 'none',
+            zIndex: 10,
+          }}
+        />
+      )}
+
+      {/* ─── CRT Scanline Overlay Texture (Faint Glass Screen Effect) ─── */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[4]"
+        style={{
+          background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%)',
+          backgroundSize: '100% 4px',
+          opacity: 0.12,
+        }}
+        aria-hidden="true"
+      />
+
+      {/* ─── Cinematic Vignette Gradient Overlay with Breathing ─── */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[3]"
+        style={{
+          background: 'radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(0,0,0,0.85) 100%)',
+          animation: 'vignetteBreathe 4s ease-in-out infinite',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* ─── Grain texture overlay ─── */}
       <div
         className="pointer-events-none absolute inset-0 z-[1]"
         style={{
@@ -259,23 +409,23 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         aria-hidden="true"
       />
 
-      {/* ─── Radial glow — gold/amber bloom behind the name ─── */}
+      {/* ─── Radial glow spotlight ─── */}
       {(phase === 'active' || phase === 'boot') && (
         <div
           className="pointer-events-none absolute z-[2]"
           style={{
-            top: '50%',
-            left: '50%',
+            top: glowPosition.y,
+            left: glowPosition.x,
             width: 'min(70vw, 600px)',
             height: 'min(70vw, 600px)',
             transform: 'translate(-50%, -50%)',
-            background: 'radial-gradient(circle, rgba(232,182,90,0.30) 0%, rgba(232,182,90,0.08) 40%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(232,182,90,0.22) 0%, rgba(232,182,90,0.06) 45%, transparent 70%)',
             opacity:
-              glowIntensity === 'bloom' ? 1 :
+              glowIntensity === 'bloom' ? 1.0 :
               glowIntensity === 'fading' ? 0 :
-              0.5,
-            transition: 'opacity 0.8s cubic-bezier(0.16,1,0.3,1)',
-            willChange: 'opacity',
+              0.45,
+            transition: 'opacity 0.8s cubic-bezier(0.16,1,0.3,1), left 0.6s cubic-bezier(0.16,1,0.3,1), top 0.6s cubic-bezier(0.16,1,0.3,1)',
+            willChange: 'opacity, left, top',
           }}
           aria-hidden="true"
         />
@@ -284,12 +434,23 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
       {phase === 'active' && (
         <div
           className="relative z-10 flex flex-col items-center"
-          style={{ padding: '0 16px' }}
+          style={{
+            padding: '0 16px',
+            // Camera Zoom-Out on exit shutter collapse
+            transform: isRevealing ? 'scale(0.93)' : 'scale(1)',
+            transition: 'transform 1.2s cubic-bezier(0.22, 1, 0.36, 1)',
+            willChange: 'transform',
+          }}
         >
-          {/* Letter row — the entire show */}
+          {/* Letter row */}
           <div
             className="flex items-center justify-center"
-            style={{ gap: '2px', minHeight: '100px' }}
+            style={{
+              gap: 'clamp(4px, 1vw, 10px)', // Elegant wider tracking
+              minHeight: '100px',
+              position: 'relative',
+              zIndex: 2,
+            }}
           >
             {LETTERS.map((letter, i) => (
               <span
@@ -302,9 +463,8 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
                   minWidth: '0.6em',
                   textAlign: 'center',
                   lineHeight: 1.1,
-                  transition: 'color 0.15s, font-family 0.08s, transform 0.15s',
                   color: '#3D2A3D',
-                  fontFamily: "'Syne', sans-serif",
+                  fontFamily: "'Syncopate', sans-serif",
                 }}
               >
                 {letter}
@@ -312,37 +472,112 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
             ))}
           </div>
 
-          {/* Gold gradient underline */}
+          {/* Segmented-to-continuous Underline / Progress Line */}
           <div
             style={{
-              height: '2px',
-              background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)',
-              width: showGoldLine ? 'min(320px, 80vw)' : '0px',
-              transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)',
-              margin: '18px auto 10px',
+              display: 'flex',
+              gap: showGoldLine ? '0px' : '6px',
+              justifyContent: 'center',
+              margin: '22px auto 14px',
+              width: showGoldLine ? 'min(280px, 70vw)' : 'min(320px, 80vw)',
+              position: 'relative',
+              overflow: 'hidden',
+              animation: showGoldLine ? 'linePulse 2s ease-in-out infinite' : 'none',
+              transition: 'gap 0.5s cubic-bezier(0.16, 1, 0.3, 1), width 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
-          />
+          >
+            {LETTERS.map((_, i) => {
+              const isLocked = lockedStates[i];
+              const isCycling = cyclingStates[i];
 
-          {/* SYSTEM READY — fades in after gold line, elegant, no typewriter */}
+              let color = '#2A1F2A';
+              let anim = 'none';
+              let delay = '0s';
+              let scaleY = 1;
+
+              if (isPoweringOn) {
+                // Power-On circuit charge ripple
+                anim = 'powerOnCharge 0.2s ease-out';
+                delay = `${i * 20}ms`;
+              } else if (isLocked) {
+                color = 'var(--color-accent)';
+                anim = 'tickFlash 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+              } else if (isCycling) {
+                color = '#8A6A8A';
+                scaleY = 1.4;
+              }
+
+              return (
+                <div
+                  key={i}
+                  style={{
+                    flex: 1,
+                    height: '2px',
+                    backgroundColor: color,
+                    transform: `scaleY(${scaleY})`,
+                    animation: anim,
+                    animationDelay: delay,
+                    transition: 'background 0.3s ease-out, transform 0.2s ease-out',
+                  }}
+                />
+              );
+            })}
+
+            {/* Laser Sweep Overlay once fused */}
+            {showGoldLine && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  height: '100%',
+                  width: '100%',
+                  background: 'linear-gradient(90deg, transparent, #FFF, transparent)',
+                  backgroundSize: '20% 100%',
+                  backgroundRepeat: 'no-repeat',
+                  animation: 'laserSweep 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                }}
+              />
+            )}
+          </div>
+
+          {/* SYSTEM READY — Typewriter animation */}
           <div
             style={{
               opacity: systemReady ? 1 : 0,
-              transition: 'opacity 0.5s ease-out',
               color: 'var(--color-accent)',
-              fontFamily: "'Syne', sans-serif",
-              fontWeight: 700,
-              fontSize: 'clamp(10px, 1.4vw, 14px)',
+              fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+              fontWeight: 500,
+              fontSize: '11px',
               letterSpacing: '0.25em',
               textTransform: 'uppercase',
-              height: '20px',
+              height: '18px',
+              marginTop: '4px',
+              textAlign: 'center',
             }}
           >
-            SYSTEM READY
+            {statusText}
+          </div>
+
+          {/* Bespoke Node Metadata — Geographic Location coordinates (HYD, IN) */}
+          <div
+            style={{
+              opacity: systemReady ? 0.35 : 0,
+              transition: 'opacity 0.6s ease-out',
+              color: 'var(--color-text-secondary)',
+              fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+              fontSize: '9px',
+              letterSpacing: '0.15em',
+              marginTop: '8px',
+              textAlign: 'center',
+            }}
+          >
+            [ BUILD: v3.0.0-GRADUATION // NODE: HYD ]
           </div>
         </div>
       )}
 
-      {/* ─── System status bar — amber dot + boot status + version ─── */}
+      {/* ─── System status bar — high contrast, clearly visible ─── */}
       <div
         className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between"
         style={{
@@ -351,14 +586,14 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           padding: '20px 24px',
         }}
       >
-        {/* Left: amber dot + status label */}
+        {/* Left: status dot + status label */}
         <div className="flex items-center gap-2">
           <span
             className="block rounded-full"
             style={{
               width: 5,
               height: 5,
-              background: bootStatus === 'booting' ? '#EF9F27' : '#5DCAA5',
+              background: bootStatus === 'booting' ? '#FFAE33' : 'var(--color-success)',
               animation: bootStatus === 'booting' ? 'bootAmberPulse 2.5s ease-in-out infinite' : 'none',
               transition: 'background 0.4s ease-out',
             }}
@@ -367,7 +602,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
             style={{
               fontFamily: 'JetBrains Mono, ui-monospace, monospace',
               fontSize: 10,
-              color: bootStatus === 'booting' ? '#5a5a58' : '#6FD9B6',
+              color: bootStatus === 'booting' ? '#9E9E9B' : 'var(--color-success)',
               fontWeight: 500,
               letterSpacing: '0.04em',
               transition: 'color 0.4s ease-out',
@@ -382,7 +617,7 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
           style={{
             fontFamily: 'JetBrains Mono, ui-monospace, monospace',
             fontSize: 10,
-            color: '#444441',
+            color: '#808080',
             fontWeight: 500,
           }}
         >
@@ -390,11 +625,107 @@ export function BootLoader({ onComplete }: BootLoaderProps) {
         </span>
       </div>
 
-      {/* ─── Keyframe for the amber pulse ─── */}
+      {/* ─── Keyframe Animations ─── */}
       <style>{`
         @keyframes bootAmberPulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.35; }
+        }
+
+        @keyframes tickFlash {
+          0% {
+            filter: drop-shadow(0 0 12px rgba(245, 208, 112, 1));
+            transform: scaleY(2.5);
+            background-color: #FFFFFF;
+          }
+          100% {
+            filter: drop-shadow(0 0 4px rgba(245, 208, 112, 0.6));
+            transform: scaleY(1);
+            background-color: var(--color-accent);
+          }
+        }
+
+        @keyframes laserSweep {
+          0% {
+            background-position: -20% 0;
+          }
+          100% {
+            background-position: 120% 0;
+          }
+        }
+
+        /* Chromatic Lock Glitch + Elastic Bounce keyframe using Syncopate values */
+        @keyframes letterLock {
+          0% {
+            transform: scale(1.35);
+            filter: drop-shadow(0 0 15px rgba(245, 208, 112, 0.8));
+            color: #E8B65A;
+            text-shadow: 2px 0 rgba(255, 0, 0, 0.6), -2px 0 rgba(0, 255, 255, 0.6);
+          }
+          30% {
+            text-shadow: -1px 0 rgba(255, 0, 0, 0.4), 1px 0 rgba(0, 255, 255, 0.4);
+          }
+          50% {
+            transform: scale(0.92);
+            filter: drop-shadow(0 0 3px rgba(245, 208, 112, 0.2));
+            text-shadow: none;
+          }
+          75% {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 8px rgba(245, 208, 112, 0.4));
+          }
+          100% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 6px rgba(245, 208, 112, 0.15));
+            color: var(--color-text-primary);
+            text-shadow: none;
+          }
+        }
+
+        @keyframes linePulse {
+          0%, 100% {
+            filter: drop-shadow(0 0 4px rgba(245, 208, 112, 0.4));
+          }
+          50% {
+            filter: drop-shadow(0 0 12px rgba(245, 208, 112, 0.95));
+          }
+        }
+
+        @keyframes powerOnCharge {
+          0% {
+            background-color: #2A1F2A;
+          }
+          40% {
+            background-color: var(--color-accent);
+            filter: drop-shadow(0 0 8px rgba(245, 208, 112, 0.8));
+          }
+          100% {
+            background-color: #2A1F2A;
+            filter: none;
+          }
+        }
+
+        @keyframes vignetteBreathe {
+          0%, 100% {
+            opacity: 0.8;
+          }
+          50% {
+            opacity: 0.92;
+          }
+        }
+
+        /* Collapsing shutter-edge energy ring animation */
+        @keyframes irisCollapse {
+          0% {
+            width: 250vmax;
+            height: 250vmax;
+            opacity: 0.85;
+          }
+          100% {
+            width: 0px;
+            height: 0px;
+            opacity: 0;
+          }
         }
       `}</style>
     </div>
