@@ -435,7 +435,7 @@ export function Contact() {
     <Section id="contact" label="POST /hire" title="Get in Touch">
       <div className="mb-10">
         <p className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary" data-section-desc>
-          Send a request directly, or reach out through any channel below.
+          I’m always open to new projects, opportunities, or just a quick chat. Drop me a line.
         </p>
         <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-fg-muted" data-section-meta>
           <span className="inline-flex items-center gap-1.5">

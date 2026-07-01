@@ -271,7 +271,7 @@ export function Stack() {
           className="max-w-prose font-sans text-base leading-relaxed text-fg-secondary"
           data-section-desc
         >
-          Skills grouped by discipline. Depth signaled honestly — no filler, no charts.
+          The languages, databases, and frameworks I use to build — rated honestly by my day-to-day familiarity.
         </p>
         <p
           className="mt-2 font-mono text-xs text-fg-muted"

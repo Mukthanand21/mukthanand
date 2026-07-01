@@ -543,7 +543,7 @@ export function Services() {
           />
           <div className="mb-10">
             <p className="max-w-prose text-base leading-relaxed text-fg-secondary" data-section-desc>
-              Services I&rsquo;ve shipped or contributed to.
+              A collection of products I&rsquo;ve built from scratch, and open-source systems I actively support.
             </p>
             <p className="mt-2 font-mono text-xs text-fg-muted" data-section-meta>
               {services.length} services &middot; {liveCount} live &middot; {archivedCount} archived

@@ -224,7 +224,7 @@ export function Changelog() {
       `}</style>
       <div className="mb-12">
         <p className="max-w-prose text-base leading-relaxed text-fg-secondary" data-section-desc>
-          A record of builds, shipped features, and lessons learned.
+          My journey as an engineer told through releases, hackathons, and commits.
         </p>
         <p className="mt-2 font-mono text-xs text-fg-muted" data-section-meta>
           {entries.length} releases &middot; latest {entries[0].version} &middot;{' '}
