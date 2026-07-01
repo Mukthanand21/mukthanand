@@ -5,6 +5,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useKineticScroll } from '../motion/useKineticScroll';
 import { KineticSwapper } from '../components/KineticSwapper';
 import { DimmedPunctuation } from '../components/DimmedPunctuation';
+import { useBootComplete } from '../components/Layout';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,26 +20,140 @@ const GRAIN_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
 
 /* ============================================================
    /status section — specs-v2/001-status.md
-   Layout:
-     - 3D server rack background (RackScene)
-     - Vignette + grain overlays
-     - Status bar (top)
-     - Two-column grid: identity (left) + status sidebar (right)
-     - Rack readout (bottom)
-     - Ticker
-     - Project preview cards
    ============================================================ */
 export function Status() {
   const heroRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
   const heroAccentRef = useKineticScroll<HTMLHeadingElement>({ maxSkew: 2 });
 
+  const bootComplete = useBootComplete();
+  const reduced = usePrefersReducedMotion();
+
   const [scrollOpacity, setScrollOpacity] = useState(1);
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    // delay scroll indicator fade-in until landing title transitions finish
-    const timer = setTimeout(() => setVisible(true), 3000);
+  /* ─── Typewriter text states ─── */
+  const [typedFirst, setTypedFirst] = useState('');
+  const [typedSecond, setTypedSecond] = useState('');
+  const [typedBio, setTypedBio] = useState('');
+  const [typingStage, setTypingStage] = useState(0); // 0: idle, 1: first, 2: second, 3: bio, 4: complete
 
+  /* ─── Gold cursor state machines ─── */
+  const [firstCursor, setFirstCursor] = useState('');
+  const [secondCursor, setSecondCursor] = useState('');
+  const [bioCursor, setBioCursor] = useState('');
+
+  /* ─── Sequential typewriter animation logic ─── */
+  useEffect(() => {
+    if (!bootComplete) return;
+
+    if (reduced) {
+      setTypedFirst("Mukthanand");
+      setTypedSecond("Reddy.");
+      setTypedBio(
+        "Software engineer focused on backend systems, full-stack applications, and AI-powered products. Built and contributed to Ask Your Corpus, EHRS, and open-source AI infrastructure at Viswam AI."
+      );
+      setTypingStage(4);
+      return;
+    }
+
+    // Step 1: Start typing the first name
+    setTypingStage(1);
+    
+    let index = 0;
+    const firstStr = "Mukthanand";
+    let currFirst = "";
+
+    const typeFirst = () => {
+      if (index < firstStr.length) {
+        currFirst += firstStr[index];
+        setTypedFirst(currFirst);
+        setFirstCursor('█');
+        index++;
+        setTimeout(typeFirst, 40);
+      } else {
+        // First name finished. Single blink (100ms off -> 100ms on -> settle off)
+        setTimeout(() => {
+          setFirstCursor(' ');
+          setTimeout(() => {
+            setFirstCursor('█');
+            setTimeout(() => {
+              setFirstCursor('');
+              
+              // Step 2: Start typing the last name
+              setTypingStage(2);
+              index = 0;
+              const secondStr = "Reddy.";
+              let currSecond = "";
+
+              const typeSecond = () => {
+                if (index < secondStr.length) {
+                  currSecond += secondStr[index];
+                  setTypedSecond(currSecond);
+                  setSecondCursor('█');
+                  index++;
+                  setTimeout(typeSecond, 40);
+                } else {
+                  // Last name finished. Settle cursor off and start bio
+                  setSecondCursor('');
+                  
+                  setTimeout(() => {
+                    // Step 3: Start typing the bio description
+                    setTypingStage(3);
+                    index = 0;
+                    const bioStr = "Software engineer focused on backend systems, full-stack applications, and AI-powered products. Built and contributed to Ask Your Corpus, EHRS, and open-source AI infrastructure at Viswam AI.";
+                    let currBio = "";
+
+                    const typeBio = () => {
+                      if (index < bioStr.length) {
+                        currBio += bioStr[index];
+                        setTypedBio(currBio);
+                        setBioCursor('█');
+                        index++;
+                        setTimeout(typeBio, 8); // Snappy bio typewriter stream
+                      } else {
+                        // Bio finished. Double blink (off -> on -> off -> on -> settle)
+                        setTimeout(() => {
+                          setBioCursor(' ');
+                          setTimeout(() => {
+                            setBioCursor('█');
+                            setTimeout(() => {
+                              setBioCursor(' ');
+                              setTimeout(() => {
+                                setBioCursor('█');
+                                setTimeout(() => {
+                                  setBioCursor('');
+                                  // Step 4: Stagger reveal version tag, CTAs, and indicator
+                                  setTypingStage(4);
+                                }, 200);
+                              }, 200);
+                            }, 200);
+                          }, 200);
+                        }, 200);
+                      }
+                    };
+                    typeBio();
+                  }, 200);
+                }
+              };
+              typeSecond();
+            }, 100);
+          }, 100);
+        }, 100);
+      }
+    };
+
+    // 150ms buffer to align with circular shutter opening reveal
+    setTimeout(typeFirst, 150);
+  }, [bootComplete, reduced]);
+
+  /* ─── Scroll indicator reveal ─── */
+  useEffect(() => {
+    if (typingStage === 4) {
+      setVisible(true);
+    }
+  }, [typingStage]);
+
+  useEffect(() => {
     const handleScroll = () => {
       const y = window.scrollY;
       const opacity = Math.max(0, 1 - y / 100);
@@ -45,11 +161,7 @@ export function Status() {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -107,8 +219,8 @@ export function Status() {
       <div
         className="pointer-events-none absolute inset-0 z-[7] hero-gradient"
         style={{
-          opacity: 0,
-          animation: 'statusFadeUp 1s 2.1s cubic-bezier(0.16,1,0.3,1) forwards',
+          opacity: bootComplete ? 1 : 0,
+          transition: 'opacity 1s cubic-bezier(0.16,1,0.3,1)',
         }}
         aria-hidden="true"
       />
@@ -122,8 +234,9 @@ export function Status() {
             className="mb-5 font-mono font-light text-xs tracking-[0.1em]"
             style={{
               color: 'var(--color-text-muted)',
-              opacity: 0,
-              animation: 'statusFadeUp 0.8s 2.25s cubic-bezier(0.16,1,0.3,1) forwards',
+              opacity: bootComplete && typingStage === 4 ? 1 : 0,
+              transform: bootComplete && typingStage === 4 ? 'translateY(0)' : 'translateY(10px)',
+              transition: 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             <DimmedPunctuation>v3.0.0</DimmedPunctuation> &mdash; final year build
@@ -138,11 +251,11 @@ export function Status() {
                 color: '#f5f3ee',
                 willChange: 'transform',
                 textShadow: '0 4px 20px rgba(0,0,0,0.65)',
-                opacity: 0,
-                animation: 'statusFadeUp 1.1s 2.25s cubic-bezier(0.16,1,0.3,1) forwards',
+                opacity: bootComplete && typingStage >= 1 ? 1 : 0,
               }}
             >
-              Mukthanand
+              {typedFirst}
+              {firstCursor && <span style={{ color: 'var(--color-accent)' }}>{firstCursor}</span>}
             </h1>
             <h1
               ref={heroAccentRef}
@@ -151,15 +264,22 @@ export function Status() {
                 color: 'var(--color-accent)',
                 willChange: 'transform',
                 textShadow: '0 4px 20px rgba(0,0,0,0.65)',
-                opacity: 0,
-                animation: 'statusFadeUp 1.1s 2.4s cubic-bezier(0.16,1,0.3,1) forwards',
+                opacity: bootComplete && typingStage >= 2 ? 1 : 0,
               }}
             >
-              Reddy.
+              {typedSecond}
+              {secondCursor && <span style={{ color: 'var(--color-accent)' }}>{secondCursor}</span>}
             </h1>
 
             {/* role line */}
-            <div className="mt-2">
+            <div 
+              className="mt-2"
+              style={{
+                opacity: bootComplete && typingStage === 4 ? 1 : 0,
+                transform: bootComplete && typingStage === 4 ? 'translateY(0)' : 'translateY(10px)',
+                transition: 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
               <KineticSwapper
                 prefix="Focused on"
                 words={[
@@ -180,24 +300,21 @@ export function Status() {
               style={{
                 color: 'var(--color-text-secondary)',
                 textShadow: '0 2px 12px rgba(0,0,0,0.5)',
-                opacity: 0,
-                animation: 'statusFadeUp 1s 2.65s cubic-bezier(0.16,1,0.3,1) forwards',
+                opacity: bootComplete && typingStage >= 3 ? 1 : 0,
               }}
             >
-              Software engineer focused on backend systems,{' '}
-              <span className="text-nowrap">full-stack</span>{' '}
-              applications, and AI-powered products.
-              Built and contributed to Ask Your Corpus, EHRS, and
-              open-source AI infrastructure at Viswam AI.
+              {typedBio}
+              {bioCursor && <span style={{ color: 'var(--color-accent)' }}>{bioCursor}</span>}
             </p>
 
             {/* CTA buttons */}
             <div
               className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
               style={{
-                pointerEvents: 'auto',
-                opacity: 0,
-                animation: 'statusFadeUp 0.9s 2.85s cubic-bezier(0.16,1,0.3,1) forwards',
+                pointerEvents: bootComplete && typingStage === 4 ? 'auto' : 'none',
+                opacity: bootComplete && typingStage === 4 ? 1 : 0,
+                transform: bootComplete && typingStage === 4 ? 'translateY(0)' : 'translateY(12px)',
+                transition: 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
               {/* primary CTA — gold filled + split-flap text + loop arrow */}
@@ -240,8 +357,6 @@ export function Status() {
                 <span className="absolute top-0 right-0 w-1 h-1 border-t border-r border-accent opacity-0 scale-150 transition-all duration-[250ms] group-hover:opacity-100 group-hover:scale-100" />
                 <span className="absolute bottom-0 left-0 w-1 h-1 border-b border-l border-accent opacity-0 scale-150 transition-all duration-[250ms] group-hover:opacity-100 group-hover:scale-100" />
                 <span className="absolute bottom-0 right-0 w-1 h-1 border-b border-r border-accent opacity-0 scale-150 transition-all duration-[250ms] group-hover:opacity-100 group-hover:scale-100" />
-
-                <span className="font-mono text-[9px] text-fg-muted/50 lowercase tracking-normal mr-[-4px]">pdf //</span>
                 
                 <div className="relative h-[14px] overflow-hidden">
                   <span className="flex flex-col transition-transform duration-[350ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2">
@@ -289,9 +404,9 @@ export function Status() {
           transition: visible 
             ? 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)' 
             : 'opacity 0.6s ease, transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
-          zIndex: 30,
+          pointerEvents: visible ? 'auto' : 'none',
         }}
-        className="group flex flex-col items-center pointer-events-auto cursor-pointer"
+        className="group flex flex-col items-center cursor-pointer"
         onClick={() => {
           const el = document.getElementById('services');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -328,9 +443,6 @@ export function Status() {
 
       {/* ─── Animation keyframes ─── */}
       <style>{`
-        @keyframes statusFadeUp {
-          to { opacity: 1; transform: translateY(0); }
-        }
         @keyframes bracketsPulse {
           0%, 100% { transform: scale(0.9); opacity: 0.4; }
           50% { transform: scale(1.12); opacity: 0.95; }
