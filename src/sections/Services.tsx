@@ -178,6 +178,24 @@ function ServiceCard({ service }: { service: Service }) {
     return () => cancelAnimationFrame(frame);
   }, [isArchived, service.responseMs]);
 
+  // Active scroll-focus highlight
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card || isArchived) return;
+
+    const trigger = ScrollTrigger.create({
+      trigger: card,
+      start: 'top 65%',
+      end: 'bottom 35%',
+      onEnter: () => card.classList.add('services-card-active'),
+      onLeave: () => card.classList.remove('services-card-active'),
+      onEnterBack: () => card.classList.add('services-card-active'),
+      onLeaveBack: () => card.classList.remove('services-card-active'),
+    });
+
+    return () => trigger.kill();
+  }, [isArchived]);
+
   // Individual card scroll animation with text cascade
   useEffect(() => {
     const card = cardRef.current;
@@ -445,6 +463,9 @@ export function Services() {
           background-color: rgba(17, 17, 17, 0.82) !important;
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
+        }
+        .services-card-active .card-title {
+          color: var(--color-accent) !important;
         }
         .services-card:hover {
           background-color: rgba(25, 24, 22, 0.85) !important;

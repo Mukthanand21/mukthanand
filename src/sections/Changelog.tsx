@@ -154,17 +154,29 @@ export function Changelog() {
           );
         }
 
-        /* ─── Active entry indicator: brighten glow ring ─── */
+        /* ─── Active entry indicator: brighten glow ring & title ─── */
         const activeTarget = glow ?? dot;
         if (activeTarget) {
           ScrollTrigger.create({
             trigger: entry,
             start: 'top center',
             end: 'bottom center',
-            onEnter: () => activeTarget.classList.add('timeline-dot-active'),
-            onLeave: () => activeTarget.classList.remove('timeline-dot-active'),
-            onEnterBack: () => activeTarget.classList.add('timeline-dot-active'),
-            onLeaveBack: () => activeTarget.classList.remove('timeline-dot-active'),
+            onEnter: () => {
+              activeTarget.classList.add('timeline-dot-active');
+              entry.classList.add('timeline-entry-active');
+            },
+            onLeave: () => {
+              activeTarget.classList.remove('timeline-dot-active');
+              entry.classList.remove('timeline-entry-active');
+            },
+            onEnterBack: () => {
+              activeTarget.classList.add('timeline-dot-active');
+              entry.classList.add('timeline-entry-active');
+            },
+            onLeaveBack: () => {
+              activeTarget.classList.remove('timeline-dot-active');
+              entry.classList.remove('timeline-entry-active');
+            },
           });
         }
       });
@@ -187,6 +199,9 @@ export function Changelog() {
           box-shadow: 0 0 10px var(--color-accent), 0 0 20px rgba(245, 208, 112, 0.3) !important;
           opacity: 0.5 !important;
           transform: scale(2) !important;
+        }
+        .timeline-entry-active .timeline-title {
+          color: var(--color-accent) !important;
         }
         @media (prefers-reduced-motion: reduce) {
           .animate-dot-pulse {
@@ -272,7 +287,7 @@ export function Changelog() {
                 )}
 
                 <h3
-                  className={`font-sans font-semibold text-fg transition-colors duration-150 group-hover:text-accent ${
+                  className={`timeline-title font-sans font-semibold text-fg transition-colors duration-150 group-hover:text-accent ${
                     major ? 'text-xl' : 'text-lg'
                   }`}
                 >
